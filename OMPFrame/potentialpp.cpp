@@ -26,35 +26,33 @@ float hertzianSq(float x2) {
 }
 
 Rod::Rod(int n, float d) :n(n), rod_d(d) {
-    a = 1 + (n - 1) / 2.0f * rod_d;
-    b = 1;
-    shift = -(n - 1) / 2.0f;
+    a = 1 + (n - 1) / 2.0f * rod_d + 0.1f;   // 0.1 (zero padding) is for memory safe
+    b = 1 + 0.1f;
+    c = a - b;
+    n_shift = -(n - 1) / 2.0f;
     fv = new ReaderFunc<xyt, float, szxyt>(HashXyt);
-    gate = Gate(a, b);
 }
 
+/*
+    The origin definition of the potential
+*/
 float Rod::HertzianRodPotential(const xyt& q) {
+#if NAN_IF_PENETRATE
+    if (isSegmentCrossing(q)) return NAN;
+#endif
     float v = 0;
     for (int k = 0; k < n; k++) {
-        float x2 = -(shift + k) * rod_d;
+        float xpos = (n_shift + k) * rod_d;
         for (int l = 0; l < n; l++) {
             float
-                z = -(shift + l) * rod_d,
-                xij = q.x + z * fcos(q.t) + x2,
+                z = (n_shift + l) * rod_d,
+                xij = q.x + z * fcos(q.t) + xpos,
                 yij = q.y + z * fsin(q.t),
                 r2 = xij * xij + yij * yij;
             v += hertzianSq(r2);
         }
     }
     return v;
-}
-
-float Rod::hertzian_rod_01(const xyt& q) {
-    /*
-        q is in [0,1] x [0,1] x [0,1]
-    */
-    xyt qinv = gate.inverse(q);
-    return HertzianRodPotential(qinv);
 }
 
 void Rod::initPotential() {
@@ -68,15 +66,21 @@ void Rod::initPotential() {
         float x = xs[i];
         for (float y : ys) for (float t : ts) {
             xyt q = { x,y,t };
-            fv->data[HashXyt(q)] = hertzian_rod_01(q);
+            fv->data[HashXyt(q)] = HertzianRodPotential(inverse(q));
         }
     }
     // fv->write("potential.dat");
 }
 
+float Rod::potentialNoInterpolate(const xyt& q)
+{
+    return (*fv)(transform(q));
+}
+
 float Rod::potential(const xyt& q) {
     /*
+        q: real x y theta
         the input of fv is in [0,1] x [0,1] x [0,1]
     */
-    return (*fv)(gate.transform(q));
+    return interpolatePotentialSimplex(transform(q));
 }

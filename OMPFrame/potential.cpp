@@ -64,101 +64,43 @@ Matrix2f FU(float theta) {
     if szx == szy == szz, the maximal szx is 1024 for the sake of size_t.
 */
 
-Gate::Gate()
-{
-}
-
-Gate::Gate(float a, float b) : a(a), b(b) { ; }
-
-
-static inline float modpi(float x) {
-    const float a = 1 / pi;
-    float y = x * a;
-    return y - std::floor(y);
-}
-
-xyt Gate::transform(const xyt& q)
-{
-    return
-    {
-        abs(q.x) / (2 * a),
-        abs(q.y) / (a + b),
-        (q.x > 0) ^ (q.y > 0) ? 1 - modpi(q.t) : modpi(q.t)
-    };
-}
-
-xyt Gate::inverse(const xyt& q)
-{
-    return
-    {
-        (2 * a) * q.x,
-        (a + b) * q.y,
-        pi * q.t
-    };
-}
-
 template<int n1, int n2, int n3>
 inline size_t hashXyt(const xyt& q) {
-    static float a1 = n1 - 1 + 1.0 / n1,
-                 a2 = n2 - 1 + 1.0 / n2,
-                 a3 = n3 - 1 + 1.0 / n3;
+    const float a1 = n1 - 1,
+                a2 = n2 - 1,
+                a3 = n3 - 1;
     size_t i = round(q.x * a1),
            j = round(q.y * a2),
            k = round(q.t * a3);
     return i * (n2 * n3) + j * (n3) + k;
 }
 
+template<int n1, int n2, int n3>
+inline size_t hashXytFloor(const xyt& q) {
+    const float a1 = n1 - 1,
+                a2 = n2 - 1,
+                a3 = n3 - 1;
+    size_t i = size_t(q.x * a1),    // floor
+           j = size_t(q.y * a2),
+           k = size_t(q.t * a3);
+    return i * (n2 * n3) + j * (n3)+k;
+}
+
 size_t HashXyt(const xyt& q) {
     return hashXyt<szx, szy, szt>(q);
 }
 
-static ReaderFunc<xyt, float, szxyt> FVxyt() {
-    // call selected generator function
-    return ReaderFunc<xyt, float, szxyt>(HashXyt);
-}
-
-template<int n1, int n2, int n3>
-struct GradientGenerator {
-    float A, B, C, D;
-
-    float calScalar(const xyt& q) {
-        static float 
-            a1 = n1 - 1 + 1.0 / n1,
-            a2 = n2 - 1 + 1.0 / n2,
-            a3 = n3 - 1 + 1.0 / n3;
-        float 
-            dx = q.x - int(q.x * a1) / float(n1 - 1),
-            dy = q.y - int(q.y * a2) / float(n2 - 1),
-            dt = q.t - int(q.t * a3) / float(n3 - 1);
-        return A * dx + B * dy + C * dt + D;
-    }
-};
-
-template<int n1, int n2, int n3>
-inline size_t _adapted_hashXyt(float x, float y, float t) {
-    static float 
-        a1 = n1 - 1 + 1.0 / n1,
-        a2 = n2 - 1 + 1.0 / n2,
-        a3 = n3 - 1 + 1.0 / n3;
-    size_t 
-        i = size_t(x * a1),
-        j = size_t(y * a2),
-        k = size_t(t * a3);
-    return i * (n2 * n3) + j * n3 + k;
-}
-
-xyt interpolateGradient(float x, float y, float t) {
-    static auto fv = FVxyt();
+xyt Rod::interpolateGradientSimplex(const xyt& q) {
     /*
         fetch potential values of 4 points:
         (i,j,k), (i+1,j,k), (i,j+1,k), (i,j,k+1)
     */
-    size_t ijk = _adapted_hashXyt<szx, szy, szt>(x, y, t);
+    size_t ijk = HashXyt(q); // ...
     float 
-        v000 = fv.data[ijk],
-        v100 = fv.data[1 * szy * szt + ijk],
-        v010 = fv.data[1 * szt + ijk],
-        v001 = fv.data[1 + ijk];
+        v000 = fv->data[ijk],
+        v100 = fv->data[1 * szy * szt + ijk],
+        v010 = fv->data[1 * szt + ijk],
+        v001 = fv->data[1 + ijk];
     /*
         solve the linear equation for (A,B,C,D):
         V(x,y,t) = A(x-x0) + B(y-y0) + C(t-t0) + D
@@ -174,41 +116,33 @@ xyt interpolateGradient(float x, float y, float t) {
     return { A,B,C };
 }
 
-template<int n1, int n2, int n3>
-GradientGenerator<n1, n2, n3> interpolatePotential(const xyt& q) {
-    static auto fv = FVxyt();
+/*
+    input: q in [0,1] x [0,1] x [0,1]
+*/
+float Rod::interpolatePotentialSimplex(const xyt& q) {
     /* 
         fetch potential values of 4 points: 
         (i,j,k), (i+1,j,k), (i,j+1,k), (i,j,k+1)
     */
-    size_t ijk = hashXyt<n1, n2, n3>(q);
-    float v000 = fv.data[ijk],
-        v100 = fv.data[1 * n2 * n3 + ijk],
-        v010 = fv.data[1 * n3 + ijk],
-        v001 = fv.data[1 + ijk];
+    size_t ijk = hashXytFloor<szx, szy, szt>(q);
+    float
+        v000 = fv->data[ijk],
+        v100 = fv->data[1 * szy * szt + ijk],
+        v010 = fv->data[1 * szt + ijk],
+        v001 = fv->data[1 + ijk];
     /*
         solve the linear equation for (A,B,C,D):
         V(x,y,t) = A(x-x0) + B(y-y0) + C(t-t0) + D
     */
     float
-        A = (-v000 + v100) * (n1 - 1),
-        B = (-v000 + v010) * (n2 - 1),
-        C = (-v000 + v100) * (n3 - 1),
+        A = (-v000 + v100) * (szx - 1),
+        B = (-v000 + v010) * (szy - 1),
+        C = (-v000 + v001) * (szt - 1),
         D = v000;
     /*
-        the gradient: (A,B,C) is already obtained. (if only cauculate gradient, directly return)
-        the value: A(x-x0) + B(y-y0) + C(t-t0) + D
+        the energy: A(x-x0) + B(y-y0) + C(t-t0) + D
+        since x0 <- floor'(x), there must be x > x0, y > y0, t > t0
     */
-    return { A,B,C,D };
+    GradientGenerator<szx, szy, szt> gg = { A,B,C,D };
+    return gg.calScalar(q);
 }
-
-
-
-
-// interfaces
-
-float _fpotential(float x, float y, float t) {
-    xyt q = { x,y,t };
-    return interpolatePotential<szx, szy, szt>(q).calScalar(q);
-}
-

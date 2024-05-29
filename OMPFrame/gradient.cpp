@@ -15,7 +15,8 @@ void PairInfo::clear()
 xyt singleGradient(ParticlePair& ijxytt) {
     Map<Vector2f> xy(&ijxytt.x);
     Vector2f xy_rotated = FU(-ijxytt.t1) * xy;
-    xyt gradient = interpolateGradient(xy_rotated[0], xy_rotated[1], ijxytt.t2 - ijxytt.t1);
+    // xyt gradient = interpolateGradientSimplex(xy_rotated[0], xy_rotated[1], ijxytt.t2 - ijxytt.t1);
+    xyt gradient = { 0 };
     Map<Vector2f> force_rotated((float*)&gradient);
     force_rotated = FU(ijxytt.t1) * force_rotated;      // mul inplace
     return gradient;

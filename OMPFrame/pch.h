@@ -14,6 +14,7 @@
 DLLEXPORT void init();
 DLLEXPORT void setRod(int n, float d);
 DLLEXPORT float fastPotential(float x, float y, float t);
+DLLEXPORT float interpolatePotential(float x, float y, float t);
 DLLEXPORT float precisePotential(float x, float y, float t);
 DLLEXPORT float hertzianSq(float x2);
 DLLEXPORT float fsin(float x);

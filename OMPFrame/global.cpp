@@ -16,10 +16,19 @@ void setRod(int n, float d)
 
 float fastPotential(float x, float y, float t)
 {
+    return global->rod->potentialNoInterpolate({ x,y,t });
+}
+
+float interpolatePotential(float x, float y, float t)
+{
     return global->rod->potential({ x,y,t });
 }
 
 float precisePotential(float x, float y, float t)
 {
-    return global->rod->HertzianRodPotential({ x,y,t });
+    return global->rod->HertzianRodPotential({
+        abs(x),
+        abs(y),
+        (x > 0) ^ (y > 0) ? t : pi - t,
+    });
 }
