@@ -13,6 +13,7 @@ const size_t szxyt = szx * szy * szt;
 float fsin(float x);
 float fcos(float x);
 Matrix2f FU(float theta);
+float d_isotropicSq_r(float x2);
 
 static inline float modpi(float x) {
     const float a = 1 / pi;

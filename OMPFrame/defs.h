@@ -18,6 +18,7 @@ struct xyt {
     float x, y, t; 
     void operator+=(const xyt& o);
     void operator-=(const xyt& o);
+    float amp2();
 };
 
 struct ParticlePair { int id1, id2; float x, y, t1, t2; };

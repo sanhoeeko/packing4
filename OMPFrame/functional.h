@@ -62,22 +62,21 @@ struct ReaderFunc
 template<typename a, typename b>
 struct CacheFunction 
 {
-    a* id = NULL;
     b* cache = NULL;
     function<void(a*, b*)> func;    // function in fishing format. a: input type; b: result type
 
-    CacheFunction(void f(a*,b*)) {
+    CacheFunction(void f(a*,b*), b* new_cache) {
         this->func = function<void(a*, b*)>(f);
-        this->cache = new b();
+        this->cache = new_cache;
     }
 
     b* operator()(a* x) {
-        if (x == id) {
+        if (x->id == cache->id) {
             return cache;
         }
         else {
-            id = x;
-            func(id, cache);
+            cache->id = x->id;
+            func(x, cache);         // cache = f(x)
             return cache;
         }
     }

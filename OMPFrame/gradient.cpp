@@ -3,12 +3,19 @@
 #include"potential.h"
 #include"functional.h"
 
+PairInfo::PairInfo(int N)
+{
+    this->id = -1;
+    this->N = N;
+    for (int i = 0; i < CORES; i++) {
+        info[i].reserve(N);
+    }
+}
+
 void PairInfo::clear()
 {
-#pragma omp parallel
-    {
-        int idx = omp_get_thread_num();
-        info[idx].clear();
+    for (int i = 0; i < CORES; i++) {
+        info[i].clear();
     }
 }
 
@@ -22,6 +29,12 @@ xyt singleGradient(ParticlePair& ijxytt) {
     return gradient;
 }
 
+xyt singleGradientAsDisks(ParticlePair& ijxytt) {
+    float r2 = ijxytt.x * ijxytt.x + ijxytt.y * ijxytt.y;
+    float f_r = d_isotropicSq_r(r2);
+    return { f_r * ijxytt.x, f_r * ijxytt.y, 0 };
+}
+
 void xyt::operator+=(const xyt& o) {
     x += o.x; y += o.y; t += o.t;
 }
@@ -31,6 +44,7 @@ void xyt::operator-=(const xyt& o){
 }
 
 void calGradient(PairInfo* pinfo, GradientAndEnergy* ge) {
+    ge->clear();
 
 #pragma omp parallel
     {
@@ -48,10 +62,67 @@ void calGradient(PairInfo* pinfo, GradientAndEnergy* ge) {
     }
 }
 
+void calGradientAsDisks(PairInfo* pinfo, GradientAndEnergy* ge) {
+    ge->clear();
+
+#pragma omp parallel
+    {
+        int idx = omp_get_thread_num();
+        int n = pinfo->info[idx].size();
+        xyt* ptr = (xyt*)(void*)ge->buffers[idx].data();
+        for (int i = 0; i < n; i++) {
+            int
+                ii = pinfo->info[idx][i].id1,
+                jj = pinfo->info[idx][i].id2;
+            xyt f = singleGradientAsDisks(pinfo->info[idx][i]);
+            ptr[ii] -= f;
+            ptr[jj] += f;
+        }
+    }
+}
+
+void calEnergyAsDisks(PairInfo* pinfo, GradientAndEnergy* ge) {
+
+#pragma omp parallel
+    {
+        int idx = omp_get_thread_num();
+        int n = pinfo->info[idx].size();
+        xyt* ptr = (xyt*)(void*)ge->buffers[idx].data();
+        for (int i = 0; i < n; i++) {
+            int
+                ii = pinfo->info[idx][i].id1,
+                jj = pinfo->info[idx][i].id2;
+            xyt f = singleGradientAsDisks(pinfo->info[idx][i]);
+            ptr[ii] -= f;
+            ptr[jj] += f;
+        }
+    }
+}
+
 GradientAndEnergy* PairInfo::CalGradient()
 {
-    static CacheFunction<PairInfo, GradientAndEnergy> f(calGradient);
+    static CacheFunction<PairInfo, GradientAndEnergy> f(calGradient, new GradientAndEnergy(N));
     return f(this);
+}
+
+GradientAndEnergy* PairInfo::CalGradientAsDisks()
+{
+    static CacheFunction<PairInfo, GradientAndEnergy> f(calGradientAsDisks, new GradientAndEnergy(N));
+    return f(this);
+}
+
+GradientAndEnergy* PairInfo::CalEnergy()
+{
+    return nullptr;
+}
+
+GradientAndEnergy::GradientAndEnergy(int N)
+{
+    this->id = -1;
+    this->N = N;
+    for (int i = 0; i < CORES; i++) {
+        buffers[i] = VectorXf::Zero(3 * N);
+    }
 }
 
 void GradientAndEnergy::clear()

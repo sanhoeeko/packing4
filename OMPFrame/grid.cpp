@@ -11,6 +11,7 @@ const int max_grid_size = 256 * 256;
 
 Grid::Grid() {
 	p = new VectorList<int, CORES, grid_single_capacity>[max_grid_size];
+	id = -1;
 }
 void Grid::init(float cell_size, float boundary_a, float boundary_b) {
 	/*
@@ -44,6 +45,13 @@ void Grid::add(int thread_idx, int i, int j, int particle_id) {
 	// x -->j, y -->i is the correct order
 	(this->p + j * cols + i)->sub_push_back(thread_idx, particle_id);
 }
+void Grid::toVector()
+{
+#pragma omp parallel for num_threads(CORES)
+	for (int i = 0; i < size; i++) {
+		p[i].toVector();
+	}
+}
 void Grid::clear() {
 	for (int i = 0; i < size; i++) {
 		p[i].clear();
@@ -55,7 +63,7 @@ void Grid::gridLocate(float* x, int N) {
 	*/
 	xyt* particles = (xyt*)(void*)x;
 	int n = ceil((float)N / CORES);
-#pragma omp parallel
+#pragma omp parallel num_threads(CORES)
 	{
 		int idx = omp_get_thread_num();
 		int terminal = std::min(n * (idx + 1), N);
@@ -65,9 +73,10 @@ void Grid::gridLocate(float* x, int N) {
 			add(idx, i, j, cnt);
 		}
 	}
+	this->toVector();
 }
 
-void Grid::collisionDetectPP(float* x, int N, PairInfo* dst) {
+void Grid::collisionDetectPP(float* x, PairInfo* dst) {
 	/*
 		Given that a particle is in a certain grid,
 		it is only possible to collide with particles in that grid or surrounding grids.
@@ -77,9 +86,12 @@ void Grid::collisionDetectPP(float* x, int N, PairInfo* dst) {
 #pragma omp parallel num_threads(CORES)
 	{
 		int idx = omp_get_thread_num();
+		int n_tasks = lines - 2;
+		int start = 1 + idx * (n_tasks / 4);
+		int end = 1 + (idx + 1) * (n_tasks / 4);
+		if (idx + 1 == CORES) end = lines - 1;
 
-	#pragma omp for    // 这里在并行任务划分上有问题，因为这里相当于是内层循环！
-		for (int i = 1; i < lines - 1; i++)  // begin at the (1,1) cell.
+		for (int i = start; i < end; i++)  // begin at the (1,1) cell.
 		{
 			for (int j = 1; j < cols - 1; j++)
 			{
@@ -94,10 +106,10 @@ void Grid::collisionDetectPP(float* x, int N, PairInfo* dst) {
 						if (!nlst->empty())
 						{
 							// for each particle pair in these two grid:
-							for (auto ptr = VectorListIter<int, CORES, grid_single_capacity>(*lst); ptr.goes(); ptr.next()) {
-								for (auto qtr = VectorListIter<int, CORES, grid_single_capacity>(*nlst); qtr.goes(); qtr.next()) {
+							for (int i = 0; i < lst->size(); i++) {
+								for (int j = 0; j < nlst->size(); j++) {
 									int
-										p = ptr.val(), q = qtr.val();
+										p = lst->data[i], q = nlst->data[j];
 									xyt*
 										P = particles + p, * Q = particles + q;
 									float
@@ -113,11 +125,11 @@ void Grid::collisionDetectPP(float* x, int N, PairInfo* dst) {
 					}
 					// When and only when collide in one cell, triangular loop must be taken,
 					// which ensure that no collision is calculated twice.
-					for (auto ptr = VectorListIter<int, CORES, grid_single_capacity>(*lst); ptr.goes(); ptr.next()) {
-						int cnt = 1;
-						for (auto qtr = VectorListIter<int, CORES, grid_single_capacity>(*lst, cnt); qtr.goes(); qtr.next()) {
+					int _n = lst->size();
+					for (int i = 0; i < _n; i++) {
+						for (int j = i + 1; j < _n; j++) {
 							int
-								p = ptr.val(), q = qtr.val();
+								p = lst->data[i], q = lst->data[j];
 							xyt*
 								P = particles + p, * Q = particles + q;
 							float
@@ -128,7 +140,6 @@ void Grid::collisionDetectPP(float* x, int N, PairInfo* dst) {
 								dst->info[idx].push_back({ p,q,dx,dy,P->t,Q->t });
 							}
 						}
-						cnt++;
 					}
 				}
 			}
@@ -160,6 +171,6 @@ void Grid::boundaryCollisionDetectPW(float* x, int N, PairInfo* dst, EllipseBoun
 void collisionDetect(State* s, PairInfo* pinfo) {
 	pinfo->clear();
 	Grid* grid = s->GridLocate();
-	grid->collisionDetectPP(s->configuration.data(), s->N, pinfo);
+	grid->collisionDetectPP(s->configuration.data(), pinfo);
 	grid->boundaryCollisionDetectPW(s->configuration.data(), s->N, pinfo, s->boundary);
 }

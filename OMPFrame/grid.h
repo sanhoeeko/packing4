@@ -20,6 +20,7 @@ struct Grid {
 	int xshift, yshift;							// number of cells of a half axis
 	int lines, cols;							// number of cells of each line of the grid
 	int size;									// lines * cols
+	int id;										// derived
 	int* collision_detect_region;				// only 5 cells (including self) are taken into account 
 												// in the collision detection of a cell.
 
@@ -31,8 +32,9 @@ struct Grid {
 	int ylocate(float y);
 	VectorList<int, CORES, grid_single_capacity>* loc(int i, int j);
 	void add(int thread_idx, int i, int j, int particle_id);
+	void toVector();
 	void clear();
 
-	void collisionDetectPP(float* x, int N, PairInfo* dst);
+	void collisionDetectPP(float* x, PairInfo* dst);
 	void boundaryCollisionDetectPW(float* x, int N, PairInfo* dst, EllipseBoundary* b);
 };

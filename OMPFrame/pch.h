@@ -13,6 +13,13 @@
 
 DLLEXPORT void init();
 DLLEXPORT void setRod(int n, float d);
+DLLEXPORT void* createState(int N, float boundary_a, float boundary_b);
+DLLEXPORT void* getStateData(void* state_ptr);
+DLLEXPORT int getStateIterations(void* state_ptr);
+DLLEXPORT void* getStateMaxGradient(void* state_ptr);
+
+DLLEXPORT void initStateAsDisks(void* state_ptr);
+
 DLLEXPORT float fastPotential(float x, float y, float t);
 DLLEXPORT float interpolatePotential(float x, float y, float t);
 DLLEXPORT float precisePotential(float x, float y, float t);

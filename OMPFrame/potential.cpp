@@ -14,7 +14,7 @@ static inline float mod2pi(float x) {
 
 template<size_t capacity>
 static inline size_t hashFloat2Pi(const float& x) {
-    return round(mod2pi(x) * capacity);  // signed before mudolo
+    return round(mod2pi(x) * capacity); 
 }
 
 static inline float _sin(const float& x) { return sin(x); }
