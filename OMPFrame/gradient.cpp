@@ -3,19 +3,42 @@
 #include"potential.h"
 #include"functional.h"
 
+bool isDataValid(VectorXf* q) {
+    static bool bs[CORES];
+    memset(bs, 1, CORES * sizeof(bool));
+    int stride = q->size() / CORES;
+    float* ptr = q->data();
+#pragma omp parallel num_threads(CORES)
+    {
+        int idx = omp_get_thread_num();
+        int end = idx + 1 == CORES ? q->size() : (idx + 1) * stride;
+        for (int i = idx * stride; i < end; i++) {
+            if (isnan(ptr[i])) {
+                bs[idx] = false; break;
+            }
+        }
+    }
+    for (int i = 0; i < CORES; i++) {
+        if (!bs[i])return false;
+    }
+    return true;
+}
+
 PairInfo::PairInfo(int N)
 {
     this->id = -1;
     this->N = N;
     for (int i = 0; i < CORES; i++) {
-        info[i].reserve(N);
+        info_pp[i].reserve(N);
+        info_pw[i].reserve(N);
     }
 }
 
 void PairInfo::clear()
 {
     for (int i = 0; i < CORES; i++) {
-        info[i].clear();
+        info_pp[i].clear();
+        info_pw[i].clear();
     }
 }
 
@@ -46,18 +69,31 @@ void xyt::operator-=(const xyt& o){
 void calGradient(PairInfo* pinfo, GradientAndEnergy* ge) {
     ge->clear();
 
-#pragma omp parallel
+    // for pp
+#pragma omp parallel num_threads(CORES)
     {
         int idx = omp_get_thread_num();
-        int n = pinfo->info[idx].size();
+        int n = pinfo->info_pp[idx].size();
         xyt* ptr = (xyt*)(void*)ge->buffers[idx].data();
         for (int i = 0; i < n; i++) {
             int
-                ii = pinfo->info[idx][i].id1, 
-                jj = pinfo->info[idx][i].id2;
-            xyt f = singleGradient(pinfo->info[idx][i]);
+                ii = pinfo->info_pp[idx][i].id1,
+                jj = pinfo->info_pp[idx][i].id2;
+            xyt f = singleGradient(pinfo->info_pp[idx][i]);
             ptr[ii] -= f;
             ptr[jj] += f;
+        }
+    }
+    // for pw
+#pragma omp parallel num_threads(CORES)
+    {
+        int idx = omp_get_thread_num();
+        int n = pinfo->info_pw[idx].size();
+        xyt* ptr = (xyt*)(void*)ge->buffers[idx].data();
+        for (int i = 0; i < n; i++) {
+            int ii = pinfo->info_pw[idx][i].id1;                        // jj = -1
+            xyt f = singleGradient(pinfo->info_pw[idx][i]);
+            ptr[ii] -= f;
         }
     }
 }
@@ -65,36 +101,33 @@ void calGradient(PairInfo* pinfo, GradientAndEnergy* ge) {
 void calGradientAsDisks(PairInfo* pinfo, GradientAndEnergy* ge) {
     ge->clear();
 
-#pragma omp parallel
+    // for pp
+#pragma omp parallel num_threads(CORES)
     {
         int idx = omp_get_thread_num();
-        int n = pinfo->info[idx].size();
+        int n = pinfo->info_pp[idx].size();
         xyt* ptr = (xyt*)(void*)ge->buffers[idx].data();
+        ParticlePair* src = (ParticlePair*)(void*)pinfo->info_pp[idx].data();
         for (int i = 0; i < n; i++) {
             int
-                ii = pinfo->info[idx][i].id1,
-                jj = pinfo->info[idx][i].id2;
-            xyt f = singleGradientAsDisks(pinfo->info[idx][i]);
+                ii = src[i].id1,
+                jj = src[i].id2;
+            xyt f = singleGradientAsDisks(src[i]);
             ptr[ii] -= f;
             ptr[jj] += f;
         }
     }
-}
-
-void calEnergyAsDisks(PairInfo* pinfo, GradientAndEnergy* ge) {
-
-#pragma omp parallel
+    // for pw 
+#pragma omp parallel num_threads(CORES)
     {
         int idx = omp_get_thread_num();
-        int n = pinfo->info[idx].size();
+        int n = pinfo->info_pw[idx].size();
         xyt* ptr = (xyt*)(void*)ge->buffers[idx].data();
+        ParticlePair* src = (ParticlePair*)(void*)pinfo->info_pw[idx].data();
         for (int i = 0; i < n; i++) {
-            int
-                ii = pinfo->info[idx][i].id1,
-                jj = pinfo->info[idx][i].id2;
-            xyt f = singleGradientAsDisks(pinfo->info[idx][i]);
+            int ii = src[i].id1;
+            xyt f = singleGradientAsDisks(src[i]);
             ptr[ii] -= f;
-            ptr[jj] += f;
         }
     }
 }
@@ -138,4 +171,10 @@ void GradientAndEnergy::joinTo(VectorXf* g)
     for (int i = 0; i < CORES; i++) {
         *g += buffers[i];
     }
+#if ENABLE_NAN_CHECK
+    if (!isDataValid(g)) {
+        cout << "nan in gradient. checked in `joinTo`" << endl;
+        throw 114514;
+    }
+#endif
 }

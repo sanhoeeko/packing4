@@ -35,7 +35,13 @@ int getStateIterations(void* state_ptr)
     return s->max_gradient_amps.size();
 }
 
-void* getStateMaxGradient(void* state_ptr)
+DLLEXPORT void* getStateResidualForce(void* state_ptr)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    return s->CalGradientAsDisks()->data();
+}
+
+void* getStateMaxGradients(void* state_ptr)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
     return s->max_gradient_amps.data();

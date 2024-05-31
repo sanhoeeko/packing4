@@ -1,4 +1,5 @@
 import ctypes as ct
+
 import numpy as np
 
 
@@ -13,20 +14,27 @@ class Kernel:
         self.dll.getStateData.restype = ct.c_void_p
         self.dll.getStateIterations.argtypes = [ct.c_void_p]
         self.dll.getStateIterations.restype = ct.c_int
-        self.dll.getStateMaxGradient.argtypes = [ct.c_void_p]
-        self.dll.getStateMaxGradient.restype = ct.c_void_p
+        self.dll.getStateMaxGradients.argtypes = [ct.c_void_p]
+        self.dll.getStateMaxGradients.restype = ct.c_void_p
+        self.dll.getStateResidualForce.argtypes = [ct.c_void_p]
+        self.dll.getStateResidualForce.restype = ct.c_void_p
         self.dll.initStateAsDisks.argtypes = [ct.c_void_p]
 
     def createState(self, N, boundary_a, boundary_b):
         return self.dll.createState(N, boundary_a, boundary_b)
 
-    def getStateData(self, address):
-        return self.dll.getStateData(address)
+    def getStateData(self, address, N):
+        array_pointer = ct.cast(self.dll.getStateData(address), ct.POINTER(ct.c_float * N * 3))
+        return np.ctypeslib.as_array(array_pointer.contents).copy().reshape((N, 3))
 
-    def getStateMaxGradient(self, address):
+    def getStateMaxGradients(self, address):
         iterations = int(self.dll.getStateIterations(address))
-        array_pointer = ct.cast(self.dll.getStateMaxGradient(address), ct.POINTER(ct.c_float * iterations))
-        return np.ctypeslib.as_array(array_pointer.contents)
+        array_pointer = ct.cast(self.dll.getStateMaxGradients(address), ct.POINTER(ct.c_float * iterations))
+        return np.ctypeslib.as_array(array_pointer.contents).copy()
+
+    def getStateResidualForce(self, address, N):
+        array_pointer = ct.cast(self.dll.getStateResidualForce(address), ct.POINTER(ct.c_float * N * 3))
+        return np.ctypeslib.as_array(array_pointer.contents).copy().reshape((N, 3))
 
     def initStateAsDisks(self, address):
         return self.dll.initStateAsDisks(address)

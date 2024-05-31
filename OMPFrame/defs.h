@@ -11,6 +11,7 @@ using namespace Eigen;
 
 #define CORES 4
 #define NAN_IF_PENETRATE false
+#define ENABLE_NAN_CHECK true
 
 const float pi = 3.141592654;
 

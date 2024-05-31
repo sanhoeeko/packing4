@@ -5,11 +5,12 @@ import numpy as np
 
 
 class State:
-    def __init__(self, N, boundary_a, boundary_b, configuration: np.ndarray):
+    def __init__(self, N, n, d, boundary_a, boundary_b, configuration: np.ndarray):
         self.N = N
+        self.n, self.d = n, d
         self.A, self.B = boundary_a, boundary_b
-        self.a, self.b = 1, 1
-        self.xyt = configuration.reshape((self.N, 3))
+        self.a, self.b = 1, 1 / (1 + (n - 1) * d / 2)
+        self.xyt = configuration
 
     @property
     def x(self): return self.xyt[:, 0]
@@ -35,10 +36,16 @@ class StateRenderer(State):
         ax.add_artist(ellipse)
         return self.handle
 
-    def drawParticles(self, color_function=None):
+    def drawParticles(self, colors=None):
+        """
+        colors: can be either an array or a function
+        """
         fig, ax = self.handle
-        if color_function is None:
+        if colors is None:
             c = np.zeros_like(self.x)
+        if isinstance(colors, np.ndarray):
+            assert colors.shape == self.x.shape
+            c = colors
 
         # Create a list to hold the patches
         ellipses = []

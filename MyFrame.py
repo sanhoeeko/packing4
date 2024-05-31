@@ -1,5 +1,4 @@
-import ctypes as ct
-
+import matplotlib.pyplot as plt
 import numpy as np
 
 from kernel import ker
@@ -7,33 +6,35 @@ from render import State
 
 
 class StateGetter:
-    def __init__(self, N, boundary_a, boundary_b):
+    def __init__(self, N, n, d, boundary_a, boundary_b):
         self.N = N
+        self.n, self.d = n, d
         self.A, self.B = boundary_a, boundary_b
         self.data_ptr = ker.createState(N, boundary_a, boundary_b)
 
     def get(self):
-        array_pointer = ct.cast(ker.getStateData(self.data_ptr), ct.POINTER(ct.c_float * self.N * 3))
-        numpy_array = np.ctypeslib.as_array(array_pointer.contents)
-        # .copy() is necessary
-        return State(self.N, self.A, self.B, numpy_array.copy())  
+        return State(self.N, self.n, self.d, self.A, self.B, ker.getStateData(self.data_ptr, self.N))
 
     def maxGradients(self):
-        return ker.getStateMaxGradient(self.data_ptr)
+        return ker.getStateMaxGradients(self.data_ptr)
+
+    def residualForce(self):
+        return ker.getStateResidualForce(self.data_ptr, self.N)
 
     def initAsDisks(self):
         return ker.initStateAsDisks(self.data_ptr)
 
 
-state = StateGetter(1000, 30, 30)
-r0 = state.get().render()
-r0.drawBoundary()
-r0.drawParticles()
+state = StateGetter(1000, 5, 0.25, 90, 15)
 state.initAsDisks()
 gs = state.maxGradients()
+print(gs[-1])
+fs = state.residualForce()
+fabs = np.sqrt(fs[:, 0] ** 2 + fs[:, 1] ** 2 + fs[:, 2] ** 2)
 r = state.get().render()
 r.drawBoundary()
-r.drawParticles()
+r.drawParticles(fabs)
+plt.show()
 
 '''
 n = 3

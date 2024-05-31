@@ -19,7 +19,8 @@ struct GradientAndEnergy
 
 struct PairInfo
 {
-    vector<ParticlePair> info[CORES];
+    vector<ParticlePair> info_pp[CORES];
+    vector<ParticlePair> info_pw[CORES];
     int N;
     int id;
 

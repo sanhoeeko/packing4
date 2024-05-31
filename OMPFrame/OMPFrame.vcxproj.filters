@@ -74,9 +74,6 @@
     <ClCompile Include="potentialpp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="io.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="array.cpp">
       <Filter>源文件</Filter>
     </ClCompile>

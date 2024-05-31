@@ -18,6 +18,16 @@ struct Maybe
     bool valid;
 };
 
+template<typename ty>
+Maybe<ty> Nothing() {
+    return { ty(), false };
+}
+
+template<typename ty>
+Maybe<ty> Just(const ty& x) {
+    return { x,true };
+}
+
 /*
     ReaderFunc :: 'a[hashable] -> 'b[any]
     Read the result from a database

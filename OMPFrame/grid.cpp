@@ -38,11 +38,10 @@ int Grid::ylocate(float y) {
 	return (int)floor(y / a) + yshift;
 }
 VectorList<int, CORES, grid_single_capacity>* Grid::loc(int i, int j) {
-	// x -->j, y -->i is the correct order
+	// x -->i, y -->j
 	return this->p + j * cols + i;
 }
 void Grid::add(int thread_idx, int i, int j, int particle_id) {
-	// x -->j, y -->i is the correct order
 	(this->p + j * cols + i)->sub_push_back(thread_idx, particle_id);
 }
 void Grid::toVector()
@@ -58,18 +57,15 @@ void Grid::clear() {
 	}
 }
 void Grid::gridLocate(float* x, int N) {
-	/*
-		Only DOF x and y are considered. The third DOF, if there is, is omitted.
-	*/
 	xyt* particles = (xyt*)(void*)x;
-	int n = ceil((float)N / CORES);
+	int stride = N / CORES;
 #pragma omp parallel num_threads(CORES)
 	{
 		int idx = omp_get_thread_num();
-		int terminal = std::min(n * (idx + 1), N);
-		for (int cnt = idx * n; cnt < terminal; cnt++) {
+		int end = idx + 1 == CORES ? N : (idx + 1) * stride;
+		for (int cnt = idx * stride; cnt < end; cnt++) {
 			int i = xlocate(particles[cnt].x);
-			int j = ylocate(particles[cnt].x);
+			int j = ylocate(particles[cnt].y);
 			add(idx, i, j, cnt);
 		}
 	}
@@ -86,14 +82,14 @@ void Grid::collisionDetectPP(float* x, PairInfo* dst) {
 #pragma omp parallel num_threads(CORES)
 	{
 		int idx = omp_get_thread_num();
-		int n_tasks = lines - 2;
-		int start = 1 + idx * (n_tasks / 4);
-		int end = 1 + (idx + 1) * (n_tasks / 4);
-		if (idx + 1 == CORES) end = lines - 1;
+		int n_tasks = cols - 2;
+		int start = 1 + idx * (n_tasks / CORES);
+		int end = 1 + (idx + 1) * (n_tasks / CORES);
+		if (idx + 1 == CORES) end = cols - 1;
 
 		for (int i = start; i < end; i++)  // begin at the (1,1) cell.
 		{
-			for (int j = 1; j < cols - 1; j++)
+			for (int j = 1; j < lines - 1; j++)
 			{
 				auto* lst = loc(i, j);
 				// if there is a particle in the grid:
@@ -106,10 +102,10 @@ void Grid::collisionDetectPP(float* x, PairInfo* dst) {
 						if (!nlst->empty())
 						{
 							// for each particle pair in these two grid:
-							for (int i = 0; i < lst->size(); i++) {
-								for (int j = 0; j < nlst->size(); j++) {
+							for (int ii = 0; ii < lst->size(); ii++) {
+								for (int jj = 0; jj < nlst->size(); jj++) {
 									int
-										p = lst->data[i], q = nlst->data[j];
+										p = lst->data[ii], q = nlst->data[jj];
 									xyt*
 										P = particles + p, * Q = particles + q;
 									float
@@ -117,7 +113,7 @@ void Grid::collisionDetectPP(float* x, PairInfo* dst) {
 										dy = P->y - Q->y,
 										r2 = dx * dx + dy * dy;
 									if (r2 < 4) {
-										dst->info[idx].push_back({ p,q,dx,dy,P->t,Q->t });
+										dst->info_pp[idx].push_back({ p,q,dx,dy,P->t,Q->t });
 									}
 								}
 							}
@@ -126,10 +122,10 @@ void Grid::collisionDetectPP(float* x, PairInfo* dst) {
 					// When and only when collide in one cell, triangular loop must be taken,
 					// which ensure that no collision is calculated twice.
 					int _n = lst->size();
-					for (int i = 0; i < _n; i++) {
-						for (int j = i + 1; j < _n; j++) {
+					for (int ii = 0; ii < _n; ii++) {
+						for (int jj = ii + 1; jj < _n; jj++) {
 							int
-								p = lst->data[i], q = lst->data[j];
+								p = lst->data[ii], q = lst->data[jj];
 							xyt*
 								P = particles + p, * Q = particles + q;
 							float
@@ -137,7 +133,7 @@ void Grid::collisionDetectPP(float* x, PairInfo* dst) {
 								dy = P->y - Q->y,
 								r2 = dx * dx + dy * dy;
 							if (r2 < 4) {
-								dst->info[idx].push_back({ p,q,dx,dy,P->t,Q->t });
+								dst->info_pp[idx].push_back({ p,q,dx,dy,P->t,Q->t });
 							}
 						}
 					}
@@ -159,9 +155,9 @@ void Grid::boundaryCollisionDetectPW(float* x, int N, PairInfo* dst, EllipseBoun
 	#pragma omp for
 		for (int i = 0; i < N; i++) {
 			if (b->maybeCollide(particles[i])) {
-				Maybe<ParticlePair> pair = b->collide(particles[i]);
+				Maybe<ParticlePair> pair = b->collide(i, particles[i]);
 				if (pair.valid) {
-					dst->info[idx].push_back(pair.obj);
+					dst->info_pw[idx].push_back(pair.obj);
 				}
 			}
 		}

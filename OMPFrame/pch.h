@@ -16,7 +16,8 @@ DLLEXPORT void setRod(int n, float d);
 DLLEXPORT void* createState(int N, float boundary_a, float boundary_b);
 DLLEXPORT void* getStateData(void* state_ptr);
 DLLEXPORT int getStateIterations(void* state_ptr);
-DLLEXPORT void* getStateMaxGradient(void* state_ptr);
+DLLEXPORT void* getStateMaxGradients(void* state_ptr);
+DLLEXPORT void* getStateResidualForce(void* state_ptr);
 
 DLLEXPORT void initStateAsDisks(void* state_ptr);
 
