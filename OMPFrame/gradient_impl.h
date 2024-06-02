@@ -23,8 +23,8 @@ void calGradient(PairInfo* pinfo, GradientBuffer* ge) {
                 ii = src[i].id1,
                 jj = src[i].id2;
             xyt f = singleGradient<how>(src[i]);
-            ptr[ii] -= f;
-            ptr[jj] += f;
+            ptr[ii] += f;
+            ptr[jj] -= f;
         }
     }
     // for pw 
@@ -37,7 +37,7 @@ void calGradient(PairInfo* pinfo, GradientBuffer* ge) {
         for (int i = 0; i < n; i++) {
             int ii = src[i].id1;
             xyt f = singleGradient<how>(src[i]);
-            ptr[ii] -= f;
+            ptr[ii] += f;
         }
     }
 }

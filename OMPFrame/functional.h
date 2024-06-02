@@ -14,18 +14,18 @@ using namespace std;
 template<typename ty>
 struct Maybe
 {
-    ty obj;
     bool valid;
+    ty obj;
 };
 
 template<typename ty>
 Maybe<ty> Nothing() {
-    return { ty(), false };
+    return { false };
 }
 
 template<typename ty>
 Maybe<ty> Just(const ty& x) {
-    return { x,true };
+    return { true, x };
 }
 
 /*

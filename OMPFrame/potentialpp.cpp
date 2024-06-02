@@ -9,7 +9,7 @@ float _hertzianSq(const float& x2) {
 float _d_isotropicSq_r(const float& x2) {
     if (x2 == 0)return 0;
     float x = sqrt(x2);
-    return (exp(-x) / x) / x;
+    return -(exp(-x) / x) / x;
 }
 
 template<size_t capacity>
@@ -42,8 +42,8 @@ float d_isotropicSq_r(float x2) {
 }
 
 Rod::Rod(int n, float d) :n(n), rod_d(d) {
-    a = 1 + (n - 1) / 2.0f * rod_d + 0.1f;   // 0.1 (zero padding) is for memory safe
-    b = 1 + 0.1f;
+    a = 1 + 0.02f;                                  // 0.02 (zero padding) is for memory safe
+    b = 1 / (1 + (n - 1) * rod_d / 2.0f) + 0.02f;
     c = a - b;
     n_shift = -(n - 1) / 2.0f;
     fv = new ReaderFunc<xyt, float, szxyt>(HashXyt);
@@ -104,5 +104,8 @@ xyt Rod::gradient(const xyt& q) {
     /*
         q: real x y theta
     */
-    return interpolateGradientSimplex(transform(q));
+    xyt g = inverse(interpolateGradientSimplex(transform(q)));
+    if (q.x < 0)g.x = -g.x;
+    if (q.y < 0)g.y = -g.y;
+    return g;
 }

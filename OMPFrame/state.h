@@ -4,7 +4,6 @@
 #include"functional.h"
 #include"grid.h"
 
-
 struct EllipseBoundary {
     float a, b;
     float a2, b2, inv_inner_a2, inv_inner_b2;

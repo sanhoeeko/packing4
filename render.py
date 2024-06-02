@@ -5,9 +5,10 @@ import matplotlib.colors as mcolors
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.spatial import Delaunay
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from scipy.spatial import Delaunay
 
+import art
 from graph import Graph
 
 my_colors = ['floralWhite', 'lemonchiffon', 'wheat', 'lightsalmon', 'coral', 'crimson',
@@ -65,6 +66,7 @@ class StateRenderer(State):
         ax.add_artist(ellipse)
         return self.handle
 
+
     def drawParticles(self, colors=None):
         """
         colors: can be either an array or a function
@@ -92,7 +94,8 @@ class StateRenderer(State):
 
         # For each point in the data, create a custom patch (ellipse) and add it to the list
         for xi, yi, ti in zip(self.x, self.y, np.degrees(self.t)):
-            ellipse = patches.Ellipse((xi, yi), width=self.a, height=self.b, angle=ti)
+            # ellipse = patches.Ellipse((xi, yi), width=self.a, height=self.b, angle=ti)
+            ellipse = art.Capsule((xi, yi), width=self.a, height=self.b, angle=ti)
             ellipses.append(ellipse)
 
         # Create a collection with the ellipses and add it to the axes

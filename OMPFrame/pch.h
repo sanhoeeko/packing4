@@ -32,6 +32,7 @@ DLLEXPORT void* getStateResidualForce(void* state_ptr);
 DLLEXPORT float fastPotential(float x, float y, float t);
 DLLEXPORT float interpolatePotential(float x, float y, float t);
 DLLEXPORT float precisePotential(float x, float y, float t);
+DLLEXPORT float* interpolateGradient(float x, float y, float t);
 DLLEXPORT float hertzianSq(float x2);
 
 #endif //PCH_H

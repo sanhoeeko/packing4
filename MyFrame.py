@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 from kernel import ker
 from render import State
@@ -23,6 +24,10 @@ class StateGetter:
     def residualForce(self):
         return ker.getStateResidualForce(self.data_ptr, self.N)
 
+    def residualForceAmp(self):
+        f2 = self.residualForce() ** 2
+        return np.sqrt(np.sum(f2, axis=1))
+
     def initAsDisks(self):
         return ker.initStateAsDisks(self.data_ptr)
 
@@ -35,17 +40,20 @@ class StateGetter:
 
 
 if __name__ == '__main__':
-    state = StateGetter(1000, 2, 0.25, 40, 40)
+    A, B = 36, 36
+    state = StateGetter(1000, 1, 0.25, A, B)
     state.initAsDisks()
+
     state.initPotential()
-    for i in range(100):
-        state.setBoundary(40, 40 - 0.1 * i)
-        state.equilibriumGD()
+    for i in range(5):
+        state.setBoundary(A, B - 0.5 * i)
+        energy = state.equilibriumGD()
         gs = state.maxGradients()
-        print(i, gs[-1])
+        print(i, f'G={gs[-1]}', f'E={energy}')
+        # if gs[-1] > 0: break
 
     s = state.get()
     r = s.render()
     r.drawBoundary()
-    r.drawParticles()
+    r.drawParticles(state.residualForceAmp())
     plt.show()

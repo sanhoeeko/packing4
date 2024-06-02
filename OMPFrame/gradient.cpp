@@ -50,18 +50,23 @@ void PairInfo::clear()
     }
 }
 
-/*
-    The range of (x,y,t): x = X/(2a) in [0,1), y = Y/(a+b) in [0,1), t = Theta/pi in [0,1)
-    if szx == szy == szz, the maximal szx is 1024 for the sake of size_t.
-*/
+
+void rotInplace(float angle, float* ptr) {
+    float
+        s = fsin(angle),
+        c = fcos(angle),
+        x = ptr[0],
+        y = ptr[1];
+    ptr[0] = c * x - s * y;
+    ptr[1] = s * x + c * y;
+}
 
 template<>
 xyt singleGradient<Normal>(ParticlePair& ijxytt) {
-    Map<Vector2f> xy(&ijxytt.x);
-    Vector2f xy_rotated = FU(-ijxytt.t1) * xy;
-    xyt gradient = global->rod->gradient({ xy_rotated[0], xy_rotated[1], ijxytt.t2 - ijxytt.t1 });
-    Map<Vector2f> force_rotated((float*)&gradient);
-    force_rotated = FU(ijxytt.t1) * force_rotated;      // mul inplace
+    float theta = ijxytt.t1;
+    rotInplace(-theta, &ijxytt.x);
+    xyt gradient = global->rod->gradient({ ijxytt.x, ijxytt.y, ijxytt.t2 - ijxytt.t1 });
+    rotInplace(theta, (float*)&gradient);
     return gradient;
 }
 

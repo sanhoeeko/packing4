@@ -1,4 +1,5 @@
 import ctypes as ct
+import time
 
 import numpy as np
 
@@ -8,6 +9,8 @@ class Kernel:
         self.dll = ct.cdll.LoadLibrary("./x64/Release/OMPFrame.dll")
         self.dll.init()
         self.dll.setRod.argtypes = [ct.c_int, ct.c_float]
+        self.dll.interpolatePotential.argtypes = [ct.c_float, ct.c_float, ct.c_float]
+        self.dll.interpolatePotential.restype = ct.c_float
         self.dll.setBoundary.argtypes = [ct.c_void_p, ct.c_float, ct.c_float]
         self.dll.createState.argtypes = [ct.c_int, ct.c_float, ct.c_float]
         self.dll.createState.restype = ct.c_void_p
@@ -21,6 +24,16 @@ class Kernel:
         self.dll.getStateResidualForce.restype = ct.c_void_p
         self.dll.initStateAsDisks.argtypes = [ct.c_void_p]
         self.dll.equilibriumGD.argtypes = [ct.c_void_p]
+        self.dll.equilibriumGD.restype = ct.c_float
+
+    def returnFixedArray(self, dll_function, length):
+        dll_function.restype = ct.POINTER(ct.c_float)
+
+        def inner(*args):
+            arr_ptr = dll_function(*args)
+            return [arr_ptr[i] for i in range(length)]
+
+        return inner
 
     def createState(self, N, boundary_a, boundary_b):
         return self.dll.createState(N, boundary_a, boundary_b)
@@ -45,7 +58,11 @@ class Kernel:
         return self.dll.setBoundary(address, a, b)
 
     def setRod(self, n, d):
-        return self.dll.setRod(n, d)
+        start_t = time.perf_counter()
+        self.dll.setRod(n, d)
+        end_t = time.perf_counter()
+        dt = round(end_t - start_t, 2)
+        print(f"Initialized the potential in {dt} seconds.")
 
     def equilibriumGD(self, address):
         return self.dll.equilibriumGD(address)

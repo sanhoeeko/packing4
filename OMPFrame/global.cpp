@@ -71,7 +71,12 @@ float fastPotential(float x, float y, float t)
 
 float interpolatePotential(float x, float y, float t)
 {
-    return global->rod->potential({ x,y,t });
+    if (abs(x) > 2 * global->rod->a || abs(y) > global->rod->a + global->rod->b) {
+        return 0;
+    }
+    else {
+        return global->rod->potential({ x,y,t });
+    }
 }
 
 float precisePotential(float x, float y, float t)
@@ -81,4 +86,17 @@ float precisePotential(float x, float y, float t)
         abs(y),
         (x > 0) ^ (y > 0) ? t : pi - t,
     });
+}
+
+float* interpolateGradient(float x, float y, float t)
+{
+    static float arr[3];
+    if (abs(x) > 2 * global->rod->a || abs(y) > global->rod->a + global->rod->b) {
+        arr[0] = 0; arr[1] = 0; arr[2] = 0;
+    }
+    else {
+        xyt g = global->rod->gradient({ x,y,t });
+        arr[0] = g.x; arr[1] = g.y; arr[2] = g.t;
+    }
+    return arr;
 }

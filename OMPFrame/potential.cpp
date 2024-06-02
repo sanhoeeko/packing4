@@ -102,7 +102,8 @@ xyt Rod::interpolateGradientSimplex(const xyt& q) {
         fetch potential values of 4 points:
         (i,j,k), (i+1,j,k), (i,j+1,k), (i,j,k+1)
     */
-    size_t ijk = HashXyt(q); // ...
+    if (q.y >= 1)return { 0,0,0 };
+    size_t ijk = hashXytFloor<szx, szy, szt>(q);
     float 
         v000 = fv->data[ijk],
         v100 = fv->data[1 * szy * szt + ijk],
@@ -115,7 +116,7 @@ xyt Rod::interpolateGradientSimplex(const xyt& q) {
     float
         A = (-v000 + v100) * (szx - 1),
         B = (-v000 + v010) * (szy - 1),
-        C = (-v000 + v100) * (szt - 1);
+        C = (-v000 + v001) * (szt - 1);
         // D = v000;
     /*
         the gradient: (A,B,C) is already obtained. (if only cauculate gradient, directly return)
@@ -133,6 +134,7 @@ float Rod::interpolatePotentialSimplex(const xyt& q) {
         fetch potential values of 4 points:
         (i,j,k), (i+1,j,k), (i,j+1,k), (i,j,k+1)
     */
+    if (q.y >= 1)return 0;
     size_t ijk = hashXytFloor<szx, szy, szt>(q);
     float
         v000 = fv->data[ijk],

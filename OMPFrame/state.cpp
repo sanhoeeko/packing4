@@ -80,9 +80,11 @@ void State::OutOfBoundaryPenalty(VectorXf* g)
 #pragma omp parallel for num_threads(CORES)
 	for (int i = 0; i < N; i++) {
 		float h = boundary->distOutOfBoundary(q[i]);
-		float f = 1.0f * h;
-		gxyt[i].x += f * q[i].x;
-		gxyt[i].y += f * q[i].y;
+		if (h > 0) {
+			float f = d_isotropicSq_r(4.0f - h);
+			gxyt[i].x -= f * q[i].x;
+			gxyt[i].y -= f * q[i].y;
+		}
 	}
 }
 
@@ -108,7 +110,7 @@ float State::equilibriumGD()
 			break;
 		}
 		else {
-			descent(1e-3, g);
+			descent(1e-4, g);
 		}
 	}
 	return CalEnergy();
