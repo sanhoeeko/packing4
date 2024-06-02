@@ -15,6 +15,8 @@ using namespace Eigen;
 
 const float pi = 3.141592654;
 
+enum HowToCalGradient{ Normal, AsDisks };
+
 struct xyt { 
     float x, y, t; 
     void operator+=(const xyt& o);

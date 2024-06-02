@@ -7,8 +7,9 @@
 
 struct EllipseBoundary {
     float a, b;
-    float a2, b2;
+    float a2, b2, inv_inner_a2, inv_inner_b2;
     EllipseBoundary(float a, float b);
+    void setBoundary(float a, float b);
     bool maybeCollide(const xyt& particle);
     float distOutOfBoundary(const xyt& particle);
     void solveNearestPointOnEllipse(float x1, float y1, float& x0, float& y0);
@@ -25,14 +26,14 @@ struct State{
     State(int N);
     State(VectorXf q, EllipseBoundary* b, int N);
     void randomInitStateCC();
-    VectorXf* CalGradientAsDisks();
     void initAsDisks();
 
     void OutOfBoundaryPenalty(VectorXf* g);
     void descent(float a, VectorXf* g);
-    State GradientDescent(float a);
+    float equilibriumGD();
 
     Grid* GridLocate();
     PairInfo* CollisionDetect();
-    VectorXf* CalGradient();
+    template<HowToCalGradient how> VectorXf* CalGradient();
+    float CalEnergy();
 };

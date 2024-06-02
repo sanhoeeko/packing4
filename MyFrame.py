@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import numpy as np
 
 from kernel import ker
 from render import State
@@ -15,6 +14,9 @@ class StateGetter:
     def get(self):
         return State(self.N, self.n, self.d, self.A, self.B, ker.getStateData(self.data_ptr, self.N))
 
+    def initPotential(self):
+        return ker.setRod(self.n, self.d)
+
     def maxGradients(self):
         return ker.getStateMaxGradients(self.data_ptr)
 
@@ -24,25 +26,26 @@ class StateGetter:
     def initAsDisks(self):
         return ker.initStateAsDisks(self.data_ptr)
 
+    def setBoundary(self, boundary_a, boundary_b):
+        self.A, self.B = boundary_a, boundary_b
+        return ker.setBoundary(self.data_ptr, boundary_a, boundary_b)
 
-state = StateGetter(1000, 5, 0.25, 90, 15)
-state.initAsDisks()
-gs = state.maxGradients()
-print(gs[-1])
-fs = state.residualForce()
-fabs = np.sqrt(fs[:, 0] ** 2 + fs[:, 1] ** 2 + fs[:, 2] ** 2)
-r = state.get().render()
-r.drawBoundary()
-r.drawParticles(fabs)
-plt.show()
+    def equilibriumGD(self):
+        return ker.equilibriumGD(self.data_ptr)
 
-'''
-n = 3
-d = 0.25
 
-ker.dll.setRod(n, d)
-a = 1 + (n - 1) / 2 * d
-b = 1
+if __name__ == '__main__':
+    state = StateGetter(1000, 2, 0.25, 40, 40)
+    state.initAsDisks()
+    state.initPotential()
+    for i in range(100):
+        state.setBoundary(40, 40 - 0.1 * i)
+        state.equilibriumGD()
+        gs = state.maxGradients()
+        print(i, gs[-1])
 
-N = 10000
-'''
+    s = state.get()
+    r = s.render()
+    r.drawBoundary()
+    r.drawParticles()
+    plt.show()

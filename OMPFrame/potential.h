@@ -5,9 +5,9 @@
 
 const int sz1d = 1ll << 20;
 
-const int szx = 1ll << 10;
-const int szy = 1ll << 10;
-const int szt = 1ll << 10;
+const int szx = 1ll << 8;
+const int szy = 1ll << 8;
+const int szt = 1ll << 8;
 const size_t szxyt = szx * szy * szt;
 
 float fsin(float x);
@@ -15,41 +15,41 @@ float fcos(float x);
 Matrix2f FU(float theta);
 float d_isotropicSq_r(float x2);
 
-static inline float modpi(float x) {
-    const float a = 1 / pi;
-    float y = x * a;
-    return y - std::floor(y);
+float modpi(float x);
+size_t HashXyt(const xyt& q);
+
+template<int n1, int n2, int n3>    // cannot be moved to impl header
+size_t hashXyt(const xyt& q) {
+    const float a1 = n1 - 1,
+        a2 = n2 - 1,
+        a3 = n3 - 1;
+    size_t i = round(q.x * a1),
+        j = round(q.y * a2),
+        k = round(q.t * a3);
+    return i * (n2 * n3) + j * (n3)+k;
+}
+
+template<int n1, int n2, int n3>    // cannot be moved to impl header
+size_t hashXytFloor(const xyt& q) {
+    const float a1 = n1 - 1,
+        a2 = n2 - 1,
+        a3 = n3 - 1;
+    size_t i = size_t(q.x * a1),    // floor
+        j = size_t(q.y * a2),
+        k = size_t(q.t * a3);
+    return i * (n2 * n3) + j * (n3)+k;
 }
 
 /*
-    Independent of the shape of anisotropic particles
+    Base class. It is ndependent of the shape of anisotropic particles
 */
-
 struct ParticleShape {
     float a, b, c;
     ParticleShape() { ; }
     ParticleShape(float a, float b, float c) : a(a), b(b), c(c) { ; }
-    xyt transform(const xyt& q) {
-        return
-        {
-            abs(q.x) / (2 * a),
-            abs(q.y) / (a + b),
-            (q.x > 0) ^ (q.y > 0) ? modpi(q.t) : 1 - modpi(q.t)     // doubted
-        };
-    }
-    xyt inverse(const xyt& q) {
-        return
-        {
-            (2 * a) * q.x,
-            (a + b) * q.y,
-            pi * q.t
-        };
-    }
-    bool isSegmentCrossing(const xyt& q) {
-        return 
-            q.y < c * fsin(q.t) && 
-            q.y * fcos(q.t) > (q.x - c) * fsin(q.t);
-    }
+    xyt transform(const xyt& q);
+    xyt inverse(const xyt& q);
+    bool isSegmentCrossing(const xyt& q);
 };
 
 struct Rod : ParticleShape {
@@ -64,25 +64,6 @@ struct Rod : ParticleShape {
     float interpolatePotentialSimplex(const xyt& q);
     void initPotential();
     float potentialNoInterpolate(const xyt& q);
+    xyt gradient(const xyt& q);
     float potential(const xyt& q);
-};
-
-size_t HashXyt(const xyt& q);
-
-
-template<int n1, int n2, int n3>
-struct GradientGenerator {
-    float A, B, C, D;
-
-    float calScalar(const xyt& q) {
-        const float
-            a1 = n1 - 1,
-            a2 = n2 - 1,
-            a3 = n3 - 1;
-        float
-            dx = q.x - floor(q.x * a1) / a1,
-            dy = q.y - floor(q.y * a2) / a2,
-            dt = q.t - floor(q.t * a3) / a3;
-        return A * dx + B * dy + C * dt + D;
-    }
 };

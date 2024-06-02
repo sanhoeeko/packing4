@@ -12,6 +12,13 @@ static inline float mod2pi(float x) {
     return y - std::floor(y);
 }
 
+static inline float modpi(float x)
+{
+    const float a = 1 / pi;
+    float y = x * a;
+    return y - std::floor(y);
+}
+
 template<size_t capacity>
 static inline size_t hashFloat2Pi(const float& x) {
     return round(mod2pi(x) * capacity); 
@@ -59,35 +66,35 @@ Matrix2f FU(float theta) {
     return _u(theta); 
 }
 
-/*
-    The range of (x,y,t): x = X/(2a) in [0,1), y = Y/(a+b) in [0,1), t = Theta/pi in [0,1)
-    if szx == szy == szz, the maximal szx is 1024 for the sake of size_t.
-*/
-
-template<int n1, int n2, int n3>
-inline size_t hashXyt(const xyt& q) {
-    const float a1 = n1 - 1,
-                a2 = n2 - 1,
-                a3 = n3 - 1;
-    size_t i = round(q.x * a1),
-           j = round(q.y * a2),
-           k = round(q.t * a3);
-    return i * (n2 * n3) + j * (n3) + k;
-}
-
-template<int n1, int n2, int n3>
-inline size_t hashXytFloor(const xyt& q) {
-    const float a1 = n1 - 1,
-                a2 = n2 - 1,
-                a3 = n3 - 1;
-    size_t i = size_t(q.x * a1),    // floor
-           j = size_t(q.y * a2),
-           k = size_t(q.t * a3);
-    return i * (n2 * n3) + j * (n3)+k;
-}
-
 size_t HashXyt(const xyt& q) {
     return hashXyt<szx, szy, szt>(q);
+}
+
+xyt ParticleShape::transform(const xyt& q)
+{
+    return
+    {
+        abs(q.x) / (2 * a),
+        abs(q.y) / (a + b),
+        (q.x > 0) ^ (q.y > 0) ? modpi(q.t) : 1 - modpi(q.t)     // doubted
+    };
+}
+
+xyt ParticleShape::inverse(const xyt& q)
+{
+    return
+    {
+        (2 * a) * q.x,
+        (a + b) * q.y,
+        pi * q.t
+    };
+}
+
+bool ParticleShape::isSegmentCrossing(const xyt& q)
+{
+    return
+        q.y < c * fsin(q.t) &&
+        q.y * fcos(q.t) >(q.x - c) * fsin(q.t);
 }
 
 xyt Rod::interpolateGradientSimplex(const xyt& q) {
@@ -109,6 +116,7 @@ xyt Rod::interpolateGradientSimplex(const xyt& q) {
         A = (-v000 + v100) * (szx - 1),
         B = (-v000 + v010) * (szy - 1),
         C = (-v000 + v100) * (szt - 1);
+        // D = v000;
     /*
         the gradient: (A,B,C) is already obtained. (if only cauculate gradient, directly return)
         the value: A(x-x0) + B(y-y0) + C(t-t0) + D
@@ -116,12 +124,13 @@ xyt Rod::interpolateGradientSimplex(const xyt& q) {
     return { A,B,C };
 }
 
-/*
-    input: q in [0,1] x [0,1] x [0,1]
-*/
 float Rod::interpolatePotentialSimplex(const xyt& q) {
-    /* 
-        fetch potential values of 4 points: 
+    const float
+        a1 = szx - 1,
+        a2 = szy - 1,
+        a3 = szt - 1;
+    /*
+        fetch potential values of 4 points:
         (i,j,k), (i+1,j,k), (i,j+1,k), (i,j,k+1)
     */
     size_t ijk = hashXytFloor<szx, szy, szt>(q);
@@ -135,14 +144,17 @@ float Rod::interpolatePotentialSimplex(const xyt& q) {
         V(x,y,t) = A(x-x0) + B(y-y0) + C(t-t0) + D
     */
     float
-        A = (-v000 + v100) * (szx - 1),
-        B = (-v000 + v010) * (szy - 1),
-        C = (-v000 + v001) * (szt - 1),
+        A = (-v000 + v100) * a1,
+        B = (-v000 + v010) * a2,
+        C = (-v000 + v001) * a3,
         D = v000;
     /*
         the energy: A(x-x0) + B(y-y0) + C(t-t0) + D
         since x0 <- floor'(x), there must be x > x0, y > y0, t > t0
     */
-    GradientGenerator<szx, szy, szt> gg = { A,B,C,D };
-    return gg.calScalar(q);
+    float
+        dx = q.x - floor(q.x * a1) / a1,
+        dy = q.y - floor(q.y * a2) / a2,
+        dt = q.t - floor(q.t * a3) / a3;
+    return A * dx + B * dy + C * dt + D;
 }

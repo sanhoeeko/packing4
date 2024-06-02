@@ -96,7 +96,13 @@ float Rod::potentialNoInterpolate(const xyt& q)
 float Rod::potential(const xyt& q) {
     /*
         q: real x y theta
-        the input of fv is in [0,1] x [0,1] x [0,1]
     */
     return interpolatePotentialSimplex(transform(q));
+}
+
+xyt Rod::gradient(const xyt& q) {
+    /*
+        q: real x y theta
+    */
+    return interpolateGradientSimplex(transform(q));
 }

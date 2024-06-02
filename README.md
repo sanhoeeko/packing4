@@ -1,2 +1,2 @@
 # packing4
- parallel of packing project
+ This project is under developing.

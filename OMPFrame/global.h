@@ -8,16 +8,6 @@ struct Global {
     vector<State*> states;
 };
 
+extern Global* global;
+
 void setGlobal();
-
-void setRod(int n, float d);
-
-void* createState(int N, float boundary_a, float boundary_b);
-
-void* getStateData(void* state_ptr);
-
-float fastPotential(float x, float y, float t);
-
-float interpolatePotential(float x, float y, float t);
-
-float precisePotential(float x, float y, float t);

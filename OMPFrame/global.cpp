@@ -38,7 +38,7 @@ int getStateIterations(void* state_ptr)
 DLLEXPORT void* getStateResidualForce(void* state_ptr)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
-    return s->CalGradientAsDisks()->data();
+    return s->CalGradient<AsDisks>()->data();
 }
 
 void* getStateMaxGradients(void* state_ptr)
@@ -52,6 +52,17 @@ void initStateAsDisks(void* state_ptr) {
     return s->initAsDisks();
 }
 
+void setBoundary(void* state_ptr, float boundary_a, float boundary_b)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    s->boundary->setBoundary(boundary_a, boundary_b);
+}
+
+void equilibriumGD(void* state_ptr)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    s->equilibriumGD();
+}
 
 float fastPotential(float x, float y, float t)
 {

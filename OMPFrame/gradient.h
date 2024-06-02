@@ -5,16 +5,27 @@
 
 using namespace std;
 
-struct GradientAndEnergy
+struct GradientBuffer
 {
     VectorXf buffers[CORES];
-    float energy_buffers[CORES];
+    int N;
+    int id;
+    
+
+    GradientBuffer(int N);
+    void clear();
+    void joinTo(VectorXf* g);
+};
+
+struct EnergyBuffer
+{
+    float buffers[CORES];
     int N;
     int id;
 
-    GradientAndEnergy(int N);
+    EnergyBuffer(int N);
     void clear();
-    void joinTo(VectorXf* g);
+    float sum();
 };
 
 struct PairInfo
@@ -26,7 +37,8 @@ struct PairInfo
 
     PairInfo(int N);
     void clear();
-    GradientAndEnergy* CalGradient();
-    GradientAndEnergy* CalGradientAsDisks();
-    GradientAndEnergy* CalEnergy();
+    template<HowToCalGradient how> GradientBuffer* CalGradient();
+    EnergyBuffer* CalEnergy();
 };
+
+#include "gradient_impl.h"

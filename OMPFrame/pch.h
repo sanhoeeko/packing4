@@ -9,22 +9,29 @@
 
 // 添加要在此处预编译的标头
 #include "framework.h"
+
+#include "defs.h"
+#include "global.h"
 #define DLLEXPORT extern "C" __declspec(dllexport)
 
+// simulation
 DLLEXPORT void init();
 DLLEXPORT void setRod(int n, float d);
 DLLEXPORT void* createState(int N, float boundary_a, float boundary_b);
+DLLEXPORT void initStateAsDisks(void* state_ptr);
+DLLEXPORT void setBoundary(void* state_ptr, float boundary_a, float boundary_b);
+DLLEXPORT void equilibriumGD(void* state_ptr);
+
+// fetching data
 DLLEXPORT void* getStateData(void* state_ptr);
 DLLEXPORT int getStateIterations(void* state_ptr);
 DLLEXPORT void* getStateMaxGradients(void* state_ptr);
 DLLEXPORT void* getStateResidualForce(void* state_ptr);
 
-DLLEXPORT void initStateAsDisks(void* state_ptr);
-
+// test of algorithms
 DLLEXPORT float fastPotential(float x, float y, float t);
 DLLEXPORT float interpolatePotential(float x, float y, float t);
 DLLEXPORT float precisePotential(float x, float y, float t);
 DLLEXPORT float hertzianSq(float x2);
-DLLEXPORT float fsin(float x);
 
 #endif //PCH_H
