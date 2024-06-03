@@ -55,7 +55,7 @@ void initStateAsDisks(void* state_ptr) {
 void setBoundary(void* state_ptr, float boundary_a, float boundary_b)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
-    s->boundary->setBoundary(boundary_a, boundary_b);
+    s->setBoundary(boundary_a, boundary_b);
 }
 
 void equilibriumGD(void* state_ptr)

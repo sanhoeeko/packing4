@@ -103,7 +103,9 @@ void calEnergy(PairInfo* pinfo, EnergyBuffer* ge) {
         int n = pinfo->info_pw[idx].size();
         ParticlePair* src = (ParticlePair*)(void*)pinfo->info_pw[idx].data();
         for (int i = 0; i < n; i++) {
-            ge->buffers[idx] += singleEnergy(src[i]) * 0.5f;
+            if (src[i].id2 != 114514) {
+                ge->buffers[idx] += singleEnergy(src[i]) * 0.5f;
+            }
         }
     }
 }

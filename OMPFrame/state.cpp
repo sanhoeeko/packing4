@@ -72,20 +72,10 @@ void State::initAsDisks()
 	}
 }
 
-void State::OutOfBoundaryPenalty(VectorXf* g)
+void State::setBoundary(float a, float b)
 {
-	xyt* q = (xyt*)(void*)configuration.data();
-	xyt* gxyt = (xyt*)(void*)g->data();
-
-#pragma omp parallel for num_threads(CORES)
-	for (int i = 0; i < N; i++) {
-		float h = boundary->distOutOfBoundary(q[i]);
-		if (h > 0) {
-			float f = d_isotropicSq_r(4.0f - h);
-			gxyt[i].x -= f * q[i].x;
-			gxyt[i].y -= f * q[i].y;
-		}
-	}
+	id = (id == 0) ? -1 : 0;
+	boundary->setBoundary(a, b);
 }
 
 void State::descent(float a, VectorXf* g)
@@ -106,11 +96,11 @@ float State::equilibriumGD()
 		float gm = maxGradientAbs(g);
 		max_gradient_amps.push_back(gm);
 
-		if (gm < 1e-5) {
+		if (gm < 1e-2) {
 			break;
 		}
 		else {
-			descent(1e-4, g);
+			descent(1e-3, g);
 		}
 	}
 	return CalEnergy();
@@ -142,7 +132,6 @@ VectorXf* State::CalGradient()
 {
 	static VectorXf* g = new VectorXf(3 * N);
 	this->CollisionDetect()->CalGradient<how>()->joinTo(g);
-	OutOfBoundaryPenalty(g);
 	return g;
 }
 

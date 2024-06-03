@@ -12,8 +12,8 @@ void EllipseBoundary::setBoundary(float a, float b)
 
 	// derived
 	a2 = a * a; b2 = b * b;
-	inv_inner_a2 = 1 / (a - 2) * (a - 2);
-	inv_inner_b2 = 1 / (b - 2) * (b - 2);
+	inv_inner_a2 = 1 / ((a - 2) * (a - 2));
+	inv_inner_b2 = 1 / ((b - 2) * (b - 2));
 }
 
 bool EllipseBoundary::maybeCollide(const xyt& q)
@@ -25,7 +25,7 @@ float EllipseBoundary::distOutOfBoundary(const xyt& q)
 {
 	float f = (q.x) * (q.x) / a2 + (q.y) * (q.y) / b2 - 1;
 	if (f < 0)return 0;
-	return f + 1e-2f;
+	return f;
 }
 
 /*
@@ -47,7 +47,7 @@ void EllipseBoundary::solveNearestPointOnEllipse(float x1, float y1, float& x0, 
 	*/
 	float t = -b2 + b * y1;
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 16; i++) {
 		// Newton root finding. There is always `Ga * Ga + Gb * Gb - 1 > 0`.
 		float
 			a2pt = a2 + t,
@@ -58,7 +58,7 @@ void EllipseBoundary::solveNearestPointOnEllipse(float x1, float y1, float& x0, 
 			Gb = by1 / b2pt,
 			G = Ga * Ga + Gb * Gb - 1,
 			dG = -2 * ((ax1 * ax1) / (a2pt * a2pt * a2pt) + (by1 * by1) / (b2pt * b2pt * b2pt));
-		if (G < 1e-4f) {
+		if (G < 1e-3f) {
 			break;
 		}
 		else {
@@ -72,6 +72,13 @@ void EllipseBoundary::solveNearestPointOnEllipse(float x1, float y1, float& x0, 
 Maybe<ParticlePair> EllipseBoundary::collide(int id, const xyt& q)
 {
 	static float x0, y0, absx0, absy0;
+
+	// check if the particle is outside the boundary. if so, return a penalty
+	// a penalty is marked by {id2 = -114514, theta1 = h}
+	float h = distOutOfBoundary(q);
+	if (h > 0) {
+		return Just<ParticlePair>({ id, -114514, q.x, q.y, h });
+	}
 
 	// q.x,	q.y cannot be both zero because of the `maybeCollide` guard. 
 	float absx1 = abs(q.x), absy1 = abs(q.y);
@@ -87,7 +94,7 @@ Maybe<ParticlePair> EllipseBoundary::collide(int id, const xyt& q)
 		y0 = q.y > 0 ? absy0 : -absy0;
 	}
 
-	// check if really collide
+	// check if really collide: if not, return nothing
 	float
 		dx = q.x - x0,
 		dy = q.y - y0,

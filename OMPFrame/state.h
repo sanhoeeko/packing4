@@ -27,7 +27,7 @@ struct State{
     void randomInitStateCC();
     void initAsDisks();
 
-    void OutOfBoundaryPenalty(VectorXf* g);
+    void setBoundary(float a, float b);
     void descent(float a, VectorXf* g);
     float equilibriumGD();
 

@@ -36,8 +36,17 @@ void calGradient(PairInfo* pinfo, GradientBuffer* ge) {
         ParticlePair* src = (ParticlePair*)(void*)pinfo->info_pw[idx].data();
         for (int i = 0; i < n; i++) {
             int ii = src[i].id1;
-            xyt f = singleGradient<how>(src[i]);
-            ptr[ii] += f;
+            if (src[i].id2 == -114514) {
+                // outside the boundary, add a penalty
+                float h = src[i].t1;
+                float f = d_isotropicSq_r(4.0f - h);                       // fr < 0
+                float r = sqrtf(src[i].x * src[i].x + src[i].y * src[i].y);
+                ptr[ii] -= {f * src[i].x / r, f * src[i].y / r, 0};
+            }
+            else {
+                xyt f = singleGradient<how>(src[i]);
+                ptr[ii] += f;
+            }
         }
     }
 }
