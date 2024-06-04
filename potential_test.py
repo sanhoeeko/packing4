@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider
 
-from kernel import ker
+from kernel_for_test import ker
 
 
 def dynamicVisualize(n_thetas, x, y, theta, v):
@@ -39,7 +39,7 @@ def dynamicVisualize(n_thetas, x, y, theta, v):
 
 if __name__ == '__main__':
     n = 2
-    d = 0.25
+    d = 2
     a = 1
     b = 1 / (1 + (n - 1) * d / 2)
     x = np.arange(-2 * a, 2 * a, 0.01)
@@ -48,6 +48,6 @@ if __name__ == '__main__':
     n_theta = len(t)
     X, Y, T = np.meshgrid(x, y, t)
     ker.setRod(n, d)
-    V = np.vectorize(ker.dll.interpolatePotential)(X, Y, T)
+    V = np.vectorize(ker.interpolatePotential)(X, Y, T)
     V[V < 1e-6] = np.nan
     dynamicVisualize(n_theta, X, Y, T, V)

@@ -29,10 +29,12 @@ DLLEXPORT void* getStateMaxGradients(void* state_ptr);
 DLLEXPORT void* getStateResidualForce(void* state_ptr);
 
 // test of algorithms
+DLLEXPORT float hertzianSq(float x2);
 DLLEXPORT float fastPotential(float x, float y, float t);
 DLLEXPORT float interpolatePotential(float x, float y, float t);
 DLLEXPORT float precisePotential(float x, float y, float t);
 DLLEXPORT float* interpolateGradient(float x, float y, float t);
-DLLEXPORT float hertzianSq(float x2);
+DLLEXPORT float* gradientReference(float x, float y, float t1, float t2);
+DLLEXPORT float* gradientTest(float x, float y, float t1, float t2);
 
 #endif //PCH_H

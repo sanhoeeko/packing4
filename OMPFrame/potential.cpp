@@ -74,9 +74,19 @@ xyt ParticleShape::transform(const xyt& q)
 {
     return
     {
-        abs(q.x) / (2 * a),
-        abs(q.y) / (a + b),
-        (q.x > 0) ^ (q.y > 0) ? modpi(q.t) : 1 - modpi(q.t)     // doubted
+        abs(q.x) / (2 * a_padded),
+        abs(q.y) / (a_padded + b_padded),
+        (q.x > 0) ^ (q.y > 0) ? modpi(q.t) : 1 - modpi(q.t)
+    };
+}
+
+xyt ParticleShape::transform_signed(const xyt& g)
+{
+    return
+    {
+        g.x / (2 * a_padded),
+        g.y / (a_padded + b_padded),
+        g.t / pi
     };
 }
 
@@ -84,8 +94,8 @@ xyt ParticleShape::inverse(const xyt& q)
 {
     return
     {
-        (2 * a) * q.x,
-        (a + b) * q.y,
+        (2 * a_padded) * q.x,
+        (a_padded + b_padded) * q.y,
         pi * q.t
     };
 }

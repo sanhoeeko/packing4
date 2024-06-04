@@ -4,7 +4,7 @@
 #include "functional.h"
 
 template<HowToCalGradient how> 
-xyt singleGradient(ParticlePair& ijxytt);
+XytPair singleGradient(ParticlePair& ijxytt);
 
 
 template<HowToCalGradient how>
@@ -22,9 +22,9 @@ void calGradient(PairInfo* pinfo, GradientBuffer* ge) {
             int
                 ii = src[i].id1,
                 jj = src[i].id2;
-            xyt f = singleGradient<how>(src[i]);
-            ptr[ii] += f;
-            ptr[jj] -= f;
+            XytPair f = singleGradient<how>(src[i]);
+            ptr[ii] += f.first;
+            ptr[jj] += f.second;
         }
     }
     // for pw 
@@ -44,8 +44,8 @@ void calGradient(PairInfo* pinfo, GradientBuffer* ge) {
                 ptr[ii] -= {f * src[i].x / r, f * src[i].y / r, 0};
             }
             else {
-                xyt f = singleGradient<how>(src[i]);
-                ptr[ii] += f;
+                XytPair f = singleGradient<how>(src[i]);
+                ptr[ii] += f.first;
             }
         }
     }

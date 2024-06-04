@@ -100,3 +100,25 @@ float* interpolateGradient(float x, float y, float t)
     }
     return arr;
 }
+
+float* gradientReference(float x, float y, float t1, float t2)
+{
+    static float arr[6];
+    XytPair g = global->rod->HertzianGradientStandard(x, y, t1, t2);
+    memcpy(arr, &g, sizeof(XytPair));
+    return arr;
+}
+
+float* gradientTest(float x, float y, float t1, float t2)
+{
+    static float arr[6];
+    if (x * x + y * y > 4) {
+        memset(arr, 0, sizeof(XytPair));
+    }
+    else {
+        ParticlePair pp = { 0, 0, x, y, t1, t2 };
+        XytPair g = singleGradient<Normal>(pp);
+        memcpy(arr, &g, sizeof(XytPair));
+    }
+    return arr;
+}

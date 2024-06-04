@@ -5,12 +5,18 @@ from kernel import ker
 from render import State
 
 
-class StateGetter:
+class StateHandle:
     def __init__(self, N, n, d, boundary_a, boundary_b):
         self.N = N
         self.n, self.d = n, d
         self.A, self.B = boundary_a, boundary_b
         self.data_ptr = ker.createState(N, boundary_a, boundary_b)
+
+    @classmethod
+    def fromDensity(cls, N, n, d, fraction_as_disks, initial_boundary_aspect):
+        B = np.sqrt(N / (fraction_as_disks * initial_boundary_aspect))
+        A = B * initial_boundary_aspect
+        return cls(N, n, d, A, B)
 
     def get(self):
         return State(self.N, self.n, self.d, self.A, self.B, ker.getStateData(self.data_ptr, self.N))
@@ -40,13 +46,13 @@ class StateGetter:
 
 
 if __name__ == '__main__':
-    A, B = 36, 36
-    state = StateGetter(1000, 1, 0.25, A, B)
+    # A, B = 36, 36
+    state = StateHandle.fromDensity(1000, 2, 0.25, 0.5, 1.0)
     state.initAsDisks()
 
     state.initPotential()
-    for i in range(5):
-        state.setBoundary(A, B - 0.5 * i)
+    for i in range(100):
+        state.setBoundary(state.A, state.B - 0.2)
         energy = state.equilibriumGD()
         gs = state.maxGradients()
         print(i, f'G={gs[-1]}', f'E={energy}')
@@ -55,5 +61,6 @@ if __name__ == '__main__':
     s = state.get()
     r = s.render()
     r.drawBoundary()
-    r.drawParticles(state.residualForceAmp())
+    # r.drawParticles(state.residualForceAmp())
+    r.drawParticles()
     plt.show()

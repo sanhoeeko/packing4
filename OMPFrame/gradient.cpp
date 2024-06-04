@@ -51,30 +51,41 @@ void PairInfo::clear()
 }
 
 
-void rotInplace(float angle, float* ptr) {
+inline void rotVector(float angle, float* ptr, float* dst) {
+    /*
+        when `ptr == dst`, it is an inplace rotation
+    */
     float
         s = fsin(angle),
         c = fcos(angle),
         x = ptr[0],
         y = ptr[1];
-    ptr[0] = c * x - s * y;
-    ptr[1] = s * x + c * y;
+    dst[0] = c * x - s * y;
+    dst[1] = s * x + c * y;
+}
+
+inline float crossProduct(float* r, float* f) {
+    return r[0] * f[1] - r[1] * f[0];
 }
 
 template<>
-xyt singleGradient<Normal>(ParticlePair& ijxytt) {
+XytPair singleGradient<Normal>(ParticlePair& ijxytt) {
     float theta = ijxytt.t1;
-    rotInplace(-theta, &ijxytt.x);
-    xyt gradient = global->rod->gradient({ ijxytt.x, ijxytt.y, ijxytt.t2 - ijxytt.t1 });
-    rotInplace(theta, (float*)&gradient);
-    return gradient;
+    xyt temp;
+    rotVector(-theta, &ijxytt.x, &temp.x);
+    temp.t = ijxytt.t2 - ijxytt.t1;
+    xyt gradient = global->rod->gradient(temp);
+    rotVector(theta, (float*)&gradient, (float*)&gradient);
+    float moment1 = crossProduct(&ijxytt.x, (float*)&gradient) - gradient.t;   // parallel axis theorem !!
+    return { {-gradient.x, -gradient.y, moment1}, gradient };
 }
 
 template<>
-xyt singleGradient<AsDisks>(ParticlePair& ijxytt) {
+XytPair singleGradient<AsDisks>(ParticlePair& ijxytt) {
     float r2 = ijxytt.x * ijxytt.x + ijxytt.y * ijxytt.y;
-    float f_r = d_isotropicSq_r(r2);
-    return { f_r * ijxytt.x, f_r * ijxytt.y, 0 };
+    float fr = d_isotropicSq_r(r2);
+    float fx = fr * ijxytt.x, fy = fr * ijxytt.y;
+    return { {fx, fy, 0}, {-fx, -fy, 0} };
 }
 
 float singleEnergy(ParticlePair& ijxytt) {

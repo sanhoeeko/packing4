@@ -13,6 +13,10 @@ using namespace Eigen;
 #define NAN_IF_PENETRATE false
 #define ENABLE_NAN_CHECK true
 
+#define DIGIT_X 9
+#define DIGIT_Y 9
+#define DIGIT_T 9
+
 const float pi = 3.141592654;
 
 enum HowToCalGradient{ Normal, AsDisks };
@@ -22,6 +26,10 @@ struct xyt {
     void operator+=(const xyt& o);
     void operator-=(const xyt& o);
     float amp2();
+};
+
+struct XytPair {
+    xyt first, second;
 };
 
 struct ParticlePair { int id1, id2; float x, y, t1, t2; };

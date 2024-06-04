@@ -9,8 +9,6 @@ class Kernel:
         self.dll = ct.cdll.LoadLibrary("./x64/Release/OMPFrame.dll")
         self.dll.init()
         self.dll.setRod.argtypes = [ct.c_int, ct.c_float]
-        self.dll.interpolatePotential.argtypes = [ct.c_float, ct.c_float, ct.c_float]
-        self.dll.interpolatePotential.restype = ct.c_float
         self.dll.setBoundary.argtypes = [ct.c_void_p, ct.c_float, ct.c_float]
         self.dll.createState.argtypes = [ct.c_int, ct.c_float, ct.c_float]
         self.dll.createState.restype = ct.c_void_p
@@ -31,7 +29,7 @@ class Kernel:
 
         def inner(*args):
             arr_ptr = dll_function(*args)
-            return [arr_ptr[i] for i in range(length)]
+            return np.array([arr_ptr[i] for i in range(length)])
 
         return inner
 
