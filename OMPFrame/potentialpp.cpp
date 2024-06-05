@@ -164,6 +164,6 @@ xyt Rod::gradient(const xyt& q) {
         sign_y = q.y < 0;
     if (sign_x)g.x = -g.x;
     if (sign_y)g.y = -g.y;
-    if (sign_x ^ sign_y)g.t = -g.t;
+    if (!(sign_x ^ sign_y))g.t = -g.t;
     return g;
 }

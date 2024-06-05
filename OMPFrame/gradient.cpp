@@ -70,14 +70,14 @@ inline float crossProduct(float* r, float* f) {
 
 template<>
 XytPair singleGradient<Normal>(ParticlePair& ijxytt) {
-    float theta = ijxytt.t1;
+    float theta = ijxytt.t2;
     xyt temp;
     rotVector(-theta, &ijxytt.x, &temp.x);
     temp.t = ijxytt.t2 - ijxytt.t1;
     xyt gradient = global->rod->gradient(temp);
     rotVector(theta, (float*)&gradient, (float*)&gradient);
-    float moment1 = crossProduct(&ijxytt.x, (float*)&gradient) - gradient.t;   // parallel axis theorem !!
-    return { {-gradient.x, -gradient.y, moment1}, gradient };
+    float moment2 = crossProduct(&ijxytt.x, (float*)&gradient) - gradient.t;   // parallel axis theorem !!
+    return { {-gradient.x, -gradient.y, gradient.t}, {gradient.x, gradient.y, moment2} };
 }
 
 template<>
