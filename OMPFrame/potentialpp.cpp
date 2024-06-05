@@ -160,8 +160,8 @@ xyt Rod::gradient(const xyt& q) {
     */
     xyt g = transform_signed(interpolateGradientSimplex(transform(q)));
     bool 
-        sign_x = q.x < 0,
-        sign_y = q.y < 0;
+        sign_x = q.x > 0,
+        sign_y = q.y > 0;
     if (sign_x)g.x = -g.x;
     if (sign_y)g.y = -g.y;
     if (!(sign_x ^ sign_y))g.t = -g.t;

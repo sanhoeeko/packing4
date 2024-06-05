@@ -76,8 +76,8 @@ XytPair singleGradient<Normal>(ParticlePair& ijxytt) {
     temp.t = ijxytt.t2 - ijxytt.t1;
     xyt gradient = global->rod->gradient(temp);
     rotVector(theta, (float*)&gradient, (float*)&gradient);
-    float moment2 = crossProduct(&ijxytt.x, (float*)&gradient) - gradient.t;   // parallel axis theorem !!
-    return { {-gradient.x, -gradient.y, gradient.t}, {gradient.x, gradient.y, moment2} };
+    float moment2 = -crossProduct(&ijxytt.x, (float*)&gradient) - gradient.t;   // parallel axis theorem !!
+    return { gradient, {-gradient.x, -gradient.y, moment2} };
 }
 
 template<>
