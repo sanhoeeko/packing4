@@ -2,6 +2,7 @@
 
 #include"defs.h"
 #include"functional.h"
+#include"scalar.h"
 
 const int sz1d = 1ll << 20;
 
@@ -16,8 +17,6 @@ const size_t szxyt = szx * szy * szt;
 
 float fsin(float x);
 float fcos(float x);
-Matrix2f FU(float theta);
-float d_isotropicSq_r(float x2);
 
 float modpi(float x);
 size_t HashXyt(const xyt& q);
@@ -67,11 +66,11 @@ struct Rod : ParticleShape {
     ReaderFunc<xyt, float, szxyt>* fv;
 
     Rod(int n, float d);
-    void initPotential();
+    template<PotentialFunc what> void initPotential();
 
     // original definitions
-    float HertzianRodPotential(const xyt& q);
-    XytPair HertzianGradientStandard(float x, float y, float t1, float t2);
+    template<PotentialFunc what> float StandardPotential(const xyt& q);
+    template<PotentialFunc what> XytPair StandardGradient(float x, float y, float t1, float t2);
 
     // auxiliary functions 
     xyt interpolateGradientSimplex(const xyt& q);
@@ -82,3 +81,5 @@ struct Rod : ParticleShape {
     xyt gradient(const xyt& q);
     float potential(const xyt& q);
 };
+
+#include "potential_impl.h"

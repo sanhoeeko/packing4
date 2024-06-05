@@ -149,10 +149,13 @@
     <ClInclude Include="functional.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="gradient.h" />
+    <ClInclude Include="gradient_impl.h" />
     <ClInclude Include="grid.h" />
     <ClInclude Include="io.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="potential.h" />
+    <ClInclude Include="potential_impl.h" />
+    <ClInclude Include="scalar.h" />
     <ClInclude Include="state.h" />
     <ClInclude Include="vectorlist.h" />
   </ItemGroup>
@@ -170,7 +173,9 @@
     </ClCompile>
     <ClCompile Include="potential.cpp" />
     <ClCompile Include="potentialpp.cpp" />
+    <ClCompile Include="scalar.cpp" />
     <ClCompile Include="state.cpp" />
+    <ClCompile Include="state_boundary.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

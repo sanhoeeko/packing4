@@ -81,17 +81,24 @@ XytPair singleGradient<Normal>(ParticlePair& ijxytt) {
 }
 
 template<>
+XytPair singleGradient<Test>(ParticlePair& ijxytt) {
+    return global->rod->StandardGradient<ScreenedCoulomb>(ijxytt.x, ijxytt.y, ijxytt.t1, ijxytt.t2);
+}
+
+template<>
 XytPair singleGradient<AsDisks>(ParticlePair& ijxytt) {
     float r2 = ijxytt.x * ijxytt.x + ijxytt.y * ijxytt.y;
-    float fr = d_isotropicSq_r(r2);
+    float fr = potentialDR<ScreenedCoulomb>(r2);
     float fx = fr * ijxytt.x, fy = fr * ijxytt.y;
     return { {fx, fy, 0}, {-fx, -fy, 0} };
 }
 
 float singleEnergy(ParticlePair& ijxytt) {
-    Map<Vector2f> xy(&ijxytt.x);
-    Vector2f xy_rotated = FU(-ijxytt.t1) * xy;
-    return global->rod->potential({ xy_rotated[0], xy_rotated[1], ijxytt.t2 - ijxytt.t1 });
+    float theta = ijxytt.t2;
+    xyt temp;
+    rotVector(-theta, &ijxytt.x, &temp.x);
+    temp.t = ijxytt.t2 - ijxytt.t1;
+    return global->rod->potential(temp);
 }
 
 void calEnergy(PairInfo* pinfo, EnergyBuffer* ge) {

@@ -50,7 +50,6 @@ static ReaderFunc<float, Matrix2f, sz1d> FRotation() {
     return *f;
 }
 
-
 float fsin(float x) { 
     static auto _fsin = FSin();
     return _fsin(x); 
@@ -59,11 +58,6 @@ float fsin(float x) {
 float fcos(float x) { 
     static auto _fcos = FCos();
     return _fcos(x); 
-}
-
-Matrix2f FU(float theta) { 
-    static auto _u = FRotation();
-    return _u(theta); 
 }
 
 size_t HashXyt(const xyt& q) {

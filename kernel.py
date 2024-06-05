@@ -1,4 +1,5 @@
 import ctypes as ct
+import os
 import time
 
 import numpy as np
@@ -6,8 +7,11 @@ import numpy as np
 
 class Kernel:
     def __init__(self):
-        self.dll = ct.cdll.LoadLibrary("./x64/Release/OMPFrame.dll")
+        dir_path = os.path.dirname(os.path.abspath(__file__))
+        dll_path = os.path.join(dir_path, "./x64/Release/OMPFrame.dll")
+        self.dll = ct.cdll.LoadLibrary(dll_path)
         self.dll.init()
+        self.dll.setEnums.argtypes = [ct.c_int]
         self.dll.setRod.argtypes = [ct.c_int, ct.c_float]
         self.dll.setBoundary.argtypes = [ct.c_void_p, ct.c_float, ct.c_float]
         self.dll.createState.argtypes = [ct.c_int, ct.c_float, ct.c_float]
@@ -40,8 +44,11 @@ class Kernel:
         array_pointer = ct.cast(self.dll.getStateData(address), ct.POINTER(ct.c_float * N * 3))
         return np.ctypeslib.as_array(array_pointer.contents).copy().reshape((N, 3))
 
+    def getNumOfIterations(self, address):
+        return int(self.dll.getStateIterations(address))
+
     def getStateMaxGradients(self, address):
-        iterations = int(self.dll.getStateIterations(address))
+        iterations = self.getNumOfIterations(address)
         array_pointer = ct.cast(self.dll.getStateMaxGradients(address), ct.POINTER(ct.c_float * iterations))
         return np.ctypeslib.as_array(array_pointer.contents).copy()
 
@@ -52,15 +59,26 @@ class Kernel:
     def initStateAsDisks(self, address):
         return self.dll.initStateAsDisks(address)
 
+    def setEnums(self, potential_func):
+        """
+        PotentialFunc: Hertzian=0, ScreenCoulomb=1
+        """
+        return self.dll.setEnums(potential_func)
+
     def setBoundary(self, address, a, b):
         return self.dll.setBoundary(address, a, b)
 
     def setRod(self, n, d):
-        start_t = time.perf_counter()
-        self.dll.setRod(n, d)
-        end_t = time.perf_counter()
-        dt = round(end_t - start_t, 2)
-        print(f"Initialized the potential in {dt} seconds.")
+        try:
+            start_t = time.perf_counter()
+            self.dll.setRod(n, d)
+            end_t = time.perf_counter()
+            dt = round(end_t - start_t, 2)
+            print(f"Initialized the potential in {dt} seconds.")
+        except Exception as e:
+            print(e)
+            print("you may forget to call `setEnums` to set a few key parameters")
+            raise BaseException
 
     def equilibriumGD(self, address):
         return self.dll.equilibriumGD(address)

@@ -19,7 +19,8 @@ using namespace Eigen;
 
 const float pi = 3.141592654;
 
-enum HowToCalGradient{ Normal, AsDisks };
+enum HowToCalGradient{ Normal, AsDisks, Test };
+enum PotentialFunc{ Hertzian, ScreenedCoulomb };
 
 struct xyt { 
     float x, y, t; 

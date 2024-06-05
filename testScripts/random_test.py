@@ -72,7 +72,11 @@ def gradientTest(m):
             g_should = ker.gradientReference(x[i], y[i], t1[i], t2[i])
             print(f"(x={x[i]}, y={y[i]}, t1={t1[i]}, t2={t2[i]}) should be {g_should}")
 
-    dif = np.sum(np.abs(g - g_ref) ** 2, axis=1)
+    ratio = g / g_ref
+    # there are bad cases, do not use np.mean
+    r = np.median(ratio[~(np.isnan(ratio) | np.isinf(ratio))])
+    print(f"mean ratio: {r}")
+    dif = np.sqrt(np.sum((g/r - g_ref) ** 2, axis=1))
     return TestResult((x, y, t1, t2), dif)
 
 

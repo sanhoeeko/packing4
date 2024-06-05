@@ -11,7 +11,6 @@ struct GradientBuffer
     int N;
     int id;
     
-
     GradientBuffer(int N);
     void clear();
     void joinTo(VectorXf* g);

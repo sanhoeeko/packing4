@@ -1,77 +1,31 @@
-from functools import lru_cache
-
 import matplotlib.collections as collections
 import matplotlib.colors as mcolors
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from scipy.spatial import Delaunay
 
-import art
-from graph import Graph
+from state import State
 
 my_colors = ['floralWhite', 'lemonchiffon', 'wheat', 'lightsalmon', 'coral', 'crimson',
              'paleturquoise', 'blue', 'teal', 'seagreen', 'green']
 
 
-class State:
-    def __init__(self, N, n, d, boundary_a, boundary_b, configuration: np.ndarray):
-        self.N = N
-        self.n, self.d = n, d
-        self.A, self.B = boundary_a, boundary_b
-        self.a, self.b = 1, 1 / (1 + (n - 1) * d / 2)
-        self.xyt = configuration
-
-    @property
-    def x(self): return self.xyt[:, 0]
-
-    @property
-    def y(self): return self.xyt[:, 1]
-
-    @property
-    def t(self): return self.xyt[:, 2] % np.pi
-
-    @lru_cache(maxsize=None)
-    def render(self):
-        return StateRenderer(self)
-
-    @lru_cache(maxsize=None)
-    def toSites(self):
-        """
-        convert each rod to disks
-        """
-        xy = np.array([self.x, self.y]).T
-        uxy = np.array([np.cos(self.t), np.sin(self.t)]).T * self.d
-        n_shift = -(self.n - 1) / 2.0
-        xys = [xy + (k + n_shift) * uxy for k in range(0, self.n)]
-        return np.vstack(xys)
-
-    @lru_cache(maxsize=None)
-    def voronoi(self):
-        points = self.toSites()  # input of Delaunay is (n_point, n_dim)
-        delaunay = Delaunay(points)
-        voro_graph = Graph(len(points)).from_delaunay(delaunay.simplices)
-        return voro_graph.merge(self.N)
-
-
 class StateRenderer(State):
     def __init__(self, state):
         self.__dict__ = state.__dict__
-        self.handle = self.handle = plt.subplots()  # (ax, fig)
 
-    def drawBoundary(self):
-        fig, ax = self.handle
+    def drawBoundary(self, handle):
+        fig, ax = handle
         ellipse = patches.Ellipse((0, 0), width=2 * self.A, height=2 * self.B, fill=False)
         ax.add_artist(ellipse)
-        return self.handle
+        return handle
 
-
-    def drawParticles(self, colors=None):
+    def drawParticles(self, handle, colors=None):
         """
         colors: can be either an array or a function
         """
-        fig, ax = self.handle
+        fig, ax = handle
         cmap = 'viridis'
         norm = None
         if colors is None:  # plot angle as default
@@ -113,4 +67,4 @@ class StateRenderer(State):
 
         # Add a colorbar
         fig.colorbar(col, cax=cax)
-        return self.handle
+        return handle

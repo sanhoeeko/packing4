@@ -6,12 +6,24 @@ Global* global;
 void setGlobal()
 {
     global = new Global();
+    global->pf = PotentialFunc(-1);
+}
+
+void setEnums(int potential_func)
+{
+    global->pf = (PotentialFunc)potential_func;
 }
 
 void setRod(int n, float d)
 {
+    typedef void (Rod::*Func)(void);
+    Func funcs[2] = {
+        &Rod::initPotential<Hertzian>,
+        &Rod::initPotential<ScreenedCoulomb>,
+    };
+
     global->rod = new Rod(n, d);
-    global->rod->initPotential();
+    (global->rod->*funcs[global->pf])();
 }
 
 void* createState(int N, float boundary_a, float boundary_b)
@@ -19,7 +31,6 @@ void* createState(int N, float boundary_a, float boundary_b)
     auto state = new State(N);
     state->boundary = new EllipseBoundary(boundary_a, boundary_b);
     state->randomInitStateCC();
-    global->states.push_back(state);
     return state;
 }
 
@@ -81,7 +92,13 @@ float interpolatePotential(float x, float y, float t)
 
 float precisePotential(float x, float y, float t)
 {
-    return global->rod->HertzianRodPotential({
+    typedef float (Rod::* Func)(const xyt&);
+    Func funcs[2] = {
+        &Rod::StandardPotential<Hertzian>,
+        &Rod::StandardPotential<ScreenedCoulomb>
+    };
+
+    return (global->rod->*funcs[global->pf])({
         abs(x),
         abs(y),
         (x > 0) ^ (y > 0) ? t : pi - t,
@@ -103,8 +120,13 @@ float* interpolateGradient(float x, float y, float t)
 
 float* gradientReference(float x, float y, float t1, float t2)
 {
+    typedef XytPair(Rod::* Func)(float, float, float, float);
+    static Func funcs[2] = {
+        &Rod::StandardGradient<Hertzian>,
+        &Rod::StandardGradient<ScreenedCoulomb>,
+    };
     static float arr[6];
-    XytPair g = global->rod->HertzianGradientStandard(x, y, t1, t2);
+    XytPair g = (global->rod->*funcs[global->pf])(x, y, t1, t2);
     memcpy(arr, &g, sizeof(XytPair));
     return arr;
 }

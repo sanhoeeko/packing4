@@ -39,7 +39,7 @@ def dynamicVisualize(n_thetas, x, y, theta, v):
 
 if __name__ == '__main__':
     n = 2
-    d = 2
+    d = 1
     a = 1
     b = 1 / (1 + (n - 1) * d / 2)
     x = np.arange(-2 * a, 2 * a, 0.01)

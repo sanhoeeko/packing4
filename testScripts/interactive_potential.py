@@ -188,6 +188,7 @@ def on_scroll(event):
 
 
 mode = 'test'
+ker.setEnums(1)
 
 if __name__ == '__main__':
     objs = []
@@ -199,8 +200,8 @@ if __name__ == '__main__':
     fig.canvas.mpl_connect("scroll_event", on_scroll)
 
     print("Click and release, then drag capsules. Scroll to spin capsules.")
-    objs.append(MyCapsule(2, 2, 1, 1, 1, 'violet'))  # e1
-    objs.append(MyCapsule(2, 2, 0, 0, 0, 'springgreen'))  # e2
+    objs.append(MyCapsule(3, 1, 1, 1, 1, 'violet'))  # e1
+    objs.append(MyCapsule(3, 1, 0, 0, 0, 'springgreen'))  # e2
     fi = ForceInterface(*objs)
     fi.rePlot()
     plt.show()

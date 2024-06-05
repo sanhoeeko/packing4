@@ -23,8 +23,8 @@ void calGradient(PairInfo* pinfo, GradientBuffer* ge) {
                 ii = src[i].id1,
                 jj = src[i].id2;
             XytPair f = singleGradient<how>(src[i]);
-            ptr[ii] += f.first;
-            ptr[jj] += f.second;
+            ptr[ii] -= f.first;
+            ptr[jj] -= f.second;
         }
     }
     // for pw 
@@ -39,13 +39,13 @@ void calGradient(PairInfo* pinfo, GradientBuffer* ge) {
             if (src[i].id2 == -114514) {
                 // outside the boundary, add a penalty
                 float h = src[i].t1;
-                float f = d_isotropicSq_r(4.0f - h);                       // fr < 0
+                float f = potentialDR<ScreenedCoulomb>(4.0f - h);                    // fr > 0
                 float r = sqrtf(src[i].x * src[i].x + src[i].y * src[i].y);
-                ptr[ii] -= {f * src[i].x / r, f * src[i].y / r, 0};
+                ptr[ii] += {f * src[i].x / r, f * src[i].y / r, 0};
             }
             else {
                 XytPair f = singleGradient<how>(src[i]);
-                ptr[ii] += f.first;
+                ptr[ii] += f.second;
             }
         }
     }

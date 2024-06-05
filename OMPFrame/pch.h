@@ -16,6 +16,7 @@
 
 // simulation
 DLLEXPORT void init();
+DLLEXPORT void setEnums(int potential_func);
 DLLEXPORT void setRod(int n, float d);
 DLLEXPORT void* createState(int N, float boundary_a, float boundary_b);
 DLLEXPORT void initStateAsDisks(void* state_ptr);
@@ -29,7 +30,6 @@ DLLEXPORT void* getStateMaxGradients(void* state_ptr);
 DLLEXPORT void* getStateResidualForce(void* state_ptr);
 
 // test of algorithms
-DLLEXPORT float hertzianSq(float x2);
 DLLEXPORT float fastPotential(float x, float y, float t);
 DLLEXPORT float interpolatePotential(float x, float y, float t);
 DLLEXPORT float precisePotential(float x, float y, float t);

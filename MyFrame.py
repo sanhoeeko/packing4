@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from kernel import ker
-from render import State
+from myio import DataSet
+from render import StateRenderer, State
 
 
 class StateHandle:
@@ -11,6 +12,7 @@ class StateHandle:
         self.n, self.d = n, d
         self.A, self.B = boundary_a, boundary_b
         self.data_ptr = ker.createState(N, boundary_a, boundary_b)
+        self.dataset = DataSet("data.h5", self.metadata)
 
     @classmethod
     def fromDensity(cls, N, n, d, fraction_as_disks, initial_boundary_aspect):
@@ -19,13 +21,31 @@ class StateHandle:
         return cls(N, n, d, A, B)
 
     def get(self):
-        return State(self.N, self.n, self.d, self.A, self.B, ker.getStateData(self.data_ptr, self.N))
+        s = State(self.N, self.n, self.d, self.A, self.B, ker.getStateData(self.data_ptr, self.N))
+        self.dataset.append(s)
+        return s
 
-    def initPotential(self):
+    @property
+    def metadata(self):
+        return {
+            'N': self.N,
+            'n': self.n,
+            'd': self.d,
+        }
+
+    def initPotential(self, potential_name):
+        potential_id = {
+            "Hertzian": 0,
+            "ScreenedCoulomb": 1,
+        }[potential_name]
+        ker.setEnums(potential_id)
         return ker.setRod(self.n, self.d)
 
     def maxGradients(self):
         return ker.getStateMaxGradients(self.data_ptr)
+
+    def iterationSteps(self):
+        return ker.getNumOfIterations(self.data_ptr)
 
     def residualForce(self):
         return ker.getStateResidualForce(self.data_ptr, self.N)
@@ -46,21 +66,23 @@ class StateHandle:
 
 
 if __name__ == '__main__':
-    # A, B = 36, 36
-    state = StateHandle.fromDensity(1000, 2, 0.25, 0.5, 1.0)
+    state = StateHandle.fromDensity(400, 2, 0.125, 0.5, 1.0)
     state.initAsDisks()
 
-    state.initPotential()
-    for i in range(100):
-        state.setBoundary(state.A, state.B - 0.2)
+    state.initPotential('ScreenedCoulomb')
+    for i in range(70):
+        state.setBoundary(state.A, state.B - 0.25)
         energy = state.equilibriumGD()
         gs = state.maxGradients()
-        print(i, f'G={gs[-1]}', f'E={energy}')
+        s = state.get()
+        its = len(gs)
+        print(i, f'G={gs[-1]}, E={energy}, nsteps={its}')
         # if gs[-1] > 0: break
 
-    s = state.get()
-    r = s.render()
+    '''
+    r = StateRenderer(s)
     r.drawBoundary()
     # r.drawParticles(state.residualForceAmp())
     r.drawParticles()
     plt.show()
+    '''

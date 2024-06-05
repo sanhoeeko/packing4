@@ -51,6 +51,15 @@
     <ClInclude Include="global.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="gradient_impl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="scalar.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="potential_impl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -78,6 +87,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="global.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="state_boundary.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="scalar.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
