@@ -74,7 +74,7 @@ void State::initAsDisks()
 
 void State::setBoundary(float a, float b)
 {
-	id = (id == 0) ? -1 : 0;
+	id += 1024;
 	boundary->setBoundary(a, b);
 }
 

@@ -13,9 +13,10 @@ float _hertzianSqDR(const float& x2) {
 }
 
 float _screenedCoulombSq(const float& x2) {
+    const float v0 = exp(-1.0f);
     if (x2 == 0)return 0;
     float x = sqrt(x2) / 2;
-    return exp(-x) / x;
+    return exp(-x) / x - v0;
 }
 
 float _screenedCoulombSqDR(const float& x2) {

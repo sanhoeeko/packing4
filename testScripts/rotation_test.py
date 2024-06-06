@@ -20,7 +20,8 @@ def rotationTest():
 
 if __name__ == '__main__':
     n = 2
-    d = 0.25
+    d = 1
+    ker.setEnums(1)
     ker.setRod(n, d)
     mat = rotationTest()
     

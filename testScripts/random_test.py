@@ -10,11 +10,13 @@ class TestResult:
     def __init__(self, args: tuple, dif: np.ndarray):
         self.args = args
         self.dif = dif
-        self.mean_e = np.mean(dif)
-        self.max_e = np.max(dif)
+        clean_dif = dif[~(np.isnan(dif) | np.isinf(dif))]
+        self.mean_e = np.mean(clean_dif)
+        self.median_e = np.median(clean_dif)
+        self.max_e = np.max(clean_dif)
 
     def __repr__(self):
-        return f"mean error: {self.mean_e}, max error: {self.max_e}"
+        return f"median error: {self.median_e}, mean error: {self.mean_e}, max error: {self.max_e}"
 
     def show(self, expr=None, *num_list_of_args):
         if expr is None:
@@ -75,17 +77,20 @@ def gradientTest(m):
     ratio = g / g_ref
     # there are bad cases, do not use np.mean
     r = np.median(ratio[~(np.isnan(ratio) | np.isinf(ratio))])
-    print(f"mean ratio: {r}")
+    print(f"median ratio: {r}")
+    g_abs = np.sqrt(np.sum(g_ref ** 2, axis=1))
+    print(f"mean amplitude of gradients: {np.mean(g_abs)}")
     dif = np.sqrt(np.sum((g/r - g_ref) ** 2, axis=1))
     return TestResult((x, y, t1, t2), dif)
 
 
-n = 2
+n = 3
 d = 0.25
+ker.setEnums(0)
 ker.setRod(n, d)
 a, b = 1, 1 / (1 + (n - 1) * d / 2)
 
-m = 10000
+m = 100000
 
 
 res = gradientTest(m)

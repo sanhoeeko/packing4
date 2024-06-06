@@ -101,26 +101,44 @@ bool ParticleShape::isSegmentCrossing(const xyt& q)
         q.y * fcos(q.t) >(q.x - c) * fsin(q.t);
 }
 
-xyt Rod::interpolateGradientSimplex(const xyt& q) {
+xyt Rod::interpolateGradientSimplex(const xyt& q) 
+{
+    if (q.y >= 1)return { 0,0,0 };
+    const float 
+        a1 = szx - 1,
+        a2 = szy - 1,
+        a3 = szt - 1;
     /*
         fetch potential values of 4 points:
-        (i,j,k), (i+1,j,k), (i,j+1,k), (i,j,k+1)
+        (i,j,k), (i ¡À 1,j,k), (i,j ¡À 1,k), (i,j,k ¡À 1)
     */
-    if (q.y >= 1)return { 0,0,0 };
-    size_t ijk = hashXytFloor<szx, szy, szt>(q);
+    float
+        X = q.x * a1,
+        Y = q.y * a2,
+        T = q.t * a3;
+    int 
+        i = round(X),
+        j = round(Y),
+        k = round(T);
+    int
+        hi = i < X ? 1 : -1,
+        hj = j < Y ? 1 : -1,
+        hk = k < T ? 1 : -1;
+    size_t
+        ijk = (size_t)i * (szy * szt) + j * szt + k;
     float 
         v000 = fv->data[ijk],
-        v100 = fv->data[1 * szy * szt + ijk],
-        v010 = fv->data[1 * szt + ijk],
-        v001 = fv->data[1 + ijk];
+        v100 = fv->data[(size_t)hi * szy * szt + ijk],
+        v010 = fv->data[(size_t)hj * szt + ijk],
+        v001 = fv->data[(size_t)hk + ijk];
     /*
         solve the linear equation for (A,B,C,D):
         V(x,y,t) = A(x-x0) + B(y-y0) + C(t-t0) + D
     */
     float
-        A = (-v000 + v100) * (szx - 1),
-        B = (-v000 + v010) * (szy - 1),
-        C = (-v000 + v001) * (szt - 1);
+        A = (-v000 + v100) * a1 * hi,
+        B = (-v000 + v010) * a2 * hj,
+        C = (-v000 + v001) * a3 * hk;
         // D = v000;
     /*
         the gradient: (A,B,C) is already obtained. (if only cauculate gradient, directly return)
@@ -129,38 +147,52 @@ xyt Rod::interpolateGradientSimplex(const xyt& q) {
     return { A,B,C };
 }
 
-float Rod::interpolatePotentialSimplex(const xyt& q) {
+float Rod::interpolatePotentialSimplex(const xyt& q) 
+{
+    if (q.y >= 1)return 0;
     const float
         a1 = szx - 1,
         a2 = szy - 1,
         a3 = szt - 1;
     /*
         fetch potential values of 4 points:
-        (i,j,k), (i+1,j,k), (i,j+1,k), (i,j,k+1)
+        (i,j,k), (i ¡À 1,j,k), (i,j ¡À 1,k), (i,j,k ¡À 1)
     */
-    if (q.y >= 1)return 0;
-    size_t ijk = hashXytFloor<szx, szy, szt>(q);
+    float
+        X = q.x * a1,
+        Y = q.y * a2,
+        T = q.t * a3;
+    int
+        i = round(X),
+        j = round(Y),
+        k = round(T);
+    float
+        dx = (X - i) / a1,
+        dy = (Y - j) / a2,
+        dt = (T - k) / a3;
+    int
+        hi = dx > 0 ? 1 : -1,
+        hj = dy > 0 ? 1 : -1,
+        hk = dt > 0 ? 1 : -1;
+    size_t
+        ijk = (size_t)i * (szy * szt) + j * szt + k;
     float
         v000 = fv->data[ijk],
-        v100 = fv->data[1 * szy * szt + ijk],
-        v010 = fv->data[1 * szt + ijk],
-        v001 = fv->data[1 + ijk];
+        v100 = fv->data[(size_t)hi * szy * szt + ijk],
+        v010 = fv->data[(size_t)hj * szt + ijk],
+        v001 = fv->data[(size_t)hk + ijk];
     /*
         solve the linear equation for (A,B,C,D):
         V(x,y,t) = A(x-x0) + B(y-y0) + C(t-t0) + D
     */
     float
-        A = (-v000 + v100) * a1,
-        B = (-v000 + v010) * a2,
-        C = (-v000 + v001) * a3,
+        A = (-v000 + v100) * a1 * hi,
+        B = (-v000 + v010) * a2 * hj,
+        C = (-v000 + v001) * a3 * hk,
         D = v000;
     /*
         the energy: A(x-x0) + B(y-y0) + C(t-t0) + D
         since x0 <- floor'(x), there must be x > x0, y > y0, t > t0
     */
-    float
-        dx = q.x - floor(q.x * a1) / a1,
-        dy = q.y - floor(q.y * a2) / a2,
-        dt = q.t - floor(q.t * a3) / a3;
     return A * dx + B * dy + C * dt + D;
 }

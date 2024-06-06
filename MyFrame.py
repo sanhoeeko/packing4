@@ -13,6 +13,7 @@ class StateHandle:
         self.A, self.B = boundary_a, boundary_b
         self.data_ptr = ker.createState(N, boundary_a, boundary_b)
         self.dataset = DataSet("data.h5", self.metadata)
+        self.cnt = 0
 
     @classmethod
     def fromDensity(cls, N, n, d, fraction_as_disks, initial_boundary_aspect):
@@ -21,8 +22,9 @@ class StateHandle:
         return cls(N, n, d, A, B)
 
     def get(self):
-        s = State(self.N, self.n, self.d, self.A, self.B, ker.getStateData(self.data_ptr, self.N))
+        s = State(self.cnt, self.N, self.n, self.d, self.A, self.B, ker.getStateData(self.data_ptr, self.N))
         self.dataset.append(s)
+        self.cnt += 1
         return s
 
     @property
@@ -66,11 +68,11 @@ class StateHandle:
 
 
 if __name__ == '__main__':
-    state = StateHandle.fromDensity(400, 2, 0.125, 0.5, 1.0)
+    state = StateHandle.fromDensity(1000, 2, 0.25, 0.4, 1.0)
     state.initAsDisks()
 
-    state.initPotential('ScreenedCoulomb')
-    for i in range(70):
+    state.initPotential('Hertzian')
+    for i in range(200):
         state.setBoundary(state.A, state.B - 0.25)
         energy = state.equilibriumGD()
         gs = state.maxGradients()

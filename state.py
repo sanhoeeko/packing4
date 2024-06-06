@@ -9,7 +9,8 @@ from graph import Graph
 
 
 class State:
-    def __init__(self, N, n, d, boundary_a, boundary_b, configuration: np.ndarray):
+    def __init__(self, id, N, n, d, boundary_a, boundary_b, configuration: np.ndarray):
+        self.id = id
         self.N = N
         self.n, self.d = n, d
         self.A, self.B = boundary_a, boundary_b
@@ -28,13 +29,15 @@ class State:
     @property
     def metadata(self):
         return {
+            'id': self.id,
             'A': self.A,
-            'B': self.B
+            'B': self.B,
         }
 
     @classmethod
     def load(cls, configuration, metameta: dict, metadata: dict):
         obj = cls(
+            metadata['id'],
             metameta['N'], metameta['n'], metameta['d'],
             metadata['A'], metadata['B'],
             configuration

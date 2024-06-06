@@ -47,6 +47,7 @@ if __name__ == '__main__':
     t = np.arange(0, np.pi, 0.1)
     n_theta = len(t)
     X, Y, T = np.meshgrid(x, y, t)
+    ker.setEnums(1)
     ker.setRod(n, d)
     V = np.vectorize(ker.interpolatePotential)(X, Y, T)
     V[V < 1e-6] = np.nan
