@@ -46,7 +46,7 @@ int getStateIterations(void* state_ptr)
     return s->max_gradient_amps.size();
 }
 
-DLLEXPORT void* getStateResidualForce(void* state_ptr)
+void* getStateResidualForce(void* state_ptr)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
     return s->CalGradient<AsDisks>()->data();
@@ -141,6 +141,25 @@ float* gradientTest(float x, float y, float t1, float t2)
         ParticlePair pp = { 0, 0, x, y, t1, t2 };
         XytPair g = singleGradient<Normal>(pp);
         memcpy(arr, &g, sizeof(XytPair));
+    }
+    return arr;
+}
+
+float* getMirrorOf(float A, float B, float x, float y, float t)
+{
+    static float arr[3];
+    EllipseBoundary b = EllipseBoundary(A, B);
+    Maybe<ParticlePair> pp = b.collide(0, { x,y,t });
+    if (!pp.valid || pp.obj.id2 == -114514) {
+        memset(arr, 0, 3 * sizeof(float));
+    }
+    else {
+        float
+            dx = pp.obj.x,
+            dy = pp.obj.y;
+        arr[0] = x - dx;
+        arr[1] = y - dy;
+        arr[2] = pp.obj.t2;
     }
     return arr;
 }

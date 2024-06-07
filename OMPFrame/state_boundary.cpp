@@ -71,7 +71,7 @@ void EllipseBoundary::solveNearestPointOnEllipse(float x1, float y1, float& x0, 
 
 Maybe<ParticlePair> EllipseBoundary::collide(int id, const xyt& q)
 {
-	static float x0, y0, absx0, absy0;
+	float x0, y0, absx0, absy0;
 
 	// check if the particle is outside the boundary. if so, return a penalty
 	// a penalty is marked by {id2 = -114514, theta1 = h}
@@ -105,8 +105,9 @@ Maybe<ParticlePair> EllipseBoundary::collide(int id, const xyt& q)
 
 	// calculate the mirror image
 	float
-		alpha = atan2f(b2 * x0, a2 * y0),
-		thetap = pi - q.t + 2 * alpha;
+		alpha = atan2f(a2 * y0, b2 * x0),	// the angle of the tangent line
+		beta = q.t,
+		thetap = 2 * alpha - beta;
 	return Just<ParticlePair>(
 		{ id, -1, 2 * dx, 2 * dy, q.t, thetap }
 	);
