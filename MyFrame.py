@@ -15,6 +15,7 @@ class StateHandle:
         self.data_ptr = ker.createState(N, boundary_a, boundary_b)
         self.dataset = DataSet("data.h5", self.metadata)
         self.cnt = 0
+        self.energy_cache = None
 
     @classmethod
     def fromDensity(cls, N, n, d, fraction_as_disks, initial_boundary_aspect):
@@ -23,7 +24,14 @@ class StateHandle:
         return cls(N, n, d, A, B)
 
     def get(self):
-        s = State(self.cnt, self.N, self.n, self.d, self.A, self.B, ker.getStateData(self.data_ptr, self.N))
+        s = State(
+            self.cnt, self.N, self.n, self.d, self.A, self.B,
+            ker.getStateData(self.data_ptr, self.N),
+            {
+                'energy': self.energy_cache,
+                'max_residual_force': np.max(self.residualForceAmp()),
+            }
+        )
         self.dataset.append(s)
         self.cnt += 1
         return s
@@ -66,25 +74,24 @@ class StateHandle:
 
     def equilibriumGD(self):
         start_t = time.perf_counter()
-        energy = ker.equilibriumGD(self.data_ptr)
+        self.energy_cache = ker.equilibriumGD(self.data_ptr)
         end_t = time.perf_counter()
-        dt = end_t - start_t
-        return energy, dt
+        elapse_t = end_t - start_t
+        return elapse_t
 
 
 if __name__ == '__main__':
-    state = StateHandle.fromDensity(400, 2, 0.25, 0.4, 1.0)
+    state = StateHandle.fromDensity(1000, 2, 0.25, 0.4, 1.0)
     state.initAsDisks()
 
     state.initPotential('ScreenedCoulomb')
-    for i in range(200):
-        state.setBoundary(state.A, state.B - 0.25)
-        energy, dt = state.equilibriumGD()
-        gs = state.maxGradients()
+    for i in range(100):
+        state.setBoundary(state.A, state.B - 0.4)
+        dt = state.equilibriumGD()
         s = state.get()
+        gs = state.maxGradients()
         its = len(gs)
-        print(i, f'G={gs[-1]}, E={energy}, nsteps={its}, speed: {its / dt} it/s')
-        # if gs[-1] > 0: break
+        print(i, f'G={gs[-1]}, E={s.energy}, nsteps={its}, speed: {its / dt} it/s')
 
     '''
     r = StateRenderer(s)

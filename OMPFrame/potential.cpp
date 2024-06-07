@@ -6,12 +6,6 @@
 
 #include<math.h>
 
-static inline float mod2pi(float x) {
-    const float a = 1 / (2 * pi);
-    float y = x * a;
-    return y - std::floor(y);
-}
-
 static inline float modpi(float x)
 {
     const float a = 1 / pi;
@@ -21,7 +15,13 @@ static inline float modpi(float x)
 
 template<int capacity>
 static inline int hashFloat2Pi(const float& x) {
-    return round(mod2pi(x) * capacity); 
+    /*
+        using bitwise and for fast modulo. 
+        require: `capacity` is a power of 2.
+    */
+    const float a = capacity / (2 * pi);
+    const int mask = capacity - 1;
+    return (int)(a * x) & mask;
 }
 
 static inline float _sin(const float& x) { return sin(x); }
@@ -39,17 +39,6 @@ static ReaderFunc<float, float, sz1d> FCos() {
     return *f;
 }
 
-static Matrix2f rotationMatrix(const float& a) {
-    Matrix2f u; u << fcos(a), -fsin(a), fsin(a), fcos(a);
-    return u;
-}
-
-static ReaderFunc<float, Matrix2f, sz1d> FRotation() {
-    static vector<float> xs = linspace(0, 2 * pi, sz1d);
-    static auto f = new ReaderFunc<float, Matrix2f, sz1d>(rotationMatrix, hashFloat2Pi<sz1d>, xs);
-    return *f;
-}
-
 float fsin(float x) { 
     static auto _fsin = FSin();
     return _fsin(x); 
@@ -60,9 +49,6 @@ float fcos(float x) {
     return _fcos(x); 
 }
 
-int HashXyt(const xyt& q) {
-    return hashXyt<szx, szy, szt>(q);
-}
 
 xyt ParticleShape::transform(const xyt& q)
 {

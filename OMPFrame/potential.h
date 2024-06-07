@@ -19,29 +19,6 @@ float fsin(float x);
 float fcos(float x);
 
 float modpi(float x);
-int HashXyt(const xyt& q);
-
-template<int n1, int n2, int n3>    // cannot be moved to impl header
-int hashXyt(const xyt& q) {
-    const float a1 = n1 - 1,
-        a2 = n2 - 1,
-        a3 = n3 - 1;
-    int i = round(q.x * a1),
-        j = round(q.y * a2),
-        k = round(q.t * a3);
-    return i * (n2 * n3) + j * (n3)+k;
-}
-
-template<int n1, int n2, int n3>    // cannot be moved to impl header
-int hashXytFloor(const xyt& q) {
-    const float a1 = n1 - 1,
-        a2 = n2 - 1,
-        a3 = n3 - 1;
-    int i = int(q.x * a1),    // floor
-        j = int(q.y * a2),
-        k = int(q.t * a3);
-    return i * (n2 * n3) + j * (n3)+k;
-}
 
 /*
     Base class. It is ndependent of the shape of anisotropic particles

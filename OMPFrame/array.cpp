@@ -20,11 +20,3 @@ vector<float> linspace_including_endpoint(float start, float stop, int size) {
     float step = (stop - start) / (size - 1);
     return arange(start, stop + step, step);
 }
-
-static_array<xyt> meshgrid3(vector<float>& xs, vector<float>& ys, vector<float>& ts) {
-    int n1 = xs.size(), n2 = ys.size(), n3 = ts.size();
-    static_array<xyt> res(n1 * n2 * n3);
-    xyt* ptr = res.data;
-    for (float x : xs) for (float y : ys) for (float t : ts) *ptr++ = { x,y,t };
-    return res;
-}

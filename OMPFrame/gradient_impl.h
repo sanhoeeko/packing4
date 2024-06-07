@@ -45,7 +45,7 @@ void calGradient(PairInfo* pinfo, GradientBuffer* ge) {
             }
             else {
                 XytPair f = singleGradient<how>(src[i]);
-                ptr[ii] += f.second;
+                ptr[ii] -= f.first;
             }
         }
     }

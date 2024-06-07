@@ -9,13 +9,17 @@ from graph import Graph
 
 
 class State:
-    def __init__(self, id, N, n, d, boundary_a, boundary_b, configuration: np.ndarray):
+    def __init__(self, id, N, n, d, boundary_a, boundary_b, configuration: np.ndarray, others=None):
+        if others is None:
+            others = {}
         self.id = id
         self.N = N
         self.n, self.d = n, d
         self.A, self.B = boundary_a, boundary_b
         self.a, self.b = 1, 1 / (1 + (n - 1) * d / 2)
         self.xyt = configuration
+        for key, value in others.items():
+            setattr(self, key, value)
 
     @property
     def x(self): return self.xyt[:, 0]

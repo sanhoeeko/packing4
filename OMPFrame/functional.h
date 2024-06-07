@@ -6,8 +6,6 @@
 #include<functional>
 using namespace std;
 
-#undef min
-
 /*
     Maybe type
 */
@@ -46,7 +44,7 @@ struct ReaderFunc
     #pragma omp parallel for num_threads(CORES)
         for (int i = 0; i < n; i++)
         {
-            data[hasher(inputs[i])] = func(inputs[i]);
+            data[i] = func(inputs[i]);
         }
     }
     ReaderFunc(const char* database, int hasher(const a&)) {
@@ -71,17 +69,12 @@ template<int n1, int n2, int n3>
 struct D4ScalarFunc
 {
     float (*data)[n2][n3];
-    function<int(const xyt&)> hasher;
     size_t capacity = n1 * n2 * n3;
 
-    D4ScalarFunc(int hasher(const xyt&)) {
-        this->hasher = hasher;
+    D4ScalarFunc() {
         data = new float[n1][n2][n3];
     }
-    
-    void initialize(vector<float> xs, vector<float> ys, vector<float> zs) {
 
-    }
     void read(const char* database) {
         readArrayFromFile<float>(data, capacity, database);
     }

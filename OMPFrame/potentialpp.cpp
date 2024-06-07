@@ -12,7 +12,7 @@ Rod::Rod(int n, float d) {
     b_padded = b + 0.01f;
     this->n_shift = -(n - 1) / 2.0f;
     this->inv_disk_R2 = 1 / (b * b);
-    this->fv = new D4ScalarFunc<szx, szy, szt>(HashXyt);
+    this->fv = new D4ScalarFunc<szx, szy, szt>();
 }
 
 float Rod::potentialNoInterpolate(const xyt& _q)
