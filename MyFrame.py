@@ -1,9 +1,10 @@
-import matplotlib.pyplot as plt
+import time
+
 import numpy as np
 
 from kernel import ker
 from myio import DataSet
-from render import StateRenderer, State
+from render import State
 
 
 class StateHandle:
@@ -64,21 +65,25 @@ class StateHandle:
         return ker.setBoundary(self.data_ptr, boundary_a, boundary_b)
 
     def equilibriumGD(self):
-        return ker.equilibriumGD(self.data_ptr)
+        start_t = time.perf_counter()
+        energy = ker.equilibriumGD(self.data_ptr)
+        end_t = time.perf_counter()
+        dt = end_t - start_t
+        return energy, dt
 
 
 if __name__ == '__main__':
-    state = StateHandle.fromDensity(1000, 2, 0.25, 0.4, 1.0)
+    state = StateHandle.fromDensity(400, 2, 0.25, 0.4, 1.0)
     state.initAsDisks()
 
-    state.initPotential('Hertzian')
+    state.initPotential('ScreenedCoulomb')
     for i in range(200):
         state.setBoundary(state.A, state.B - 0.25)
-        energy = state.equilibriumGD()
+        energy, dt = state.equilibriumGD()
         gs = state.maxGradients()
         s = state.get()
         its = len(gs)
-        print(i, f'G={gs[-1]}, E={energy}, nsteps={its}')
+        print(i, f'G={gs[-1]}, E={energy}, nsteps={its}, speed: {its / dt} it/s')
         # if gs[-1] > 0: break
 
     '''

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "state.h"
 #include "potential.h"
+#include "optimizer.h"
 
 float xyt::amp2(){
 	return x * x + y * y + t * t;
@@ -8,17 +9,6 @@ float xyt::amp2(){
 
 inline static float randf() {
 	return (float)rand() / RAND_MAX;
-}
-
-inline float maxGradientAbs(VectorXf* g) {
-	int n = g->size() / 3;
-	xyt* q = (xyt*)(void*)g->data();
-	float s = 0;
-	for (int i = 0; i < n; i++) {
-		float amp2 = q[i].amp2();
-		if (s < amp2)s = amp2;
-	}
-	return sqrtf(s);
 }
 
 State::State(int N)
@@ -93,7 +83,7 @@ float State::equilibriumGD()
 	for (int i = 0; i < max_iterations; i++)
 	{
 		g = CalGradient<Normal>();
-		float gm = maxGradientAbs(g);
+		float gm = Modify(g);
 		max_gradient_amps.push_back(gm);
 
 		if (gm < 1e-2) {
