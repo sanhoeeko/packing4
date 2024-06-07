@@ -12,12 +12,21 @@ Rod::Rod(int n, float d) {
     b_padded = b + 0.01f;
     this->n_shift = -(n - 1) / 2.0f;
     this->inv_disk_R2 = 1 / (b * b);
-    this->fv = new ReaderFunc<xyt, float, szxyt>(HashXyt);
+    this->fv = new D4ScalarFunc<szx, szy, szt>(HashXyt);
 }
 
-float Rod::potentialNoInterpolate(const xyt& q)
+float Rod::potentialNoInterpolate(const xyt& _q)
 {
-    return (*fv)(transform(q));
+    const float
+        a1 = szx - 1,
+        a2 = szy - 1,
+        a3 = szt - 1;
+    xyt q = transform(_q);
+    int
+        i = round(q.x * a1),
+        j = round(q.y * a2),
+        k = round(q.t * a3);
+    return fv->data[i][j][k];
 }
 
 float Rod::potential(const xyt& q) {

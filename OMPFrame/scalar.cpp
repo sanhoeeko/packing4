@@ -25,8 +25,8 @@ float _screenedCoulombSqDR(const float& x2) {
     return (exp(-x) * (1 + x) / (x * x));
 }
 
-template<size_t capacity>
-size_t hash04(const float& x) {
+template<int capacity>
+int hash04(const float& x) {
     return x * (capacity / 4);
 }
 

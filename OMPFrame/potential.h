@@ -8,38 +8,38 @@ const int sz1d = 1ll << 20;
 
 /*
     The range of (x,y,t): x = X/(2a) in [0,1), y = Y/(a+b) in [0,1), t = Theta/pi in [0,1)
-    if szx == szy == szz, the maximal szx is 1024 for the sake of size_t.
+    if szx == szy == szz, the maximal szx is 1024 for the sake of int.
 */
 const int szx = 1ll << DIGIT_X;
 const int szy = 1ll << DIGIT_Y;
 const int szt = 1ll << DIGIT_T;
-const size_t szxyt = szx * szy * szt;
+const int szxyt = szx * szy * szt;
 
 float fsin(float x);
 float fcos(float x);
 
 float modpi(float x);
-size_t HashXyt(const xyt& q);
+int HashXyt(const xyt& q);
 
 template<int n1, int n2, int n3>    // cannot be moved to impl header
-size_t hashXyt(const xyt& q) {
+int hashXyt(const xyt& q) {
     const float a1 = n1 - 1,
         a2 = n2 - 1,
         a3 = n3 - 1;
-    size_t i = round(q.x * a1),
+    int i = round(q.x * a1),
         j = round(q.y * a2),
         k = round(q.t * a3);
     return i * (n2 * n3) + j * (n3)+k;
 }
 
 template<int n1, int n2, int n3>    // cannot be moved to impl header
-size_t hashXytFloor(const xyt& q) {
+int hashXytFloor(const xyt& q) {
     const float a1 = n1 - 1,
         a2 = n2 - 1,
         a3 = n3 - 1;
-    size_t i = size_t(q.x * a1),    // floor
-        j = size_t(q.y * a2),
-        k = size_t(q.t * a3);
+    int i = int(q.x * a1),    // floor
+        j = int(q.y * a2),
+        k = int(q.t * a3);
     return i * (n2 * n3) + j * (n3)+k;
 }
 
@@ -63,7 +63,7 @@ struct Rod : ParticleShape {
         n_shift,
         inv_disk_R2;
     int n;
-    ReaderFunc<xyt, float, szxyt>* fv;
+    D4ScalarFunc<szx, szy, szt>* fv;
 
     Rod(int n, float d);
     template<PotentialFunc what> void initPotential();

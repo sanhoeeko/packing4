@@ -6,10 +6,10 @@ using namespace std;
 
 template<typename dtype>
 struct static_array {
-    size_t size;
+    int size;
     dtype* data;
 
-    static_array(size_t size) {
+    static_array(int size) {
         this->size = size;
         data = new dtype[size];
     }

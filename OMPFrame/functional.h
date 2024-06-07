@@ -32,22 +32,16 @@ Maybe<ty> Just(const ty& x) {
     ReaderFunc :: 'a[hashable] -> 'b[any]
     Read the result from a database
 */
-template<typename a, typename b, size_t capacity>
+template<typename a, typename b, int capacity>
 struct ReaderFunc
 {
     b* data;
-    function<size_t(const a&)> hasher;
+    function<int(const a&)> hasher;
 
-    ReaderFunc(size_t hasher(const a&)) {
-        // incomplete initialization
-        this->hasher = hasher;
-        data = new b[capacity];
-    }
-    ReaderFunc(b func(const a&), size_t hasher(const a&), vector<a>& inputs) {
-        // complete initialization: generate data
+    ReaderFunc(b func(const a&), int hasher(const a&), vector<a>& inputs) {
         this->hasher = hasher;
         data = (b*)malloc(capacity * sizeof(b));
-        size_t n = inputs.size();
+        int n = inputs.size();
 
     #pragma omp parallel for num_threads(CORES)
         for (int i = 0; i < n; i++)
@@ -55,7 +49,7 @@ struct ReaderFunc
             data[hasher(inputs[i])] = func(inputs[i]);
         }
     }
-    ReaderFunc(const char* database, size_t hasher(const a&)) {
+    ReaderFunc(const char* database, int hasher(const a&)) {
         // complete initialization: read data from a file
         this->hasher = hasher;
         data = new b[capacity];
@@ -66,6 +60,33 @@ struct ReaderFunc
     }
     b operator()(const a& x) {
         return data[hasher(x)];
+    }
+};
+
+/*
+    D4ScalarFunc :: (float, float, float) -> float
+    require: f(x, y, z) = f(-x, -y, z) = f(x, -y, -z) = f(-x, y, -z)
+*/
+template<int n1, int n2, int n3>
+struct D4ScalarFunc
+{
+    float (*data)[n2][n3];
+    function<int(const xyt&)> hasher;
+    size_t capacity = n1 * n2 * n3;
+
+    D4ScalarFunc(int hasher(const xyt&)) {
+        this->hasher = hasher;
+        data = new float[n1][n2][n3];
+    }
+    
+    void initialize(vector<float> xs, vector<float> ys, vector<float> zs) {
+
+    }
+    void read(const char* database) {
+        readArrayFromFile<float>(data, capacity, database);
+    }
+    void write(const char* database) {
+        writeArrayToFile<float>(data, capacity, database);
     }
 };
 

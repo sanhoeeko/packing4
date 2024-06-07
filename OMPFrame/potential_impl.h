@@ -65,14 +65,20 @@ void Rod::initPotential() {
     vector<float> xs = linspace_including_endpoint(0, 1, szx);
     vector<float> ys = linspace_including_endpoint(0, 1, szy);
     vector<float> ts = linspace_including_endpoint(0, 1, szt);
-    size_t m = xs.size();
+    int m1 = xs.size();
+    int m2 = ys.size();
+    int m3 = ts.size();
 
 #pragma omp parallel for num_threads(CORES)
-    for (int i = 0; i < m; i++) {
+    for (int i = 0; i < m1; i++) {
         float x = xs[i];
-        for (float y : ys) for (float t : ts) {
-            xyt q = { x,y,t };
-            fv->data[HashXyt(q)] = StandardPotential<what>(inverse(q));
+        for (int j = 0; j < m2; j++) {
+            float y = ys[j];
+            for (int k = 0; k < m3; k++) {
+                float t = ts[k];
+                xyt q = { x,y,t };
+                fv->data[i][j][k] = StandardPotential<what>(inverse(q));
+            }
         }
     }
     // fv->write("potential.dat");

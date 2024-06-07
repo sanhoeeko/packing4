@@ -19,8 +19,8 @@ static inline float modpi(float x)
     return y - std::floor(y);
 }
 
-template<size_t capacity>
-static inline size_t hashFloat2Pi(const float& x) {
+template<int capacity>
+static inline int hashFloat2Pi(const float& x) {
     return round(mod2pi(x) * capacity); 
 }
 
@@ -60,7 +60,7 @@ float fcos(float x) {
     return _fcos(x); 
 }
 
-size_t HashXyt(const xyt& q) {
+int HashXyt(const xyt& q) {
     return hashXyt<szx, szy, szt>(q);
 }
 
@@ -121,16 +121,14 @@ xyt Rod::interpolateGradientSimplex(const xyt& q)
         j = round(Y),
         k = round(T);
     int
-        hi = i < X ? 1 : -1,
-        hj = j < Y ? 1 : -1,
-        hk = k < T ? 1 : -1;
-    size_t
-        ijk = (size_t)i * (szy * szt) + j * szt + k;
-    float 
-        v000 = fv->data[ijk],
-        v100 = fv->data[(size_t)hi * szy * szt + ijk],
-        v010 = fv->data[(size_t)hj * szt + ijk],
-        v001 = fv->data[(size_t)hk + ijk];
+        hi = i <= X ? 1 : -1,   // do not use '<', because X and i can be both 0.0f and hi = -1 causes an illegal access
+        hj = j <= Y ? 1 : -1,
+        hk = k <= T ? 1 : -1;
+    float
+        v000 = fv->data[i][j][k],
+        v100 = fv->data[i + hi][j][k],
+        v010 = fv->data[i][j + hj][k],
+        v001 = fv->data[i][j][k + hk];
     /*
         solve the linear equation for (A,B,C,D):
         V(x,y,t) = A(x-x0) + B(y-y0) + C(t-t0) + D
@@ -171,16 +169,14 @@ float Rod::interpolatePotentialSimplex(const xyt& q)
         dy = (Y - j) / a2,
         dt = (T - k) / a3;
     int
-        hi = dx > 0 ? 1 : -1,
-        hj = dy > 0 ? 1 : -1,
-        hk = dt > 0 ? 1 : -1;
-    size_t
-        ijk = (size_t)i * (szy * szt) + j * szt + k;
+        hi = dx >= 0 ? 1 : -1,
+        hj = dy >= 0 ? 1 : -1,
+        hk = dt >= 0 ? 1 : -1;
     float
-        v000 = fv->data[ijk],
-        v100 = fv->data[(size_t)hi * szy * szt + ijk],
-        v010 = fv->data[(size_t)hj * szt + ijk],
-        v001 = fv->data[(size_t)hk + ijk];
+        v000 = fv->data[i][j][k],
+        v100 = fv->data[i + hi][j][k],
+        v010 = fv->data[i][j + hj][k],
+        v001 = fv->data[i][j][k + hk];
     /*
         solve the linear equation for (A,B,C,D):
         V(x,y,t) = A(x-x0) + B(y-y0) + C(t-t0) + D
