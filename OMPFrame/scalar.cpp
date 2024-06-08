@@ -22,7 +22,7 @@ float _screenedCoulombSq(const float& x2) {
 float _screenedCoulombSqDR(const float& x2) {
     if (x2 == 0)return 0;
     float x = sqrt(x2) / 2;
-    return (exp(-x) * (1 + x) / (x * x));
+    return (exp(-x) * (1 + x) / (x * x * x));
 }
 
 template<int capacity>

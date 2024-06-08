@@ -36,6 +36,7 @@ def fastPotentialTest(m):
     t = np.random.uniform(0, 2 * pi, (m,))
     v = np.vectorize(ker.fastPotential)(x, y, t)
     v_ref = np.vectorize(ker.precisePotential)(x, y, t)
+    print(f"mean potential: {np.mean(v_ref)}")
     dif = np.abs(v - v_ref)
     return TestResult((x, y, t), dif)
 
@@ -50,6 +51,7 @@ def potentialTest(m):
     t = np.random.uniform(0, 2 * pi, (m,))
     v = np.vectorize(ker.interpolatePotential)(x, y, t)
     v_ref = np.vectorize(ker.precisePotential)(x, y, t)
+    print(f"mean potential: {np.mean(v_ref)}")
     dif = np.abs(v - v_ref)
     return TestResult((x, y, t), dif)
 
@@ -84,9 +86,9 @@ def gradientTest(m):
     return TestResult((x, y, t1, t2), dif)
 
 
-n = 3
+n = 1
 d = 0.25
-ker.setEnums(0)
+ker.setEnums(1)
 ker.setRod(n, d)
 a, b = 1, 1 / (1 + (n - 1) * d / 2)
 
