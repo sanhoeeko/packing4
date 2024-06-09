@@ -18,10 +18,14 @@ class StateHandle:
         self.energy_cache = None
 
     @classmethod
-    def fromDensity(cls, N, n, d, fraction_as_disks, initial_boundary_aspect):
+    def fromCircDensity(cls, N, n, d, fraction_as_disks, initial_boundary_aspect):
         B = np.sqrt(N / (fraction_as_disks * initial_boundary_aspect))
         A = B * initial_boundary_aspect
         return cls(N, n, d, A, B)
+
+    @property
+    def density(self):
+        return self.N / (np.pi * self.A * self.B)
 
     def get(self):
         s = State(
@@ -81,22 +85,16 @@ class StateHandle:
 
 
 if __name__ == '__main__':
-    state = StateHandle.fromDensity(1000, 2, 0.25, 0.4, 1.0)
+    state = StateHandle.fromCircDensity(1000, 2, 0.25, 0.4, 1.0)
     state.initAsDisks()
 
-    state.initPotential('ScreenedCoulomb')
-    for i in range(100):
-        state.setBoundary(state.A, state.B - 0.4)
+    state.initPotential('Hertzian')
+    for i in range(1000):
+        if state.density > 1.2: break
+        state.setBoundary(state.A, state.B - 0.1)
         dt = state.equilibriumGD()
         s = state.get()
         gs = state.maxGradients()
         its = len(gs)
         print(i, f'G={gs[-1]}, E={s.energy}, nsteps={its}, speed: {its / dt} it/s')
 
-    '''
-    r = StateRenderer(s)
-    r.drawBoundary()
-    # r.drawParticles(state.residualForceAmp())
-    r.drawParticles()
-    plt.show()
-    '''

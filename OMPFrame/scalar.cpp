@@ -30,27 +30,32 @@ int hash04(const float& x) {
     return x * (capacity / 4);
 }
 
-static ReaderFunc<float, float, sz1d> FHertzianSq() {
+template<>
+int anyHasher<float, _h4>(const float& x) {
+    return hash04<sz1d>(x);
+}
+
+static LookupFunc<float, float, sz1d, _h4> FHertzianSq() {
     static vector<float> xs = linspace(0, 4, sz1d);
-    static auto f = new ReaderFunc<float, float, sz1d>(_hertzianSq, hash04<sz1d>, xs);
+    static auto f = new LookupFunc<float, float, sz1d, _h4>(_hertzianSq, xs);
     return *f;
 }
 
-static ReaderFunc<float, float, sz1d> FHertzianSqDR() {
+static LookupFunc<float, float, sz1d, _h4> FHertzianSqDR() {
     static vector<float> xs = linspace(0, 4, sz1d);
-    static auto f = new ReaderFunc<float, float, sz1d>(_hertzianSqDR, hash04<sz1d>, xs);
+    static auto f = new LookupFunc<float, float, sz1d, _h4>(_hertzianSqDR, xs);
     return *f;
 }
 
-static ReaderFunc<float, float, sz1d> FScreenedCoulombSq() {
+static LookupFunc<float, float, sz1d, _h4> FScreenedCoulombSq() {
     static vector<float> xs = linspace(0, 4, sz1d);
-    static auto f = new ReaderFunc<float, float, sz1d>(_screenedCoulombSq, hash04<sz1d>, xs);
+    static auto f = new LookupFunc<float, float, sz1d, _h4>(_screenedCoulombSq, xs);
     return *f;
 }
 
-static ReaderFunc<float, float, sz1d> FScreenedCoulombSqDR() {
+static LookupFunc<float, float, sz1d, _h4> FScreenedCoulombSqDR() {
     static vector<float> xs = linspace(0, 4, sz1d);
-    static auto f = new ReaderFunc<float, float, sz1d>(_screenedCoulombSqDR, hash04<sz1d>, xs);
+    static auto f = new LookupFunc<float, float, sz1d, _h4>(_screenedCoulombSqDR, xs);
     return *f;
 }
 

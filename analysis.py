@@ -61,5 +61,5 @@ class InteractiveViewer:
 
 
 ds = DataSet.loadFrom('data.h5')
-iv = InteractiveViewer(ds, RenderPipe(StateRenderer.voronoiNeighbors))
+iv = InteractiveViewer(ds, RenderPipe(StateRenderer.angle))
 iv.show()

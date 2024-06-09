@@ -26,18 +26,19 @@ Maybe<ty> Just(const ty& x) {
     return { true, x };
 }
 
+template<typename a, HashFunc hasher>
+int anyHasher(const a& x);
+
 /*
-    ReaderFunc :: 'a[hashable] -> 'b[any]
+    LookupFunc :: 'a[hashable] -> 'b[any]
     Read the result from a database
 */
-template<typename a, typename b, int capacity>
-struct ReaderFunc
+template<typename a, typename b, int capacity, HashFunc hasher>
+struct LookupFunc
 {
     b* data;
-    function<int(const a&)> hasher;
 
-    ReaderFunc(b func(const a&), int hasher(const a&), vector<a>& inputs) {
-        this->hasher = hasher;
+    LookupFunc(b func(const a&), vector<a>& inputs) {
         data = (b*)malloc(capacity * sizeof(b));
         int n = inputs.size();
 
@@ -47,17 +48,8 @@ struct ReaderFunc
             data[i] = func(inputs[i]);
         }
     }
-    ReaderFunc(const char* database, int hasher(const a&)) {
-        // complete initialization: read data from a file
-        this->hasher = hasher;
-        data = new b[capacity];
-        readArrayFromFile<b>(data, capacity, database);
-    }
-    void write(const char* database) {
-        writeArrayToFile<b>(data, capacity, database);
-    }
     b operator()(const a& x) {
-        return data[hasher(x)];
+        return data[anyHasher<a, hasher>(x)];
     }
 };
 

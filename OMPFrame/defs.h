@@ -24,6 +24,7 @@ const float pi = 3.141592654;
 
 enum HowToCalGradient{ Normal, AsDisks, Test };
 enum PotentialFunc{ Hertzian, ScreenedCoulomb };
+enum HashFunc { _h2pi, _h4 };
 
 struct xyt { 
     float x, y, t; 

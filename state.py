@@ -8,6 +8,12 @@ from scipy.spatial import Delaunay
 from graph import Graph
 
 
+class RenderSetup:
+    def __init__(self, colors: np.ndarray, style: str):
+        self.colors = colors
+        self.style = style
+
+
 class State:
     def __init__(self, id, N, n, d, boundary_a, boundary_b, configuration: np.ndarray, others=None):
         if others is None:
@@ -60,22 +66,20 @@ class State:
         return np.vstack(xys)
 
     @lru_cache(maxsize=None)
-    def voronoi(self):
+    def voronoiDiagram(self):
         points = self.toSites()  # input of Delaunay is (n_point, n_dim)
         delaunay = Delaunay(points)
         voro_graph = Graph(len(points)).from_delaunay(delaunay.vertex_neighbor_vertices)
         return voro_graph.merge(self.N)
 
-    @lru_cache(maxsize=None)
-    def voronoiNeighbors(self):
+    def voronoi(self) -> RenderSetup:
         """
         for visualization
         """
-        return self.voronoi().neighborNums()
+        return RenderSetup(self.voronoiDiagram().neighborNums(), 'voronoi')
 
-    @lru_cache(maxsize=None)
-    def angles(self):
+    def angle(self) -> RenderSetup:
         """
         for visualization
         """
-        return self.t
+        return RenderSetup(self.t, 'angle')

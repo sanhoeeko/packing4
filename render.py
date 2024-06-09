@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from state import State
+from state import State, RenderSetup
 
 my_colors = ['floralWhite', 'lemonchiffon', 'wheat', 'lightsalmon', 'coral', 'crimson',
              'paleturquoise', 'blue', 'teal', 'seagreen', 'green']
@@ -21,27 +21,25 @@ class StateRenderer(State):
         ax.add_artist(ellipse)
         return handle
 
-    def drawParticles(self, handle, colors=None):
+    def drawParticles(self, handle, setup: RenderSetup):
         """
         colors: can be either an array or a function
         """
         fig, ax = handle
-        cmap = 'viridis'
-        norm = None
-        if colors is None:  # plot angle as default
-            c = self.t
+        cmap, norm = None, None
+        if setup.style == 'normal':
+            cmap = 'viridis'
+            norm = None
+        elif setup.style == 'angle':
             cmap = 'hsv'
             norm = mcolors.Normalize(vmin=0, vmax=np.pi)
-        elif isinstance(colors, np.ndarray):
-            assert colors.shape == self.x.shape
-            c = colors
-            if np.issubdtype(colors.dtype, np.integer):
-                cmap = mcolors.ListedColormap(my_colors)
-                norm = mcolors.Normalize(vmin=0, vmax=len(my_colors))
-                if np.any(colors < 0) or np.any(colors > len(my_colors)):
-                    raise ValueError("Integer data out of range")
+        elif setup.style == 'voronoi':
+            cmap = mcolors.ListedColormap(my_colors)
+            norm = mcolors.Normalize(vmin=0, vmax=len(my_colors))
+            if np.any(setup.colors < 0) or np.any(setup.colors > len(my_colors)):
+                raise ValueError("Integer data out of range.")
         else:
-            raise TypeError
+            raise TypeError("Unknown visualization style.")
 
         # Create a list to hold the patches
         ellipses = []
@@ -53,7 +51,7 @@ class StateRenderer(State):
             ellipses.append(ellipse)
 
         # Create a collection with the ellipses and add it to the axes
-        col = collections.PatchCollection(ellipses, array=c, norm=norm, cmap=cmap)
+        col = collections.PatchCollection(ellipses, array=setup.colors, norm=norm, cmap=cmap)
         ax.add_collection(col)
 
         # Set the limits of the plot

@@ -24,18 +24,23 @@ static inline int hashFloat2Pi(const float& x) {
     return (int)(a * x) & mask;
 }
 
+template<>
+int anyHasher<float, _h2pi>(const float& x) {
+    return hashFloat2Pi<sz1d>(x);
+}
+
 static inline float _sin(const float& x) { return sin(x); }
 static inline float _cos(const float& x) { return cos(x); }
 
-static ReaderFunc<float, float, sz1d> FSin() {
+static LookupFunc<float, float, sz1d, _h2pi> FSin() {
     static vector<float> xs = linspace(0, 2 * pi, sz1d);
-    static auto f = new ReaderFunc<float, float, sz1d>(_sin, hashFloat2Pi<sz1d>, xs);
+    static auto f = new LookupFunc<float, float, sz1d, _h2pi>(_sin, xs);
     return *f;
 }
 
-static ReaderFunc<float, float, sz1d> FCos() {
+static LookupFunc<float, float, sz1d, _h2pi> FCos() {
     static vector<float> xs = linspace(0, 2 * pi, sz1d);
-    static auto f = new ReaderFunc<float, float, sz1d>(_cos, hashFloat2Pi<sz1d>, xs);
+    static auto f = new LookupFunc<float, float, sz1d, _h2pi>(_cos, xs);
     return *f;
 }
 
