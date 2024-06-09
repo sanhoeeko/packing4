@@ -1,12 +1,21 @@
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 
+import fp
 from myio import DataSet
 from render import StateRenderer
 
 
+class RenderPipe:
+    def __init__(self, *funcs):
+        self.sequence = list(map(fp.reverseClassMethod, funcs))
+
+    def eval(self, obj):
+        return fp.applyPipeline(obj, self.sequence)
+
+
 class InteractiveViewer:
-    def __init__(self, dataset: DataSet):
+    def __init__(self, dataset: DataSet, pipe: RenderPipe):
         self.metadata = dataset.metadata
         self.data = list(map(lambda x: StateRenderer(x), dataset.data))
         self.index = 0
@@ -18,6 +27,7 @@ class InteractiveViewer:
         self.slider = Slider(self.ax_slider, 'Index', 0, len(self.data) - 1, valinit=0, valstep=1)
         self.slider.on_changed(self.update)
         self.fig.canvas.mpl_connect('key_press_event', self.on_key_press)
+        self.pipe = pipe
 
     def clear(self):
         self.ax.clear()
@@ -42,7 +52,7 @@ class InteractiveViewer:
     def redraw(self):
         self.clear()
         self.data[self.index].drawBoundary(self.handle)
-        self.data[self.index].drawParticles(self.handle)
+        self.data[self.index].drawParticles(self.handle, self.pipe.eval(self.data[self.index]))
         plt.draw()
 
     def show(self):
@@ -51,5 +61,5 @@ class InteractiveViewer:
 
 
 ds = DataSet.loadFrom('data.h5')
-iv = InteractiveViewer(ds)
+iv = InteractiveViewer(ds, RenderPipe(StateRenderer.voronoiNeighbors))
 iv.show()

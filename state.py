@@ -63,5 +63,19 @@ class State:
     def voronoi(self):
         points = self.toSites()  # input of Delaunay is (n_point, n_dim)
         delaunay = Delaunay(points)
-        voro_graph = Graph(len(points)).from_delaunay(delaunay.simplices)
+        voro_graph = Graph(len(points)).from_delaunay(delaunay.vertex_neighbor_vertices)
         return voro_graph.merge(self.N)
+
+    @lru_cache(maxsize=None)
+    def voronoiNeighbors(self):
+        """
+        for visualization
+        """
+        return self.voronoi().neighborNums()
+
+    @lru_cache(maxsize=None)
+    def angles(self):
+        """
+        for visualization
+        """
+        return self.t
