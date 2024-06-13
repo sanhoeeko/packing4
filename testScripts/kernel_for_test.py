@@ -1,6 +1,6 @@
 import ctypes as ct
 
-from kernel import Kernel
+from src.kernel import Kernel
 
 
 class TestKernel(Kernel):
@@ -18,6 +18,8 @@ class TestKernel(Kernel):
         self.gradientTest = self.returnFixedArray(self.dll.gradientTest, 6)
         self.dll.gradientReference.argtypes = [ct.c_float] * 4
         self.gradientReference = self.returnFixedArray(self.dll.gradientReference, 6)
+        self.dll.getMirrorOf.argtypes = [ct.c_float] * 5
+        self.getMirrorOf = self.returnFixedArray(self.dll.getMirrorOf, 3)
 
     def interpolatePotential(self, x, y, t):
         return self.dll.interpolatePotential(x, y, t)

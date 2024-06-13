@@ -1,11 +1,10 @@
 import matplotlib.collections as collections
 import matplotlib.colors as mcolors
 import matplotlib.patches as patches
-import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-from state import State, RenderSetup
+from .state import State, RenderSetup
 
 my_colors = ['floralWhite', 'lemonchiffon', 'wheat', 'lightsalmon', 'coral', 'crimson',
              'paleturquoise', 'blue', 'teal', 'seagreen', 'green']

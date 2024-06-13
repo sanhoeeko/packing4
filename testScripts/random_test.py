@@ -3,7 +3,7 @@ from math import pi
 import matplotlib.pyplot as plt
 import numpy as np
 
-from kernel_for_test import ker
+from .kernel_for_test import ker
 
 
 class TestResult:
@@ -86,7 +86,7 @@ def gradientTest(m):
     return TestResult((x, y, t1, t2), dif)
 
 
-n = 1
+n = 5
 d = 0.25
 ker.setEnums(1)
 ker.setRod(n, d)

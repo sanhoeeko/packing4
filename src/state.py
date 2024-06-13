@@ -1,11 +1,9 @@
-import functools
-import types
 from functools import lru_cache
 
 import numpy as np
 from scipy.spatial import Delaunay
 
-from graph import Graph
+from .graph import Graph
 
 
 class RenderSetup:
@@ -28,13 +26,16 @@ class State:
             setattr(self, key, value)
 
     @property
-    def x(self): return self.xyt[:, 0]
+    def x(self):
+        return self.xyt[:, 0]
 
     @property
-    def y(self): return self.xyt[:, 1]
+    def y(self):
+        return self.xyt[:, 1]
 
     @property
-    def t(self): return self.xyt[:, 2] % np.pi
+    def t(self):
+        return self.xyt[:, 2] % np.pi
 
     @property
     def metadata(self):

@@ -1,9 +1,9 @@
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 
-import fp
-from myio import DataSet
-from render import StateRenderer
+import src.fp as fp
+from src.myio import DataSet
+from src.render import StateRenderer
 
 
 class RenderPipe:

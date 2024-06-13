@@ -2,7 +2,7 @@ from math import sin, cos
 
 import numpy as np
 
-from kernel_for_test import ker
+from .kernel_for_test import ker
 
 
 def rotate(angle, tup: tuple):

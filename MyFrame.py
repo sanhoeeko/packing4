@@ -2,9 +2,9 @@ import time
 
 import numpy as np
 
-from kernel import ker
-from myio import DataSet
-from render import State
+from src.kernel import ker
+from src.myio import DataSet
+from src.render import State
 
 
 class StateHandle:

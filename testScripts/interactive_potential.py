@@ -3,8 +3,8 @@ from math import pi, sin, cos
 import matplotlib.pyplot as plt
 import numpy as np
 
-from art import Capsule
-from kernel_for_test import ker
+from src.art import Capsule
+from .kernel_for_test import ker
 
 
 class XytPair:

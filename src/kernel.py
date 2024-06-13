@@ -1,14 +1,25 @@
 import ctypes as ct
 import os
+import sys
 import time
 
 import numpy as np
 
 
+def getLibraryPath():
+    dir_path = os.path.dirname(os.path.abspath(__file__))
+    if sys.platform.startswith('win'):
+        return os.path.join(dir_path, '..', 'x64', 'Release', 'OMPFrame.dll')
+    elif sys.platform.startswith('linux'):
+        return os.path.join(dir_path, '..', 'OMPFrame', 'OMPFrame.so')
+    else:
+        raise SystemError
+
+
 class Kernel:
     def __init__(self):
-        dir_path = os.path.dirname(os.path.abspath(__file__))
-        dll_path = os.path.join(dir_path, "./x64/Release/OMPFrame.dll")
+
+        dll_path = getLibraryPath()
         self.dll = ct.cdll.LoadLibrary(dll_path)
         self.dll.init()
         self.dll.setEnums.argtypes = [ct.c_int]

@@ -12,7 +12,11 @@
 
 #include "defs.h"
 #include "global.h"
-#define DLLEXPORT extern "C" __declspec(dllexport)
+#ifdef _WIN32
+    #define DLLEXPORT extern "C" __declspec(dllexport)
+#else
+    #define DLLEXPORT extern "C"
+#endif
 
 // simulation
 DLLEXPORT void init();

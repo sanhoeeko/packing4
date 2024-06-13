@@ -1,6 +1,6 @@
 import h5py
 
-from state import State
+from .state import State
 
 
 class DataSet:

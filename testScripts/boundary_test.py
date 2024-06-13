@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import patches
 
-from kernel_for_test import ker
+from .kernel_for_test import ker
 
 
 class DraggablePoint:

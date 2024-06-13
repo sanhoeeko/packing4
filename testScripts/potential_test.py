@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.widgets import Slider
 
-from kernel_for_test import ker
+from .kernel_for_test import ker
 
 
 def dynamicVisualize(n_thetas, x, y, theta, v):

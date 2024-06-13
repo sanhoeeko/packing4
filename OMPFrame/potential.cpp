@@ -6,7 +6,7 @@
 
 #include<math.h>
 
-static inline float modpi(float x)
+float modpi(float x)
 {
     const float a = 1 / pi;
     float y = x * a;
