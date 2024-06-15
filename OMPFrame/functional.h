@@ -67,11 +67,11 @@ struct D4ScalarFunc
         data = new float[n1][n2][n3];
     }
 
-    void read(const char* database) {
-        readArrayFromFile<float>(data, capacity, database);
+    void read(const char* filename) {
+        readArrayFromFile<float>((float*)data, capacity, filename);
     }
-    void write(const char* database) {
-        writeArrayToFile<float>(data, capacity, database);
+    void write(const char* filename) {
+        writeArrayToFile<float>((float*)data, capacity, filename);
     }
 };
 

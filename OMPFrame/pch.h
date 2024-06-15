@@ -33,6 +33,11 @@ DLLEXPORT int getStateIterations(void* state_ptr);
 DLLEXPORT void* getStateMaxGradients(void* state_ptr);
 DLLEXPORT void* getStateResidualForce(void* state_ptr);
 
+// built-in IO
+DLLEXPORT void readPotential(int n, float d);
+DLLEXPORT void writePotential();
+DLLEXPORT int getPotentialId();
+
 // test of algorithms
 DLLEXPORT float fastPotential(float x, float y, float t);
 DLLEXPORT float interpolatePotential(float x, float y, float t);

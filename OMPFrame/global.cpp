@@ -3,6 +3,8 @@
 
 Global* global;
 
+const char* potential_file_name = "potential.dat";
+
 void setGlobal()
 {
     global = new Global();
@@ -50,6 +52,22 @@ void* getStateResidualForce(void* state_ptr)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
     return s->CalGradient<AsDisks>()->data();
+}
+
+void readPotential(int n, float d)
+{
+    global->rod = new Rod(n, d);
+    global->rod->fv->read(potential_file_name);
+}
+
+void writePotential()
+{
+    global->rod->fv->write(potential_file_name);
+}
+
+int getPotentialId()
+{
+    return global->pf;
 }
 
 void* getStateMaxGradients(void* state_ptr)

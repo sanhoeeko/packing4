@@ -12,7 +12,7 @@ void writeArrayToFile(ty* ptr, size_t size, const std::string& filename) {
         file.close();
     }
     else {
-        std::cout << "Unable to open file";
+        std::cout << "Unable to open file" << std::endl;
     }
 }
 
@@ -24,6 +24,6 @@ void readArrayFromFile(ty* ptr, size_t size, const std::string& filename) {
         file.close();
     }
     else {
-        std::cout << "Unable to open file";
+        std::cout << "Unable to open file" << std::endl;
     }
 }

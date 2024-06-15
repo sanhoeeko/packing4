@@ -6,6 +6,7 @@
   - Don't forget to enable `/openmp` in the Release mode.
   - Build the project. Ensure that the target file is named `./x64/Release/OMPFrame.dll`.
   - Open the root folder in PyCharm.
+  - Run $\to$ Edit Configurations $\to$ Turn the item "script" to "module".
   - Run any script in `./testScripts` for test.
   - Run `./MyFrame.py` to perform a numerical experiment.
   - Run `./analysis.py` to visualize the data.
