@@ -29,7 +29,7 @@ struct State{
 
     void setBoundary(float a, float b);
     void descent(float a, VectorXf* g);
-    float equilibriumGD();
+    float equilibriumGD(int max_iterations);
 
     Grid* GridLocate();
     PairInfo* CollisionDetect();

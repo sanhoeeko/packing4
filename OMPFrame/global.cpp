@@ -19,7 +19,7 @@ void setEnums(int potential_func)
 void setRod(int n, float d)
 {
     typedef void (Rod::*Func)(void);
-    Func funcs[2] = {
+    static Func funcs[2] = {
         &Rod::initPotential<Hertzian>,
         &Rod::initPotential<ScreenedCoulomb>,
     };
@@ -87,10 +87,23 @@ void setBoundary(void* state_ptr, float boundary_a, float boundary_b)
     s->setBoundary(boundary_a, boundary_b);
 }
 
-void equilibriumGD(void* state_ptr)
+void singleStep(void* state_ptr, int mode, float step_size)
+{
+    typedef VectorXf* (State::* Func)();
+    static Func funcs[HowToCalGradient_Count] = {
+        &State::CalGradient<Normal>,
+        &State::CalGradient<AsDisks>,
+    };
+
+    State* s = reinterpret_cast<State*>(state_ptr);
+    VectorXf* g = (s->*funcs[mode])();
+    s->descent(step_size, g);
+}
+
+void equilibriumGD(void* state_ptr, int max_iterations)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
-    s->equilibriumGD();
+    s->equilibriumGD(max_iterations);
 }
 
 float fastPotential(float x, float y, float t)
@@ -111,7 +124,7 @@ float interpolatePotential(float x, float y, float t)
 float precisePotential(float x, float y, float t)
 {
     typedef float (Rod::* Func)(const xyt&);
-    Func funcs[2] = {
+    static Func funcs[2] = {
         &Rod::StandardPotential<Hertzian>,
         &Rod::StandardPotential<ScreenedCoulomb>
     };

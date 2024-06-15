@@ -19,11 +19,12 @@ using namespace Eigen;
 #define DIGIT_X 9
 #define DIGIT_Y 9
 #define DIGIT_T 9
+#define ENERGY_STRIDE 1000
 
 const float pi = 3.141592654;
 
-enum HowToCalGradient{ Normal, AsDisks, Test };
-enum PotentialFunc{ Hertzian, ScreenedCoulomb };
+enum HowToCalGradient{ Normal, AsDisks, Test, HowToCalGradient_Count };
+enum PotentialFunc{ Hertzian, ScreenedCoulomb, PotentialFunc_Count };
 enum HashFunc { _h2pi, _h4 };
 
 struct xyt { 

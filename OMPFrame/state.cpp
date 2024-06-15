@@ -57,7 +57,7 @@ void State::initAsDisks()
 			return;
 		}
 		else {
-			descent(1e-2, g);
+			descent(1e-3, g);
 		}
 	}
 }
@@ -74,9 +74,11 @@ void State::descent(float a, VectorXf* g)
 	id++;
 }
 
-float State::equilibriumGD()
+float State::equilibriumGD(int max_iterations)
 {
-	const int max_iterations = 1e5;
+	float step_size = 1e-3;
+	float current_min_energy = CalEnergy();
+
 	VectorXf* g;
 	max_gradient_amps.clear();
 
@@ -86,11 +88,27 @@ float State::equilibriumGD()
 		float gm = Modify(g);
 		max_gradient_amps.push_back(gm);
 
-		if (gm < 1e-2) {
+		// gradient criterion
+		if (gm < 1e-2) {	
 			break;
 		}
 		else {
-			descent(1e-3, g);
+			if ((i + 1) % ENERGY_STRIDE == 0) {
+				float E = CalEnergy();
+				// energy criterion
+				if (E < 5e-5) {
+					break;
+				}
+				// step size (descent speed) criterion
+				else if (abs(1 - E / current_min_energy) < 1e-4) {
+					step_size /= 2;
+					if (step_size < 1e-4) {
+						break;
+					}
+				}
+				current_min_energy = std::min(current_min_energy, E);
+			}
+			descent(step_size, g);
 		}
 	}
 	return CalEnergy();

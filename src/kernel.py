@@ -5,7 +5,7 @@ import time
 
 import numpy as np
 
-import fp
+import src.fp as fp
 
 
 def getLibraryPath():
@@ -41,7 +41,8 @@ class Kernel:
         self.dll.getStateResidualForce.argtypes = [ct.c_void_p]
         self.dll.getStateResidualForce.restype = ct.c_void_p
         self.dll.initStateAsDisks.argtypes = [ct.c_void_p]
-        self.dll.equilibriumGD.argtypes = [ct.c_void_p]
+        self.dll.singleStep.argtypes = [ct.c_void_p, ct.c_int, ct.c_float]
+        self.dll.equilibriumGD.argtypes = [ct.c_void_p, ct.c_int]
         self.dll.equilibriumGD.restype = ct.c_float
 
     def returnFixedArray(self, dll_function, length):
@@ -143,8 +144,11 @@ class Kernel:
         }
         fp.writeJson(self.potential_meta_path, metadata)
 
-    def equilibriumGD(self, address):
-        return self.dll.equilibriumGD(address)
+    def singleStep(self, address, mode: int, step_size: float):
+        return self.dll.singleStep(address, mode, step_size)
+
+    def equilibriumGD(self, address, max_iterations: int):
+        return self.dll.equilibriumGD(address, max_iterations)
 
 
 ker = Kernel()

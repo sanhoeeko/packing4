@@ -25,7 +25,8 @@ DLLEXPORT void setRod(int n, float d);
 DLLEXPORT void* createState(int N, float boundary_a, float boundary_b);
 DLLEXPORT void initStateAsDisks(void* state_ptr);
 DLLEXPORT void setBoundary(void* state_ptr, float boundary_a, float boundary_b);
-DLLEXPORT void equilibriumGD(void* state_ptr);
+DLLEXPORT void singleStep(void* state_ptr, int mode, float step_size);
+DLLEXPORT void equilibriumGD(void* state_ptr, int max_iterations);
 
 // fetching data
 DLLEXPORT void* getStateData(void* state_ptr);
