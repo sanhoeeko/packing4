@@ -21,9 +21,10 @@ struct State{
     vector<float> max_gradient_amps;
     int N;
     int id;
+    int sibling_id;
 
-    State(int N);
-    State(VectorXf q, EllipseBoundary* b, int N);
+    State(int N, int sibling);
+    State(VectorXf q, EllipseBoundary* b, int N, int sibling);
     void randomInitStateCC();
     void initAsDisks();
 

@@ -78,22 +78,27 @@ struct D4ScalarFunc
 template<typename a, typename b>
 struct CacheFunction 
 {
-    b* cache = NULL;
-    function<void(a*, b*)> func;    // function in fishing format. a: input type; b: result type
+    b cache[SIBLINGS];
+    function<void(a*, b*)> func;            // function in fishing format. a: input type; b: result type
 
-    CacheFunction(void f(a*,b*), b* new_cache) {
+    CacheFunction(void f(a*,b*), const b& new_cache) {
         this->func = function<void(a*, b*)>(f);
-        this->cache = new_cache;
+        for (int i = 0; i < SIBLINGS; i++) 
+        {
+            this->cache[i] = new_cache;     // require: b type should have a deep copy method
+            this->cache[i].sibling_id = i;  // require: b type should have a `sibling_id` tag
+        }
     }
 
     b* operator()(a* x) {
-        if (x->id == cache->id) {
+        int idx = x->sibling_id;            // require: a type should have a `sibling_id` tag
+        if (x->id == cache[idx].id) {
             return cache;
         }
         else {
-            cache->id = x->id;
-            func(x, cache);         // cache = f(x)
-            return cache;
+            cache[idx].id = x->id;
+            func(x, &cache[idx]);           // cache = f(x)
+            return &cache[idx];
         }
     }
 };

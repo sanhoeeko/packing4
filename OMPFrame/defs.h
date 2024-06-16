@@ -12,7 +12,8 @@
 #endif
 using namespace Eigen;
 
-#define CORES 4
+#define CORES 1
+#define SIBLINGS 4
 #define NAN_IF_PENETRATE false
 #define ENABLE_NAN_CHECK true
 

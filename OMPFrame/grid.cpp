@@ -13,6 +13,12 @@ Grid::Grid() {
 	p = new VectorList<int, CORES, grid_single_capacity>[max_grid_size];
 	id = -1;
 }
+Grid::Grid(const Grid& obj)
+{
+	// memory alloc
+	p = new VectorList<int, CORES, grid_single_capacity>[max_grid_size];
+	id = obj.id;
+}
 void Grid::init(float cell_size, float boundary_a, float boundary_b) {
 	/*
 		Input:

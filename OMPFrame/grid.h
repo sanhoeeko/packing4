@@ -21,10 +21,12 @@ struct Grid {
 	int lines, cols;							// number of cells of each line of the grid
 	int size;									// lines * cols
 	int id;										// derived
+	int sibling_id;								// dirived
 	int* collision_detect_region;				// only 5 cells (including self) are taken into account 
 												// in the collision detection of a cell.
 
 	Grid();
+	Grid(const Grid& obj);
 	void init(float cell_size, float boundary_a, float boundary_b);
 	void gridLocate(float* px, int N);
 

@@ -30,7 +30,7 @@ void setRod(int n, float d)
 
 void* createState(int N, float boundary_a, float boundary_b)
 { 
-    auto state = new State(N);
+    auto state = new State(N, global->newSibling());
     state->boundary = new EllipseBoundary(boundary_a, boundary_b);
     state->randomInitStateCC();
     return state;
@@ -138,6 +138,7 @@ float precisePotential(float x, float y, float t)
 
 float* interpolateGradient(float x, float y, float t)
 {
+    // note: this function is single threaded
     static float arr[3];
     if (abs(x) > 2 * global->rod->a || abs(y) > global->rod->a + global->rod->b) {
         arr[0] = 0; arr[1] = 0; arr[2] = 0;
@@ -151,6 +152,7 @@ float* interpolateGradient(float x, float y, float t)
 
 float* gradientReference(float x, float y, float t1, float t2)
 {
+    // note: this function is single threaded
     typedef XytPair(Rod::* Func)(float, float, float, float);
     static Func funcs[2] = {
         &Rod::StandardGradient<Hertzian>,
@@ -164,6 +166,7 @@ float* gradientReference(float x, float y, float t1, float t2)
 
 float* gradientTest(float x, float y, float t1, float t2)
 {
+    // note: this function is single threaded
     static float arr[6];
     if (x * x + y * y > 4) {
         memset(arr, 0, sizeof(XytPair));
@@ -178,6 +181,7 @@ float* gradientTest(float x, float y, float t1, float t2)
 
 float* getMirrorOf(float A, float B, float x, float y, float t)
 {
+    // note: this function is single threaded
     static float arr[3];
     EllipseBoundary b = EllipseBoundary(A, B);
     Maybe<ParticlePair> pp = b.collide(0, { x,y,t });
@@ -193,4 +197,11 @@ float* getMirrorOf(float A, float B, float x, float y, float t)
         arr[2] = pp.obj.t2;
     }
     return arr;
+}
+
+int Global::newSibling()
+{
+    int ret = sibling_num;
+    sibling_num++;
+    return ret;
 }

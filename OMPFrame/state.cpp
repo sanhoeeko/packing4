@@ -11,18 +11,20 @@ inline static float randf() {
 	return (float)rand() / RAND_MAX;
 }
 
-State::State(int N)
+State::State(int N, int sibling)
 {
 	this->N = N;
-	this->id = 1;		// unsafe
+	this->id = 1;
+	this->sibling_id = sibling;
 	configuration = VectorXf::Zero(3 * N);
 	boundary = NULL;
 }
 
-State::State(VectorXf q, EllipseBoundary* b, int N)
+State::State(VectorXf q, EllipseBoundary* b, int N, int sibling)
 {
 	this->N = N;
-	this->id = 1;		// ???
+	this->id = 1;
+	this->sibling_id = sibling;
 	configuration = q;
 	boundary = b;
 }
@@ -121,13 +123,13 @@ void _gridLocate(State* s, Grid* grid) {
 
 Grid* State::GridLocate()
 {
-	static CacheFunction<State, Grid> f(_gridLocate, new Grid());
+	static CacheFunction<State, Grid> f(_gridLocate, Grid());
 	return f(this);
 }
 
 PairInfo* State::CollisionDetect()
 {
-	static CacheFunction<State, PairInfo> f(collisionDetect, new PairInfo(N));
+	static CacheFunction<State, PairInfo> f(collisionDetect, PairInfo(N));
 	return f(this);
 }
 

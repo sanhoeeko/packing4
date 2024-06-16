@@ -7,6 +7,11 @@
 struct Global {
     Rod* rod;
     PotentialFunc pf;
+
+    int newSibling();
+
+private:
+    int sibling_num;
 };
 
 extern Global* global;

@@ -12,7 +12,7 @@ void xyt::operator-=(const xyt& o) {
 }
 
 bool isDataValid(VectorXf* q) {
-    static bool bs[CORES];
+    bool bs[CORES];
     memset(bs, 1, CORES * sizeof(bool));
     int stride = q->size() / CORES;
     float* ptr = q->data();
@@ -32,10 +32,25 @@ bool isDataValid(VectorXf* q) {
     return true;
 }
 
+PairInfo::PairInfo()
+{
+}
+
 PairInfo::PairInfo(int N)
 {
     this->id = -1;
     this->N = N;
+    for (int i = 0; i < CORES; i++) {
+        info_pp[i].reserve(N);
+        info_pw[i].reserve(N);
+    }
+}
+
+PairInfo::PairInfo(const PairInfo& obj)
+{
+    // memory alloc
+    this->id = obj.id;
+    this->N = obj.N;
     for (int i = 0; i < CORES; i++) {
         info_pp[i].reserve(N);
         info_pw[i].reserve(N);
@@ -136,14 +151,28 @@ void calEnergy(PairInfo* pinfo, EnergyBuffer* ge) {
 
 EnergyBuffer* PairInfo::CalEnergy()
 {
-    static CacheFunction<PairInfo, EnergyBuffer> f(calEnergy, new EnergyBuffer(N));
+    static CacheFunction<PairInfo, EnergyBuffer> f(calEnergy, EnergyBuffer(N));
     return f(this);
+}
+
+GradientBuffer::GradientBuffer()
+{
 }
 
 GradientBuffer::GradientBuffer(int N)
 {
     this->id = -1;
     this->N = N;
+    for (int i = 0; i < CORES; i++) {
+        buffers[i] = VectorXf::Zero(3 * N);
+    }
+}
+
+GradientBuffer::GradientBuffer(const GradientBuffer& obj)
+{
+    // memory alloc
+    this->id = obj.id;
+    this->N = obj.N;
     for (int i = 0; i < CORES; i++) {
         buffers[i] = VectorXf::Zero(3 * N);
     }
@@ -170,11 +199,22 @@ void GradientBuffer::joinTo(VectorXf* g)
 #endif
 }
 
+EnergyBuffer::EnergyBuffer()
+{
+}
+
 EnergyBuffer::EnergyBuffer(int N)
 {
     this->id = -1;
     this->N = N;
     clear();
+}
+
+EnergyBuffer::EnergyBuffer(const EnergyBuffer& obj)
+{
+    // memory alloc (actually no)
+    this->id = obj.id;
+    this->N = obj.N;
 }
 
 void EnergyBuffer::clear()
