@@ -92,13 +92,14 @@ struct CacheFunction
 
     b* operator()(a* x) {
         int idx = x->sibling_id;            // require: a type should have a `sibling_id` tag
-        if (x->id == cache[idx].id) {
-            return cache;
+        b* target_obj = cache + idx;
+        if (x->id == target_obj->id) {
+            return target_obj;
         }
         else {
-            cache[idx].id = x->id;
-            func(x, &cache[idx]);           // cache = f(x)
-            return &cache[idx];
+            target_obj->id = x->id;
+            func(x, target_obj);           // cache = f(x)
+            return target_obj;
         }
     }
 };

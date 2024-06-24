@@ -9,6 +9,7 @@ void setGlobal()
 {
     global = new Global();
     global->pf = PotentialFunc(-1);
+    memset(global->states, 0, SIBLINGS * sizeof(State*));
 }
 
 void setEnums(int potential_func)
@@ -30,7 +31,7 @@ void setRod(int n, float d)
 
 void* createState(int N, float boundary_a, float boundary_b)
 { 
-    auto state = new State(N, global->newSibling());
+    auto state = global->newState(N);
     state->boundary = new EllipseBoundary(boundary_a, boundary_b);
     state->randomInitStateCC();
     return state;
@@ -51,7 +52,7 @@ int getStateIterations(void* state_ptr)
 void* getStateResidualForce(void* state_ptr)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
-    return s->CalGradient<AsDisks>()->data();
+    return s->CalGradient<AsDisks>().data();
 }
 
 int getSiblingId(void* state_ptr)
@@ -76,6 +77,11 @@ int getPotentialId()
     return global->pf;
 }
 
+int getSiblingNumber()
+{
+    return SIBLINGS;
+}
+
 void* getStateMaxGradients(void* state_ptr)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
@@ -84,7 +90,7 @@ void* getStateMaxGradients(void* state_ptr)
 
 void initStateAsDisks(void* state_ptr) {
     State* s = reinterpret_cast<State*>(state_ptr);
-    return s->initAsDisks();
+    s->initAsDisks((int)1e5);
 }
 
 void setBoundary(void* state_ptr, float boundary_a, float boundary_b)
@@ -95,21 +101,34 @@ void setBoundary(void* state_ptr, float boundary_a, float boundary_b)
 
 void singleStep(void* state_ptr, int mode, float step_size)
 {
-    typedef VectorXf* (State::* Func)();
+    typedef VectorXf (State::* Func)();
     static Func funcs[HowToCalGradient_Count] = {
         &State::CalGradient<Normal>,
         &State::CalGradient<AsDisks>,
     };
 
     State* s = reinterpret_cast<State*>(state_ptr);
-    VectorXf* g = (s->*funcs[mode])();
+    VectorXf g = (s->*funcs[mode])();
     s->descent(step_size, g);
 }
 
-void equilibriumGD(void* state_ptr, int max_iterations)
+float equilibriumGD(void* state_ptr, int max_iterations)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
-    s->equilibriumGD(max_iterations);
+    return s->equilibriumGD(max_iterations);
+}
+
+void parallelInit()
+{
+    global->parallelEquilibrium(&State::initAsDisks, (int)1e5);
+}
+
+float* parallelGD(int max_iterations)
+{
+    static float arr[SIBLINGS] = { 0 };
+    vector<float> energies = global->parallelEquilibrium(&State::equilibriumGD, max_iterations);
+    memcpy(arr, energies.data(), SIBLINGS * sizeof(float));
+    return arr;
 }
 
 float fastPotential(float x, float y, float t)
@@ -207,7 +226,20 @@ float* getMirrorOf(float A, float B, float x, float y, float t)
 
 int Global::newSibling()
 {
-    int ret = sibling_num;
-    sibling_num++;
+    int ret = n_states;
+    n_states++;
     return ret;
+}
+
+State* Global::newState(int N)
+{
+    int idx = global->newSibling();
+    State* state = new State(N, idx);
+    global->states[idx] = state;
+    return state;
+}
+
+vector<float> Global::parallelEquilibrium(EquilibriumMethod func, int max_iterations)
+{
+    return MapStates<float>(func, this->states, max_iterations);
 }

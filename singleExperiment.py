@@ -64,7 +64,7 @@ class StateHandle:
     def density(self):
         return self.N / (np.pi * self.A * self.B)
 
-    def get(self):
+    def get(self, record=True):
         s = State(
             self.cnt, self.N, self.n, self.d, self.A, self.B,
             ker.getStateData(self.data_ptr, self.N),
@@ -73,8 +73,9 @@ class StateHandle:
                 'max_residual_force': np.max(self.residualForceAmp()),
             }
         )
-        self.dataset.append(s)
-        self.cnt += 1
+        if record:
+            self.dataset.append(s)
+            self.cnt += 1
         return s
 
     @property

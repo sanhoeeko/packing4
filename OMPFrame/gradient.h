@@ -16,7 +16,7 @@ struct GradientBuffer
     GradientBuffer(int N);
     GradientBuffer(const GradientBuffer& obj);
     void clear();
-    void joinTo(VectorXf* g);
+    void joinTo(VectorXf& g);
 };
 
 struct EnergyBuffer

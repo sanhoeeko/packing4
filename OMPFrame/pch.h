@@ -26,7 +26,7 @@ DLLEXPORT void* createState(int N, float boundary_a, float boundary_b);
 DLLEXPORT void initStateAsDisks(void* state_ptr);
 DLLEXPORT void setBoundary(void* state_ptr, float boundary_a, float boundary_b);
 DLLEXPORT void singleStep(void* state_ptr, int mode, float step_size);
-DLLEXPORT void equilibriumGD(void* state_ptr, int max_iterations);
+DLLEXPORT float equilibriumGD(void* state_ptr, int max_iterations);
 
 // fetching data
 DLLEXPORT void* getStateData(void* state_ptr);
@@ -39,6 +39,7 @@ DLLEXPORT int getSiblingId(void* state_ptr);
 DLLEXPORT void readPotential(int n, float d);
 DLLEXPORT void writePotential();
 DLLEXPORT int getPotentialId();
+DLLEXPORT int getSiblingNumber();
 
 // test of algorithms
 DLLEXPORT float fastPotential(float x, float y, float t);
@@ -48,5 +49,7 @@ DLLEXPORT float* interpolateGradient(float x, float y, float t);
 DLLEXPORT float* gradientReference(float x, float y, float t1, float t2);
 DLLEXPORT float* gradientTest(float x, float y, float t1, float t2);
 DLLEXPORT float* getMirrorOf(float A, float B, float x, float y, float t);
+DLLEXPORT void parallelInit();
+DLLEXPORT float* parallelGD(int max_iterations);
 
 #endif //PCH_H

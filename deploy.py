@@ -4,12 +4,15 @@ import random
 import string
 import threading
 
+import matplotlib.pyplot as plt
 import numpy as np
 import py7zr
 
 import singleExperiment as se
 import src.utils as ut
 from src.kernel import ker
+from src.render import StateRenderer
+from src.state import RenderSetup
 
 
 class RandomStringGenerator:
@@ -56,6 +59,9 @@ class TaskHandle(se.StateHandle):
         open(self.log_file, 'w')  # create the file
         super().__init__(N, n, d, boundary_a, boundary_b, self.id)
 
+        q = 1 - 1e-3
+        self.setBoundaryScheduler(se.BoundaryScheduler.constant, lambda n, x: x * q ** n)
+
     def getSiblingId(self):
         return ker.getSiblingId(self.data_ptr)
 
@@ -63,26 +69,16 @@ class TaskHandle(se.StateHandle):
         with open(self.log_file, 'a') as f:
             f.write(message + '\n')
 
-    def diagnose(self):
-        state = self.get()
-
-        # check if there is nan
-        if np.isnan(state.xyt).any():
-            raise ValueError("Nan detected in a state.")
-
-        # check if there is particle outside the boundary / unexpected value like 0xCC
-        legal = np.logical_and(-self.A < state.x < self.A, -self.B < state.y < self.B)
-        if not legal.all():
-            for i in range(len(legal)):
-                if not legal[i]:
-                    print(f"Abnormal coordinates: {state.xyt[i]}")
-            raise ValueError
+    def show(self):
+        handle = plt.subplots()  # handle = fig, ax
+        s = self.get(record=False)
+        renderer = StateRenderer(s)
+        renderer.drawBoundary(handle)
+        renderer.drawParticles(handle, s.angle())
+        plt.show()
 
     def execute(self):
-        q = 1 - 1e-3
         self.initAsDisks()
-        self.setBoundaryScheduler(se.BoundaryScheduler.constant, lambda n, x: x * q ** n)
-
         for i in range(100):
             if self.density > 1.2: break
             self.compress()
@@ -93,12 +89,31 @@ class TaskHandle(se.StateHandle):
             self.log(f'{i}:  G={gs[-1]}, E={s.energy}, nsteps={its}, speed: {its / dt} it/s')
 
 
-def ExperimentsFixed_gamma(N, n, d, phi0, potential_name: str, Gammas: np.ndarray):
-    tasks = [TaskHandle
-             .fromCircDensity(N, n, d, phi0, Gamma)
-             for Gamma in Gammas]
-    tasks[0].initPotential(potential_name)
-    return tasks
+class ExperimentsFixedParticleShape:
+    def __init__(self, N, n, d, phi0, potential_name: str, Gammas: np.ndarray):
+        self.siblings = len(Gammas)
+        if self.siblings > ker.getSiblingNumber():
+            raise ValueError("Too many siblings.")
+        self.tasks = [TaskHandle
+                      .fromCircDensity(N, n, d, phi0, Gamma)
+                      for Gamma in Gammas]
+        self.tasks[0].initPotential(potential_name)
+
+    def compress(self):
+        return list(map(lambda x: x.compress(), self.tasks))
+
+    def get(self):
+        return list(map(lambda x: x.get(), self.tasks))
+
+    def parallelExperiment(self):
+        ker.parallelInit()
+        for i in range(100):
+            self.compress()
+            energies = ker.parallelGD(2e5)
+            states = self.get()
+
+    def asyncExperiment(self):
+        return list(ut.Map('Release')(executeTask, self.tasks))
 
 
 def executeTask(task: TaskHandle):
@@ -106,18 +121,13 @@ def executeTask(task: TaskHandle):
 
 
 if __name__ == '__main__':
-    SIBLINGS = 4  # must be less equal than in defs.h
+    SIBLINGS = 2  # must be less equal than in defs.h
 
-    tasks = ExperimentsFixed_gamma(
+    tasks = ExperimentsFixedParticleShape(
         1000, 2, 0.25, 0.4,
         "ScreenedCoulomb",
         np.linspace(1, 2, SIBLINGS, endpoint=True),
     )
+    tasks.parallelExperiment()
 
-    # Redirect stderr (python error, not c++ error) to a file
-    # sys.stderr = open('error.log.txt', 'w')
-    results = list(ut.Map('Release')(executeTask, tasks))
-    # sys.stderr.close()
-    # sys.stderr = sys.__stderr__
-
-    packResults('arc.7z')
+    packResults('new data.7z')

@@ -164,11 +164,11 @@ void GradientBuffer::clear()
     }
 }
 
-void GradientBuffer::joinTo(VectorXf* g)
+void GradientBuffer::joinTo(VectorXf& g)
 {
-    g->setZero();
+    g.setZero();
     for (int i = 0; i < CORES; i++) {
-        *g += buffers[i];
+        g += buffers[i];
     }
 }
 

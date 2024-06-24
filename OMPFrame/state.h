@@ -17,6 +17,7 @@ struct EllipseBoundary {
 
 struct State{
     VectorXf configuration;
+    VectorXf gradient;
     EllipseBoundary* boundary;
     vector<float> max_gradient_amps;
     int N;
@@ -26,15 +27,15 @@ struct State{
     State(int N, int sibling);
     State(VectorXf q, EllipseBoundary* b, int N, int sibling);
     void randomInitStateCC();
-    void initAsDisks();
+    float initAsDisks(int max_iterations);
 
     void setBoundary(float a, float b);
-    void descent(float a, VectorXf* g);
+    void descent(float a, VectorXf& g);
     void crashIfDataInvalid();
     float equilibriumGD(int max_iterations);
 
     Grid* GridLocate();
     PairInfo* CollisionDetect();
-    template<HowToCalGradient how> VectorXf* CalGradient();
+    template<HowToCalGradient how> VectorXf CalGradient();
     float CalEnergy();
 };
