@@ -5,13 +5,18 @@ import time
 
 import numpy as np
 
-import src.fp as fp
+import src.utils as ut
+
+kernel_mode = "Release"
 
 
 def getLibraryPath():
     dir_path = os.path.dirname(os.path.abspath(__file__))
     if sys.platform.startswith('win'):
-        return os.path.join(dir_path, '..', 'x64', 'Release', 'OMPFrame.dll')
+        if kernel_mode == 'Debug':
+            return os.path.join(dir_path, '..', 'x64', 'Debug', 'OMPFrame.dll')
+        else:
+            return os.path.join(dir_path, '..', 'x64', 'Release', 'OMPFrame.dll')
     elif sys.platform.startswith('linux'):
         return os.path.join(dir_path, '..', 'OMPFrame', 'OMPFrame.so')
     else:
@@ -32,6 +37,8 @@ class Kernel:
         self.dll.getPotentialId.restype = ct.c_int
         self.dll.createState.argtypes = [ct.c_int, ct.c_float, ct.c_float]
         self.dll.createState.restype = ct.c_void_p
+        self.dll.getSiblingId.argtypes = [ct.c_void_p]
+        self.dll.getSiblingId.restype = ct.c_int
         self.dll.getStateData.argtypes = [ct.c_void_p]
         self.dll.getStateData.restype = ct.c_void_p
         self.dll.getStateIterations.argtypes = [ct.c_void_p]
@@ -44,6 +51,9 @@ class Kernel:
         self.dll.singleStep.argtypes = [ct.c_void_p, ct.c_int, ct.c_float]
         self.dll.equilibriumGD.argtypes = [ct.c_void_p, ct.c_int]
         self.dll.equilibriumGD.restype = ct.c_float
+        self.dll.getSiblingNumber.restype = ct.c_int
+        self.dll.parallelGD.argtypes = [ct.c_int]
+        self._parallelGD = self.returnFixedArray(self.dll.parallelGD, self.getSiblingNumber())
 
     def returnFixedArray(self, dll_function, length):
         dll_function.restype = ct.POINTER(ct.c_float)
@@ -56,6 +66,9 @@ class Kernel:
 
     def createState(self, N, boundary_a, boundary_b):
         return self.dll.createState(N, boundary_a, boundary_b)
+
+    def getSiblingId(self, address) -> int:
+        return self.dll.getSiblingId(address)
 
     def getStateData(self, address, N):
         array_pointer = ct.cast(self.dll.getStateData(address), ct.POINTER(ct.c_float * N * 3))
@@ -81,6 +94,9 @@ class Kernel:
         PotentialFunc: Hertzian=0, ScreenCoulomb=1
         """
         return self.dll.setEnums(potential_func)
+
+    def getSiblingNumber(self):
+        return self.dll.getSiblingNumber()
 
     def setBoundary(self, address, a, b):
         return self.dll.setBoundary(address, a, b)
@@ -117,7 +133,7 @@ class Kernel:
     def checkPotential(self, n, d):
         if not os.path.exists(self.potential_path) or not os.path.exists(self.potential_meta_path):
             return False
-        metadata = fp.readJson(self.potential_meta_path)
+        metadata = ut.readJson(self.potential_meta_path)
 
         # check properties
         if metadata['n'] != n or metadata['d'] != d:
@@ -126,7 +142,7 @@ class Kernel:
             return False
 
         # check file integrity
-        if metadata['size'] != fp.getFileSize(self.potential_path) or metadata['hash'] != fp.getFileHash(
+        if metadata['size'] != ut.getFileSize(self.potential_path) or metadata['hash'] != ut.getFileHash(
                 self.potential_path):
             return False
         return True
@@ -139,16 +155,22 @@ class Kernel:
             'n': n,
             'd': d,
             'potential func id': self.dll.getPotentialId(),
-            'size': fp.getFileSize(self.potential_path),
-            'hash': fp.getFileHash(self.potential_path),
+            'size': ut.getFileSize(self.potential_path),
+            'hash': ut.getFileHash(self.potential_path),
         }
-        fp.writeJson(self.potential_meta_path, metadata)
+        ut.writeJson(self.potential_meta_path, metadata)
 
     def singleStep(self, address, mode: int, step_size: float):
         return self.dll.singleStep(address, mode, step_size)
 
     def equilibriumGD(self, address, max_iterations: int):
         return self.dll.equilibriumGD(address, max_iterations)
+
+    def parallelInit(self):
+        return self.dll.parallelInit()
+
+    def parallelGD(self, max_iterations: int) -> np.ndarray:
+        return self._parallelGD(int(max_iterations))
 
 
 ker = Kernel()

@@ -58,10 +58,10 @@ class StateRenderer(State):
         ax.set_ylim(-self.B - 1, self.B + 1)
         ax.set_aspect('equal')
 
-        # Create an axes for the colorbar
+        # Create an axes for the color bar
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.05)
 
-        # Add a colorbar
+        # Add a color bar
         fig.colorbar(col, cax=cax)
         return handle

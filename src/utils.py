@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor
 from functools import reduce
 
 
@@ -40,3 +41,22 @@ def writeJson(file_path, data):
 def readJson(file_path):
     with open(file_path, 'r') as file:
         return json.load(file)
+
+
+def Map(mode):
+    """
+    called as: ut.Map('Debug')(func, iterable)
+    Debug: serial
+    Release: parallel
+    """
+    if mode == 'Debug':
+        def map_func(func, tasks):
+            return [func(task) for task in tasks]
+    elif mode == 'Release':
+        def map_func(func, tasks):
+            with ThreadPoolExecutor(max_workers=len(tasks)) as executor:
+                return list(executor.map(func, tasks))
+    else:
+        raise ValueError("Invalid mode. Please set it to 'Debug' or 'Release'.")
+
+    return map_func
