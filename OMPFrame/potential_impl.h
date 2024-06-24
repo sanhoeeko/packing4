@@ -69,7 +69,7 @@ void Rod::initPotential() {
     int m2 = ys.size();
     int m3 = ts.size();
 
-#pragma omp parallel for num_threads(CORES)
+#pragma omp parallel for num_threads(CORES * SIBLINGS)  // use all cores
     for (int i = 0; i < m1; i++) {
         float x = xs[i];
         for (int j = 0; j < m2; j++) {

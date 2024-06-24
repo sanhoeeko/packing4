@@ -11,27 +11,6 @@ void xyt::operator-=(const xyt& o) {
     x -= o.x; y -= o.y; t -= o.t;
 }
 
-bool isDataValid(VectorXf* q) {
-    bool bs[CORES];
-    memset(bs, 1, CORES * sizeof(bool));
-    int stride = q->size() / CORES;
-    float* ptr = q->data();
-#pragma omp parallel num_threads(CORES)
-    {
-        int idx = omp_get_thread_num();
-        int end = idx + 1 == CORES ? q->size() : (idx + 1) * stride;
-        for (int i = idx * stride; i < end; i++) {
-            if (isnan(ptr[i])) {
-                bs[idx] = false; break;
-            }
-        }
-    }
-    for (int i = 0; i < CORES; i++) {
-        if (!bs[i])return false;
-    }
-    return true;
-}
-
 PairInfo::PairInfo()
 {
 }
@@ -191,12 +170,6 @@ void GradientBuffer::joinTo(VectorXf* g)
     for (int i = 0; i < CORES; i++) {
         *g += buffers[i];
     }
-#if ENABLE_NAN_CHECK
-    if (!isDataValid(g)) {
-        cout << "nan in gradient. checked in `joinTo`" << endl;
-        throw 114514;
-    }
-#endif
 }
 
 EnergyBuffer::EnergyBuffer()

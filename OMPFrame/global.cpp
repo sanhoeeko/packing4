@@ -54,6 +54,12 @@ void* getStateResidualForce(void* state_ptr)
     return s->CalGradient<AsDisks>()->data();
 }
 
+int getSiblingId(void* state_ptr)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    return s->sibling_id;
+}
+
 void readPotential(int n, float d)
 {
     global->rod = new Rod(n, d);

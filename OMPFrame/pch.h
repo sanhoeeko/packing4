@@ -33,6 +33,7 @@ DLLEXPORT void* getStateData(void* state_ptr);
 DLLEXPORT int getStateIterations(void* state_ptr);
 DLLEXPORT void* getStateMaxGradients(void* state_ptr);
 DLLEXPORT void* getStateResidualForce(void* state_ptr);
+DLLEXPORT int getSiblingId(void* state_ptr);
 
 // built-in IO
 DLLEXPORT void readPotential(int n, float d);

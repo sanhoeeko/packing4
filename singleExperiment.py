@@ -11,22 +11,22 @@ from src.render import State
 class BoundaryScheduler:
     n, x = sp.symbols('n x')
 
-    def __init__(self, func_a: sp.Expr, func_b: sp.Expr, A0, B0, max_step_size):
+    def __init__(self, func_a, func_b, A0, B0, max_step_size):
         """
-        func_a, func_b :: (n: int, x: float) -> float
+        func_a, func_b :: (n: int, x: float) -> float, lambda expression
         returns the boundary A, B of the ith step, with initial A0, B0.
         """
         self.n = 0
         self.max_step_size = max_step_size
+        n, x = BoundaryScheduler.n, BoundaryScheduler.x
 
         def reduce(f: sp.Expr, f0: float):
-            n, x = BoundaryScheduler.n, BoundaryScheduler.x
             x0 = sp.solve(sp.Eq(f.subs(n, 0), f0), x)[0]
             phi = f.subs(x, x0)
             return sp.lambdify(n, phi)
 
-        self.func_a = reduce(func_a, A0)
-        self.func_b = reduce(func_b, B0)
+        self.func_a = reduce(func_a(n, x), A0)
+        self.func_b = reduce(func_b(n, x), B0)
 
     def step(self):
         self.n += 1
@@ -38,14 +38,18 @@ class BoundaryScheduler:
             b = self.func_b(self.n - 1) - self.max_step_size
         return a, b
 
+    @staticmethod
+    def constant(n, x):
+        return x
+
 
 class StateHandle:
-    def __init__(self, N, n, d, boundary_a, boundary_b):
+    def __init__(self, N, n, d, boundary_a, boundary_b, data_name='data'):
         self.N = N
         self.n, self.d = n, d
         self.A, self.B = boundary_a, boundary_b
         self.data_ptr = ker.createState(N, boundary_a, boundary_b)
-        self.dataset = DataSet("data.h5", self.metadata)
+        self.dataset = DataSet(f'{data_name}.h5', self.metadata)
         self.cnt = 0
         self.energy_cache = None
         self.boundary_scheduler = None
@@ -106,7 +110,7 @@ class StateHandle:
         self.A, self.B = boundary_a, boundary_b
         return ker.setBoundary(self.data_ptr, boundary_a, boundary_b)
 
-    def setBoundaryScheduler(self, func_a: sp.Expr, func_b: sp.Expr, max_step_size=0.1):
+    def setBoundaryScheduler(self, func_a, func_b, max_step_size=0.1):
         self.boundary_scheduler = BoundaryScheduler(func_a, func_b, self.A, self.B, max_step_size)
 
     def compress(self):
@@ -140,8 +144,7 @@ if __name__ == '__main__':
     q = 1 - 1e-3
     state = StateHandle.fromCircDensity(1000, 2, 0.25, 0.4, 1.0)
     state.initAsDisks()
-    n, x = BoundaryScheduler.n, BoundaryScheduler.x
-    state.setBoundaryScheduler(x, x * q ** n)
+    state.setBoundaryScheduler(BoundaryScheduler.constant, lambda n, x: x * q ** n)
     state.initPotential('ScreenedCoulomb')
 
     for i in range(1000):

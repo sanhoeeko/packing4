@@ -74,6 +74,50 @@ void State::descent(float a, VectorXf* g)
 {
 	configuration -= a * *g;
 	id++;
+	crashIfDataInvalid();
+}
+
+bool isnan(xyt& q) {
+	return isnan(q.x) || isnan(q.y) || isnan(q.t);
+}
+
+bool isinf(xyt& q) {
+	return isinf(q.x) || isinf(q.y) || isinf(q.t);
+}
+
+
+bool outside(xyt& q, float Xmax, float Ymax) {
+	return abs(q.x) > Xmax || abs(q.y) > Ymax;
+}
+
+string toString(xyt& q) {
+	return "(" + to_string(q.x) + ", " + to_string(q.y) + ", " + to_string(q.t) + ")";
+}
+
+string toString(EllipseBoundary* eb) {
+	return "{ A=" + to_string(eb->a) + ", B=" + to_string(eb->b) + " }";
+}
+
+void State::crashIfDataInvalid()
+{
+#if ENABLE_NAN_CHECK
+	xyt* ptr = (xyt*)configuration.data();
+	bool flag = true;
+	for (int i = 0; i < N; i++) {
+		if (isnan(ptr[i]) || isinf(ptr[i])) {
+			cout << "Nan data: " << toString(ptr[i]) << endl;
+			flag = false;
+		}
+		if (outside(ptr[i], boundary->a, boundary->b)) {
+			cout << "Out of boundary: " << toString(ptr[i]) << "; "
+				 << "where: " << toString(boundary) << endl;
+			flag = false;
+		}
+	}
+	if (!flag) {
+		throw 114514;
+	}
+#endif
 }
 
 float State::equilibriumGD(int max_iterations)

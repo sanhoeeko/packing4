@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 
-import src.fp as fp
+import src.utils as fp
 from src.myio import DataSet
 from src.render import StateRenderer
 
@@ -60,6 +60,6 @@ class InteractiveViewer:
         plt.show()
 
 
-ds = DataSet.loadFrom('data.h5')
+ds = DataSet.loadFrom('0umx.h5')
 iv = InteractiveViewer(ds, RenderPipe(StateRenderer.angle))
 iv.show()
