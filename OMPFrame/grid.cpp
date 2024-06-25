@@ -4,8 +4,6 @@
 #include"state.h"
 #include <cassert>
 
-#undef min
-
 const int max_particles_in_cell = 32;
 const int max_grid_size = 256 * 256;
 
