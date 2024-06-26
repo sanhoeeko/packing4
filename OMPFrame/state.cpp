@@ -49,14 +49,17 @@ void State::randomInitStateCC()
 
 float State::initAsDisks(int max_iterations)
 {
+	/*
+		use `ge` as max gradient amplitudes
+	*/
 	// const int max_iterations = 1e5;
-	max_gradient_amps.clear();
+	ge.clear();
 
 	for (int i = 0; i < max_iterations; i++) 
 	{
 		VectorXf g = CalGradient<AsDisks>();
 		float gm = maxGradientAbs(g);
-		max_gradient_amps.push_back(gm);
+		ge.push_back(gm);
 
 		if (gm < 1e-5) {
 			return gm;
@@ -65,7 +68,7 @@ float State::initAsDisks(int max_iterations)
 			descent(1e-3, g);
 		}
 	}
-	return max_gradient_amps[max_gradient_amps.size() - 1];
+	return ge[ge.size() - 1];
 }
 
 void State::setBoundary(float a, float b)
@@ -131,16 +134,18 @@ void State::crashIfDataInvalid()
 
 float State::equilibriumGD(int max_iterations)
 {
+	/*
+		use `ge` as max gradient energies
+	*/
 	float step_size = 1e-3;
 	float current_min_energy = CalEnergy();
 
-	max_gradient_amps.clear();
+	ge.clear();
 
 	for (int i = 0; i < max_iterations; i++)
 	{
 		VectorXf g = CalGradient<Normal>();
 		float gm = Modify(g);
-		max_gradient_amps.push_back(gm);
 
 		// gradient criterion
 		if (gm < 1e-2) {	
@@ -149,6 +154,7 @@ float State::equilibriumGD(int max_iterations)
 		else {
 			if ((i + 1) % ENERGY_STRIDE == 0) {
 				float E = CalEnergy();
+				ge.push_back(E);
 				// energy criterion
 				if (E < 5e-5) {
 					break;

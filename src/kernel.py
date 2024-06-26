@@ -43,8 +43,8 @@ class Kernel:
         self.dll.getStateData.restype = ct.c_void_p
         self.dll.getStateIterations.argtypes = [ct.c_void_p]
         self.dll.getStateIterations.restype = ct.c_int
-        self.dll.getStateMaxGradients.argtypes = [ct.c_void_p]
-        self.dll.getStateMaxGradients.restype = ct.c_void_p
+        self.dll.getStateMaxGradOrEnergy.argtypes = [ct.c_void_p]
+        self.dll.getStateMaxGradOrEnergy.restype = ct.c_void_p
         self.dll.getStateResidualForce.argtypes = [ct.c_void_p]
         self.dll.getStateResidualForce.restype = ct.c_void_p
         self.dll.initStateAsDisks.argtypes = [ct.c_void_p]
@@ -77,10 +77,16 @@ class Kernel:
     def getNumOfIterations(self, address):
         return int(self.dll.getStateIterations(address))
 
-    def getStateMaxGradients(self, address):
+    def getStateMaxGradOrEnergy(self, address):
         iterations = self.getNumOfIterations(address)
-        array_pointer = ct.cast(self.dll.getStateMaxGradients(address), ct.POINTER(ct.c_float * iterations))
+        array_pointer = ct.cast(self.dll.getStateMaxGradOrEnergy(address), ct.POINTER(ct.c_float * iterations))
         return np.ctypeslib.as_array(array_pointer.contents).copy()
+
+    def getStateMaxGradients(self, address):
+        return self.getStateMaxGradOrEnergy(address)
+
+    def getStateEnergyCurve(self, address):
+        return self.getStateMaxGradOrEnergy(address)
 
     def getStateResidualForce(self, address, N):
         array_pointer = ct.cast(self.dll.getStateResidualForce(address), ct.POINTER(ct.c_float * N * 3))

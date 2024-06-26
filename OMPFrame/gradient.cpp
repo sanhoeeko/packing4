@@ -166,9 +166,16 @@ void GradientBuffer::clear()
 
 void GradientBuffer::joinTo(VectorXf& g)
 {
-    g.setZero();
-    for (int i = 0; i < CORES; i++) {
-        g += buffers[i];
+    if constexpr (CORES > 1)
+    {
+        g.setZero();
+        for (int i = 0; i < CORES; i++) {
+            g += buffers[i];
+        }
+    }
+    else 
+    {
+        g = buffers[0];     // one core specialization
     }
 }
 

@@ -7,6 +7,8 @@
 struct EllipseBoundary {
     float a, b;
     float a2, b2, inv_inner_a2, inv_inner_b2;
+    bool if_a_less_than_b;
+
     EllipseBoundary(float a, float b);
     void setBoundary(float a, float b);
     bool maybeCollide(const xyt& particle);
@@ -19,7 +21,7 @@ struct State{
     VectorXf configuration;
     VectorXf gradient;
     EllipseBoundary* boundary;
-    vector<float> max_gradient_amps;
+    vector<float> ge;               // ge can either be: a) max gradient amplitudes; b) energy records.
     int N;
     int id;
     int sibling_id;

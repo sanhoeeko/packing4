@@ -69,6 +69,7 @@ class StateHandle:
             self.cnt, self.N, self.n, self.d, self.A, self.B,
             ker.getStateData(self.data_ptr, self.N),
             {
+                'energy_curve': self.energyCurve(),
                 'energy': self.energy_cache,
                 'max_residual_force': np.max(self.residualForceAmp()),
             }
@@ -96,6 +97,9 @@ class StateHandle:
 
     def maxGradients(self):
         return ker.getStateMaxGradients(self.data_ptr)
+
+    def energyCurve(self):
+        return ker.getStateEnergyCurve(self.data_ptr)
 
     def iterationSteps(self):
         return ker.getNumOfIterations(self.data_ptr)

@@ -31,7 +31,7 @@ DLLEXPORT float equilibriumGD(void* state_ptr, int max_iterations);
 // fetching data
 DLLEXPORT void* getStateData(void* state_ptr);
 DLLEXPORT int getStateIterations(void* state_ptr);
-DLLEXPORT void* getStateMaxGradients(void* state_ptr);
+DLLEXPORT void* getStateMaxGradOrEnergy(void* state_ptr);
 DLLEXPORT void* getStateResidualForce(void* state_ptr);
 DLLEXPORT int getSiblingId(void* state_ptr);
 

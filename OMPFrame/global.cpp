@@ -46,7 +46,7 @@ void* getStateData(void* state_ptr)
 int getStateIterations(void* state_ptr)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
-    return s->max_gradient_amps.size();
+    return s->ge.size();
 }
 
 void* getStateResidualForce(void* state_ptr)
@@ -82,10 +82,10 @@ int getSiblingNumber()
     return SIBLINGS;
 }
 
-void* getStateMaxGradients(void* state_ptr)
+void* getStateMaxGradOrEnergy(void* state_ptr)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
-    return s->max_gradient_amps.data();
+    return s->ge.data();
 }
 
 void initStateAsDisks(void* state_ptr) {

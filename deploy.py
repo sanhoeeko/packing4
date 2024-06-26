@@ -83,9 +83,8 @@ class TaskHandle(se.StateHandle):
             self.compress()
             dt = self.equilibriumGD(2e5)
             s = self.get()
-            gs = self.maxGradients()
-            its = len(gs)
-            self.log(f'{i}:  G={gs[-1]}, E={s.energy}, nsteps={its}, speed: {its / dt} it/s')
+            its = self.iterationSteps()
+            self.log(f'{i}:  G={s.max_residual_force}, E={s.energy}, nsteps={its}K , speed: {its / dt}K it/s')
 
 
 class ExperimentsFixedParticleShape:
@@ -107,17 +106,6 @@ class ExperimentsFixedParticleShape:
     def serialInit(self):
         return list(map(lambda x: x.initAsDisks(), self.tasks))
 
-    def ExperimentParallelSync(self):
-        """
-        Slow. Only for testing nested parallelism.
-        There seems to be some problems with `parallelInit()` [in `initAsDisks()`]
-        """
-        ker.parallelInit()
-        for i in range(200):
-            self.compress()
-            energies = ker.parallelGD(2e5)
-            states = self.get()
-
     def ExperimentSerial(self):
         self.serialInit()
         return list(ut.Map('Debug')(executeTask, self.tasks))
@@ -132,12 +120,12 @@ def executeTask(task: TaskHandle):
 
 
 if __name__ == '__main__':
-    SIBLINGS = 2  # must be less equal than in defs.h
+    SIBLINGS = 3  # must be less equal than in defs.h
 
     tasks = ExperimentsFixedParticleShape(
         1000, 5, 0.25, 0.4,
         "ScreenedCoulomb",
-        np.linspace(1, 2, SIBLINGS, endpoint=True),
+        np.linspace(0.5, 0.8, SIBLINGS, endpoint=True),
     )
     tasks.ExperimentAsync()
 

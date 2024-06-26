@@ -50,9 +50,12 @@ void Grid::add(int thread_idx, int i, int j, int particle_id) {
 }
 void Grid::toVector()
 {
+	if constexpr (CORES > 1)		// make 1 core per task zero cost
+	{
 #pragma omp parallel for num_threads(CORES)
-	for (int i = 0; i < size; i++) {
-		p[i].toVector();
+		for (int i = 0; i < size; i++) {
+			p[i].toVector();
+		}
 	}
 }
 void Grid::clear() {
