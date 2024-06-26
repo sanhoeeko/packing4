@@ -15,7 +15,7 @@ inline static float randf() {
 void State::commonInit(int N)
 {
 	this->N = N;
-	configuration = VectorXf::Zero(3 * N);
+	configuration = VectorXf::Zero(dof * N);
 	grid = Maybe<Grid*>(new Grid());
 	pair_info = Maybe<PairInfo*>(new PairInfo(N));
 }
@@ -179,7 +179,8 @@ float State::equilibriumGD(int max_iterations)
 						break;
 					}
 				}
-				current_min_energy = std::min(current_min_energy, E);
+				// moving average
+				current_min_energy = (current_min_energy + E) / 2;
 			}
 			descent(step_size, g);
 		}

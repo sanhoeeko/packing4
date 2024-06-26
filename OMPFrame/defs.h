@@ -29,11 +29,13 @@ enum PotentialFunc{ Hertzian, ScreenedCoulomb, PotentialFunc_Count };
 enum HashFunc { _h2pi, _h4 };
 
 struct xyt { 
-    float x, y, t; 
+    float x, y, t, unused; 
     void operator+=(const xyt& o);
     void operator-=(const xyt& o);
     float amp2();
 };
+
+const int dof = sizeof(xyt) / sizeof(float);
 
 struct XytPair {
     xyt first, second;

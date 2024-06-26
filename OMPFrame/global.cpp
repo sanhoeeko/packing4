@@ -118,19 +118,6 @@ float equilibriumGD(void* state_ptr, int max_iterations)
     return s->equilibriumGD(max_iterations);
 }
 
-void parallelInit()
-{
-    global->parallelEquilibrium(&State::initAsDisks, (int)1e5);
-}
-
-float* parallelGD(int max_iterations)
-{
-    static float arr[SIBLINGS] = { 0 };
-    vector<float> energies = global->parallelEquilibrium(&State::equilibriumGD, max_iterations);
-    memcpy(arr, energies.data(), SIBLINGS * sizeof(float));
-    return arr;
-}
-
 float fastPotential(float x, float y, float t)
 {
     return global->rod->potentialNoInterpolate({ x,y,t });
@@ -237,9 +224,4 @@ State* Global::newState(int N)
     State* state = new State(N, idx);
     global->states[idx] = state;
     return state;
-}
-
-vector<float> Global::parallelEquilibrium(EquilibriumMethod func, int max_iterations)
-{
-    return MapStates<float>(func, this->states, max_iterations);
 }

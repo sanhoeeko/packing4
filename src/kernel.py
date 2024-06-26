@@ -52,8 +52,6 @@ class Kernel:
         self.dll.equilibriumGD.argtypes = [ct.c_void_p, ct.c_int]
         self.dll.equilibriumGD.restype = ct.c_float
         self.dll.getSiblingNumber.restype = ct.c_int
-        self.dll.parallelGD.argtypes = [ct.c_int]
-        self._parallelGD = self.returnFixedArray(self.dll.parallelGD, self.getSiblingNumber())
 
     def returnFixedArray(self, dll_function, length):
         dll_function.restype = ct.POINTER(ct.c_float)
@@ -71,8 +69,9 @@ class Kernel:
         return self.dll.getSiblingId(address)
 
     def getStateData(self, address, N):
-        array_pointer = ct.cast(self.dll.getStateData(address), ct.POINTER(ct.c_float * N * 3))
-        return np.ctypeslib.as_array(array_pointer.contents).copy().reshape((N, 3))
+        array_pointer = ct.cast(self.dll.getStateData(address), ct.POINTER(ct.c_float * N * 4))
+        raw_data = np.ctypeslib.as_array(array_pointer.contents).copy().reshape((N, 4))
+        return raw_data[:, :3]
 
     def getNumOfIterations(self, address):
         return int(self.dll.getStateIterations(address))
@@ -89,8 +88,9 @@ class Kernel:
         return self.getStateMaxGradOrEnergy(address)
 
     def getStateResidualForce(self, address, N):
-        array_pointer = ct.cast(self.dll.getStateResidualForce(address), ct.POINTER(ct.c_float * N * 3))
-        return np.ctypeslib.as_array(array_pointer.contents).copy().reshape((N, 3))
+        array_pointer = ct.cast(self.dll.getStateResidualForce(address), ct.POINTER(ct.c_float * N * 4))
+        raw_data = np.ctypeslib.as_array(array_pointer.contents).copy().reshape((N, 4))
+        return raw_data[:, :3]
 
     def initStateAsDisks(self, address):
         return self.dll.initStateAsDisks(address)
@@ -171,12 +171,6 @@ class Kernel:
 
     def equilibriumGD(self, address, max_iterations: int):
         return self.dll.equilibriumGD(address, max_iterations)
-
-    def parallelInit(self):
-        return self.dll.parallelInit()
-
-    def parallelGD(self, max_iterations: int) -> np.ndarray:
-        return self._parallelGD(int(max_iterations))
 
 
 ker = Kernel()

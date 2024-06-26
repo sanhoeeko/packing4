@@ -43,15 +43,23 @@ class State:
             'id': self.id,
             'A': self.A,
             'B': self.B,
+            'energy_curve': self.energy_curve,
+            'energy': self.energy,
+            'max_residual_force': self.max_residual_force,
         }
 
     @classmethod
-    def load(cls, configuration, metameta: dict, metadata: dict):
+    def load(cls, configuration, up_meta: dict, metadata: dict):
         obj = cls(
             metadata['id'],
-            metameta['N'], metameta['n'], metameta['d'],
+            up_meta['N'], up_meta['n'], up_meta['d'],
             metadata['A'], metadata['B'],
-            configuration
+            configuration,
+            others={
+                'energy_curve': metadata['energy_curve'],
+                'energy': metadata['energy'],
+                'max_residual_force': metadata['max_residual_force'],
+            }
         )
         return obj
 

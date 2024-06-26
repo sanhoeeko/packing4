@@ -137,9 +137,9 @@ GradientBuffer::GradientBuffer(int N)
 {
     this->N = N;
     for (int i = 0; i < CORES; i++) {
-        buffers[i] = VectorXf::Zero(3 * N);
+        buffers[i] = VectorXf::Zero(dof * N);
     }
-    result = Maybe<VectorXf*>(new VectorXf(3 * N));
+    result = Maybe<VectorXf*>(new VectorXf(dof * N));
 }
 
 void GradientBuffer::clear()

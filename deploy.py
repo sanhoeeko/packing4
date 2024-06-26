@@ -78,13 +78,14 @@ class TaskHandle(se.StateHandle):
         plt.show()
 
     def execute(self):
-        for i in range(200):
+        self.initAsDisks()
+        for i in range(100):
             if self.density > 1.2: break
             self.compress()
             dt = self.equilibriumGD(2e5)
             s = self.get()
             its = self.iterationSteps()
-            self.log(f'{i}:  G={s.max_residual_force}, E={s.energy}, nsteps={its}K , speed: {its / dt}K it/s')
+            self.log(f'{i}:  G={s.max_residual_force}, E={s.energy}, nsteps={its}K, speed: {its / dt}K it/s')
 
 
 class ExperimentsFixedParticleShape:
@@ -103,15 +104,10 @@ class ExperimentsFixedParticleShape:
     def get(self):
         return list(map(lambda x: x.get(), self.tasks))
 
-    def serialInit(self):
-        return list(map(lambda x: x.initAsDisks(), self.tasks))
-
     def ExperimentSerial(self):
-        self.serialInit()
         return list(ut.Map('Debug')(executeTask, self.tasks))
 
     def ExperimentAsync(self):
-        self.serialInit()
         return list(ut.Map('Release')(executeTask, self.tasks))
 
 
@@ -123,7 +119,7 @@ if __name__ == '__main__':
     SIBLINGS = 3  # must be less equal than in defs.h
 
     tasks = ExperimentsFixedParticleShape(
-        1000, 5, 0.25, 0.4,
+        1000, 5, 0.25, 0.5,
         "ScreenedCoulomb",
         np.linspace(0.5, 0.8, SIBLINGS, endpoint=True),
     )

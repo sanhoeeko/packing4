@@ -60,6 +60,6 @@ class InteractiveViewer:
         plt.show()
 
 
-ds = DataSet.loadFrom('new data/gt1u.h5')
+ds = DataSet.loadFrom('new data/j9li.h5')
 iv = InteractiveViewer(ds, RenderPipe(StateRenderer.angle))
 iv.show()

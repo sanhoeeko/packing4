@@ -2,7 +2,7 @@
 #include "optimizer.h"
 
 float maxGradientAbs(VectorXf& g) {
-    int n = g.size() / 3;
+    int n = g.size() / dof;
     xyt* q = (xyt*)(void*)g.data();
     float s = 0;
     for (int i = 0; i < n; i++) {
