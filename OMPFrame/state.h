@@ -3,6 +3,7 @@
 #include"defs.h"
 #include"functional.h"
 #include"grid.h"
+#include"gradient.h"
 
 struct EllipseBoundary {
     float a, b;
@@ -19,15 +20,21 @@ struct EllipseBoundary {
 
 struct State{
     VectorXf configuration;
-    VectorXf gradient;
     EllipseBoundary* boundary;
     vector<float> ge;               // ge can either be: a) max gradient amplitudes; b) energy records.
+
     int N;
-    int id;
     int sibling_id;
 
+    Maybe<Grid*> grid;
+    Maybe<PairInfo*> pair_info;
+
+    // methods
+
+    void commonInit(int N);
     State(int N, int sibling);
     State(VectorXf q, EllipseBoundary* b, int N, int sibling);
+    void clearCache();
     void randomInitStateCC();
     float initAsDisks(int max_iterations);
 

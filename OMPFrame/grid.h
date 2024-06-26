@@ -11,7 +11,7 @@ struct EllipseBoundary;
 
 const int grid_single_capacity = 16;
 
-void collisionDetect(State* s, PairInfo* pinfo);
+void _collisionDetect(State* s, PairInfo* pinfo);
 
 struct Grid {
     VectorList<int, CORES, grid_single_capacity>* p;

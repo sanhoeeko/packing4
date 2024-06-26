@@ -54,6 +54,9 @@ void calGradient(PairInfo* pinfo, GradientBuffer* ge) {
 template<HowToCalGradient how> 
 GradientBuffer* PairInfo::CalGradient()
 {
-    static CacheFunction<PairInfo, GradientBuffer> f(calGradient<how>, GradientBuffer(N));
-    return f(this);
+    if (!g_buffer.valid) {
+        g_buffer.valid = true;
+        calGradient<how>(this, g_buffer.obj);
+    }
+    return g_buffer.obj;
 }

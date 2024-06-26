@@ -41,6 +41,6 @@ float Modify(VectorXf& g)
 
     // normalize the gradient
     float norm_g = g.norm();
-    g /= norm_g;
+    if(norm_g > 0) g /= norm_g;
     return res;
 }

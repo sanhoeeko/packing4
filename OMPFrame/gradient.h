@@ -1,6 +1,7 @@
 #pragma once
 
 #include"defs.h"
+#include "functional.h"
 #include<vector>
 
 using namespace std;
@@ -9,26 +10,24 @@ struct GradientBuffer
 {
     VectorXf buffers[CORES];
     int N;
-    int id;
-    int sibling_id;
+
+    Maybe<VectorXf*> result;
     
     GradientBuffer();
     GradientBuffer(int N);
-    GradientBuffer(const GradientBuffer& obj);
     void clear();
-    void joinTo(VectorXf& g);
+    VectorXf join();
 };
 
 struct EnergyBuffer
 {
     float buffers[CORES];
     int N;
-    int id;
-    int sibling_id;
+
+    Maybe<float> result;
 
     EnergyBuffer();
     EnergyBuffer(int N);
-    EnergyBuffer(const EnergyBuffer& obj);
     void clear();
     float sum();
 };
@@ -37,13 +36,14 @@ struct PairInfo
 {
     vector<ParticlePair> info_pp[CORES];
     vector<ParticlePair> info_pw[CORES];
+
     int N;
-    int id;
-    int sibling_id;
+
+    Maybe<GradientBuffer*> g_buffer;
+    Maybe<EnergyBuffer*> e_buffer;
 
     PairInfo();
     PairInfo(int N);
-    PairInfo(const PairInfo& obj);
     void clear();
     template<HowToCalGradient how> GradientBuffer* CalGradient();
     EnergyBuffer* CalEnergy();

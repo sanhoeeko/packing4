@@ -17,23 +17,13 @@ PairInfo::PairInfo()
 
 PairInfo::PairInfo(int N)
 {
-    this->id = -1;
     this->N = N;
     for (int i = 0; i < CORES; i++) {
         info_pp[i].reserve(N);
         info_pw[i].reserve(N);
     }
-}
-
-PairInfo::PairInfo(const PairInfo& obj)
-{
-    // memory alloc
-    this->id = obj.id;
-    this->N = obj.N;
-    for (int i = 0; i < CORES; i++) {
-        info_pp[i].reserve(N);
-        info_pw[i].reserve(N);
-    }
+    g_buffer = Maybe<GradientBuffer*>(new GradientBuffer(N));
+    e_buffer = Maybe<EnergyBuffer*>(new EnergyBuffer(N));
 }
 
 void PairInfo::clear()
@@ -42,6 +32,8 @@ void PairInfo::clear()
         info_pp[i].clear();
         info_pw[i].clear();
     }
+    g_buffer.clear();
+    e_buffer.clear();
 }
 
 
@@ -130,8 +122,11 @@ void calEnergy(PairInfo* pinfo, EnergyBuffer* ge) {
 
 EnergyBuffer* PairInfo::CalEnergy()
 {
-    static CacheFunction<PairInfo, EnergyBuffer> f(calEnergy, EnergyBuffer(N));
-    return f(this);
+    if (!e_buffer.valid) {
+        e_buffer.valid = true;
+        calEnergy(this, e_buffer.obj);
+    }
+    return e_buffer.obj;
 }
 
 GradientBuffer::GradientBuffer()
@@ -140,21 +135,11 @@ GradientBuffer::GradientBuffer()
 
 GradientBuffer::GradientBuffer(int N)
 {
-    this->id = -1;
     this->N = N;
     for (int i = 0; i < CORES; i++) {
         buffers[i] = VectorXf::Zero(3 * N);
     }
-}
-
-GradientBuffer::GradientBuffer(const GradientBuffer& obj)
-{
-    // memory alloc
-    this->id = obj.id;
-    this->N = obj.N;
-    for (int i = 0; i < CORES; i++) {
-        buffers[i] = VectorXf::Zero(3 * N);
-    }
+    result = Maybe<VectorXf*>(new VectorXf(3 * N));
 }
 
 void GradientBuffer::clear()
@@ -162,21 +147,26 @@ void GradientBuffer::clear()
     for (int i = 0; i < CORES; i++) {
         buffers[i].setZero();
     }
+    result.valid = false;
+    result.obj->setZero();
 }
 
-void GradientBuffer::joinTo(VectorXf& g)
+VectorXf GradientBuffer::join()
 {
-    if constexpr (CORES > 1)
-    {
-        g.setZero();
-        for (int i = 0; i < CORES; i++) {
-            g += buffers[i];
+    if (!result.valid) {
+        result.valid = true;
+        if constexpr (CORES > 1)
+        {
+            for (int i = 0; i < CORES; i++) {
+                *result.obj += buffers[i];
+            }
+        }
+        else
+        {
+            *result.obj = buffers[0];     // one core specialization
         }
     }
-    else 
-    {
-        g = buffers[0];     // one core specialization
-    }
+    return *result.obj;
 }
 
 EnergyBuffer::EnergyBuffer()
@@ -185,16 +175,8 @@ EnergyBuffer::EnergyBuffer()
 
 EnergyBuffer::EnergyBuffer(int N)
 {
-    this->id = -1;
     this->N = N;
     clear();
-}
-
-EnergyBuffer::EnergyBuffer(const EnergyBuffer& obj)
-{
-    // memory alloc (actually no)
-    this->id = obj.id;
-    this->N = obj.N;
 }
 
 void EnergyBuffer::clear()
@@ -202,13 +184,17 @@ void EnergyBuffer::clear()
     for (int i = 0; i < CORES; i++) {
         buffers[i] = 0;
     }
+    result.valid = false;
+    result.obj = 0;
 }
 
 float EnergyBuffer::sum()
 {
-    float s = 0;
-    for (int i = 0; i < CORES; i++) {
-        s += buffers[i];
+    if (!result.valid) {
+        result.valid = true;
+        for (int i = 0; i < CORES; i++) {
+            result.obj += buffers[i];
+        }
     }
-    return s;
+    return result.obj;
 }

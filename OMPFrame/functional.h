@@ -14,16 +14,32 @@ struct Maybe
 {
     bool valid;
     ty obj;
+
+    Maybe() {
+        valid = false;
+    }
+    Maybe(const ty& ref) {
+        valid = false;
+        obj = ref;
+    }
+    Maybe(bool validity, const ty& ref) {
+        valid = validity;
+        obj = ref;
+    }
+    void clear() {
+        valid = false;
+        obj->clear();
+    }
 };
 
 template<typename ty>
 Maybe<ty> Nothing() {
-    return { false };
+    return Maybe<ty>();
 }
 
 template<typename ty>
 Maybe<ty> Just(const ty& x) {
-    return { true, x };
+    return Maybe<ty>(true, x);
 }
 
 template<typename a, HashFunc hasher>
@@ -72,34 +88,5 @@ struct D4ScalarFunc
     }
     void write(const char* filename) {
         writeArrayToFile<float>((float*)data, capacity, filename);
-    }
-};
-
-template<typename a, typename b>
-struct CacheFunction 
-{
-    b cache[SIBLINGS];
-    function<void(a*, b*)> func;            // function in fishing format. a: input type; b: result type
-
-    CacheFunction(void f(a*,b*), const b& new_cache) {
-        this->func = function<void(a*, b*)>(f);
-        for (int i = 0; i < SIBLINGS; i++) 
-        {
-            this->cache[i] = new_cache;     // require: b type should have a deep copy method
-            this->cache[i].sibling_id = i;  // require: b type should have a `sibling_id` tag
-        }
-    }
-
-    b* operator()(a* x) {
-        int idx = x->sibling_id;            // require: a type should have a `sibling_id` tag
-        b* target_obj = cache + idx;
-        if (x->id == target_obj->id) {
-            return target_obj;
-        }
-        else {
-            target_obj->id = x->id;
-            func(x, target_obj);           // cache = f(x)
-            return target_obj;
-        }
     }
 };

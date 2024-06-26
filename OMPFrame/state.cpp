@@ -12,24 +12,36 @@ inline static float randf() {
 }
 
 
-State::State(int N, int sibling)
+void State::commonInit(int N)
 {
 	this->N = N;
-	this->id = 1;
-	this->sibling_id = sibling;
 	configuration = VectorXf::Zero(3 * N);
-	gradient = VectorXf::Zero(3 * N);
+	grid = Maybe<Grid*>(new Grid());
+	pair_info = Maybe<PairInfo*>(new PairInfo(N));
+}
+
+State::State(int N, int sibling)
+{
+	commonInit(N);
+	this->sibling_id = sibling;
 	boundary = NULL;
 }
 
 State::State(VectorXf q, EllipseBoundary* b, int N, int sibling)
 {
-	this->N = N;
-	this->id = 1;
+	commonInit(N);
 	this->sibling_id = sibling;
 	configuration = q;
-	gradient = VectorXf::Zero(3 * N);
 	boundary = b;
+}
+
+/*
+	clear cache when the boundary or the configuration is changed
+*/
+void State::clearCache()
+{
+	grid.clear();
+	pair_info.clear();
 }
 
 void State::randomInitStateCC()
@@ -54,11 +66,12 @@ float State::initAsDisks(int max_iterations)
 	*/
 	// const int max_iterations = 1e5;
 	ge.clear();
+	float gm = 0;
 
 	for (int i = 0; i < max_iterations; i++) 
 	{
 		VectorXf g = CalGradient<AsDisks>();
-		float gm = maxGradientAbs(g);
+		gm = maxGradientAbs(g);
 		ge.push_back(gm);
 
 		if (gm < 1e-5) {
@@ -68,19 +81,19 @@ float State::initAsDisks(int max_iterations)
 			descent(1e-3, g);
 		}
 	}
-	return ge[ge.size() - 1];
+	return gm;
 }
 
 void State::setBoundary(float a, float b)
 {
-	id += 1024;
 	boundary->setBoundary(a, b);
+	clearCache();
 }
 
 void State::descent(float a, VectorXf& g)
 {
 	configuration -= a * g;
-	id++;
+	clearCache();
 	crashIfDataInvalid();
 }
 
@@ -181,25 +194,26 @@ void _gridLocate(State* s, Grid* grid) {
 
 Grid* State::GridLocate()
 {
-	static CacheFunction<State, Grid> f(_gridLocate, Grid());
-	return f(this);
+	if (!grid.valid) {
+		grid.valid = true;
+		_gridLocate(this, grid.obj);
+	}
+	return grid.obj;
 }
 
 PairInfo* State::CollisionDetect()
 {
-	static CacheFunction<State, PairInfo> f(collisionDetect, PairInfo(N));
-	return f(this);
+	if (!pair_info.valid) {
+		pair_info.valid = true;
+		_collisionDetect(this, pair_info.obj);
+	}
+	return pair_info.obj;
 }
 
-
-/*
-	Note: this method has no cache effect
-*/
 template <HowToCalGradient how>
 VectorXf State::CalGradient()
 {
-	this->CollisionDetect()->CalGradient<how>()->joinTo(this->gradient);
-	return this->gradient;
+	return this->CollisionDetect()->CalGradient<how>()->join();
 }
 
 float State::CalEnergy()

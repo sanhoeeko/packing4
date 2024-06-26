@@ -171,7 +171,7 @@ void Grid::boundaryCollisionDetectPW(float* x, int N, PairInfo* dst, EllipseBoun
 	}
 }
 
-void collisionDetect(State* s, PairInfo* pinfo) {
+void _collisionDetect(State* s, PairInfo* pinfo) {
 	pinfo->clear();
 	Grid* grid = s->GridLocate();
 	grid->collisionDetectPP(s->configuration.data(), pinfo);
