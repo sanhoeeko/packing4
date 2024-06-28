@@ -211,12 +211,6 @@ PairInfo* State::CollisionDetect()
 	return pair_info.obj;
 }
 
-template <HowToCalGradient how>
-VectorXf State::CalGradient()
-{
-	return this->CollisionDetect()->CalGradient<how>()->join();
-}
-
 float State::CalEnergy()
 {
 	return this->CollisionDetect()->CalEnergy()->sum();

@@ -45,6 +45,10 @@ struct State{
 
     Grid* GridLocate();
     PairInfo* CollisionDetect();
-    template<HowToCalGradient how> VectorXf CalGradient();
     float CalEnergy();
+
+    template<HowToCalGradient how> VectorXf CalGradient() 
+    {
+        return this->CollisionDetect()->CalGradient<how>()->join();
+    };
 };
