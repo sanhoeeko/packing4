@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import json
 import os
@@ -70,3 +71,27 @@ def fileNameToId(s):
 
 def findFirst(lst, lambda_expr):
     return next((item for item in lst if lambda_expr(item)), None)
+
+
+class MyThreadRecord:
+    def __init__(self, user_name: str, num_threads):
+        self.user_name = user_name
+        self.num_threads = num_threads
+        self.file_path = "/home/example/threads.txt"
+
+    def __enter__(self):
+        if not os.path.exists(self.file_path):
+            return
+        with open(self.file_path, 'a') as f:
+            time_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            f.write(f"{self.user_name} {self.num_threads} {time_str}\n")
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if not os.path.exists(self.file_path):
+            return
+        with open(self.file_path, 'r') as f:
+            lines = f.readlines()
+        with open(self.file_path, 'w') as f:
+            for line in lines:
+                if not line.startswith(self.user_name):
+                    f.write(line)

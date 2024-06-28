@@ -82,7 +82,7 @@ class TaskHandle(se.StateHandle):
             for i in range(10000):
                 if self.density > 1.2: break
                 self.compress()
-                dt = self.equilibriumGD(2e5)
+                dt = self.equilibriumGD(1e6)
                 s = self.get()
                 its = self.iterationSteps()
                 self.log(f'{i}:  G={s.max_residual_force}, E={s.energy}, nsteps={its}K, speed: {its / dt}K it/s')
@@ -119,13 +119,14 @@ def executeTask(task: TaskHandle):
 
 
 if __name__ == '__main__':
-    SIBLINGS = 3  # must be less equal than in defs.h
+    SIBLINGS = 2  # must be less equal than in defs.h
 
-    tasks = ExperimentsFixedParticleShape(
-        1000, 5, 0.25, 0.5,
-        "ScreenedCoulomb",
-        np.linspace(0.5, 0.8, SIBLINGS, endpoint=True),
-    )
-    tasks.ExperimentAsync()
+    with ut.MyThreadRecord('gengjie', SIBLINGS):
+        tasks = ExperimentsFixedParticleShape(
+            1000, 5, 0.25, 0.5,
+            "ScreenedCoulomb",
+            np.linspace(0.5, 0.8, SIBLINGS, endpoint=True),
+        )
+        tasks.ExperimentAsync()
 
-    packResults('new data.7z')
+        packResults('new data.7z')
