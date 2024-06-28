@@ -12,7 +12,6 @@ import singleExperiment as se
 import src.utils as ut
 from src.kernel import ker
 from src.render import StateRenderer
-from src.state import RenderSetup
 
 
 class RandomStringGenerator:
@@ -78,14 +77,18 @@ class TaskHandle(se.StateHandle):
         plt.show()
 
     def execute(self):
-        self.initAsDisks()
-        for i in range(100):
-            if self.density > 1.2: break
-            self.compress()
-            dt = self.equilibriumGD(2e5)
-            s = self.get()
-            its = self.iterationSteps()
-            self.log(f'{i}:  G={s.max_residual_force}, E={s.energy}, nsteps={its}K, speed: {its / dt}K it/s')
+        try:
+            self.initAsDisks()
+            for i in range(10000):
+                if self.density > 1.2: break
+                self.compress()
+                dt = self.equilibriumGD(2e5)
+                s = self.get()
+                its = self.iterationSteps()
+                self.log(f'{i}:  G={s.max_residual_force}, E={s.energy}, nsteps={its}K, speed: {its / dt}K it/s')
+        except Exception as e:
+            print("An exception occurred!\n", e)
+            print(f"In sibling{self.getSiblingId()}, ID: {self.id}")
 
 
 class ExperimentsFixedParticleShape:

@@ -60,6 +60,7 @@ class InteractiveViewer:
         plt.show()
 
 
-ds = DataSet.loadFrom('new data/j9li.h5')
-iv = InteractiveViewer(ds, RenderPipe(StateRenderer.angle))
-iv.show()
+if __name__ == '__main__':
+    ds = DataSet.loadFrom('result/xmlq.h5')
+    iv = InteractiveViewer(ds, RenderPipe(StateRenderer.angle))
+    iv.show()

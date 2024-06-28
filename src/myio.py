@@ -1,5 +1,7 @@
 import h5py
+import pandas as pd
 
+import src.utils as ut
 from .state import State
 
 
@@ -15,6 +17,10 @@ class DataSet:
                 for key, value in self.metadata.items():
                     f.attrs[key] = value
 
+    @property
+    def id(self):
+        return ut.fileNameToId(self.filename)
+
     @classmethod
     def loadFrom(cls, filename):
         obj = cls(filename, dict())
@@ -29,6 +35,8 @@ class DataSet:
                 obj.data.append(State.load(configuration, obj.metadata, dic))
         obj.data.sort(key=lambda x: x.id)
         return obj
+
+    # Simulation Methods
 
     def append(self, state: State):
         self.data.append(state)
@@ -49,3 +57,17 @@ class DataSet:
                 grp.create_dataset('data', data=state.xyt)
                 for key, value in state.metadata.items():
                     grp.attrs[key] = value
+
+    # Analysis Methods
+
+    def toDataFrame(self):
+        """
+        Extract abstract information and construct a line of the dataframe
+        """
+        dic = {
+            'id': self.id,
+            **self.metadata,
+            'rho0': self.data[0].rho,
+            'Gamma0': self.data[0].Gamma,
+        }
+        return pd.DataFrame([dic])

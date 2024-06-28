@@ -38,6 +38,14 @@ class State:
         return self.xyt[:, 2] % np.pi
 
     @property
+    def Gamma(self):
+        return self.A / self.B
+
+    @property
+    def rho(self):
+        return self.N / (np.pi * self.A * self.B)
+
+    @property
     def metadata(self):
         return {
             'id': self.id,

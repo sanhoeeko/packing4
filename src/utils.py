@@ -24,8 +24,10 @@ def reverseClassMethod(func):
 def getFileHash(path):
     hash_obj = hashlib.sha256()
     with open(path, 'rb') as f:
-        while chunk := f.read(8192):
+        chunk = f.read(8192)
+        while chunk:
             hash_obj.update(chunk)
+            chunk = f.read(8192)
     return hash_obj.hexdigest()
 
 
@@ -60,3 +62,11 @@ def Map(mode):
         raise ValueError("Invalid mode. Please set it to 'Debug' or 'Release'.")
 
     return map_func
+
+
+def fileNameToId(s):
+    return s.split('\\')[-1].split('.')[0]
+
+
+def findFirst(lst, lambda_expr):
+    return next((item for item in lst if lambda_expr(item)), None)
