@@ -12,9 +12,8 @@
   - Run `./analysis.py` to visualize the data.
 
 ## Build in Linux
-  - Run `cd OMPFrame`
-  - Run `g++ *.cpp -std=c++17 -o OMPFrame.so -fopenmp -fPIC -shared -Wall -O3`
-  - Run `cd ..`. Run `pip install -r requirements.txt` if necessary.
+  - Run `bash build.sh` to build the c++ dynamic-link library.
+  - Run `pip install -r requirements.txt` to install python packages if necessary.
   - (At the root directory of this project,) run `python3 -m testScripts.[...]` for test, where `[...]` is a file name, for example, `interactive_potential`.
   - Run `python3 MyFrame.py`  to perform a numerical experiment.
   - Run `python3 analysis.py` to visualize the data.

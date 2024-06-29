@@ -5,6 +5,8 @@ import os
 from concurrent.futures import ThreadPoolExecutor
 from functools import reduce
 
+import numpy as np
+
 
 def applyPipeline(obj, funcs):
     return reduce(lambda x, f: f(x), funcs, obj)
@@ -73,18 +75,24 @@ def findFirst(lst, lambda_expr):
     return next((item for item in lst if lambda_expr(item)), None)
 
 
+def ndarrayAddress(a: np.ndarray):
+    if not a.flags['C_CONTIGUOUS']:
+        a = np.ascontiguousarray(a)
+    return a.ctypes.data
+
+
 class MyThreadRecord:
     def __init__(self, user_name: str, num_threads):
         self.user_name = user_name
         self.num_threads = num_threads
-        self.file_path = "/home/example/threads.txt"
+        self.file_path = "/home/share/thread.txt"
 
     def __enter__(self):
         if not os.path.exists(self.file_path):
             return
         with open(self.file_path, 'a') as f:
             time_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            f.write(f"{self.user_name} {self.num_threads} {time_str}\n")
+            f.write(f"{self.user_name} {self.num_threads} threads, {time_str}\n")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if not os.path.exists(self.file_path):

@@ -31,7 +31,7 @@ class Kernel:
         self.dll = ct.cdll.LoadLibrary(dll_path)
         self.dll.init()
         self.dll.setEnums.argtypes = [ct.c_int]
-        self.dll.setRod.argtypes = [ct.c_int, ct.c_float]
+        self.dll.setRod.argtypes = [ct.c_int, ct.c_float, ct.c_int]
         self.dll.setBoundary.argtypes = [ct.c_void_p, ct.c_float, ct.c_float]
         self.dll.readPotential.argtypes = [ct.c_int, ct.c_float]
         self.dll.getPotentialId.restype = ct.c_int
@@ -51,7 +51,7 @@ class Kernel:
         self.dll.singleStep.argtypes = [ct.c_void_p, ct.c_int, ct.c_float]
         self.dll.equilibriumGD.argtypes = [ct.c_void_p, ct.c_int]
         self.dll.equilibriumGD.restype = ct.c_float
-        self.dll.getSiblingNumber.restype = ct.c_int
+        self.dll.setStateData.argtypes = [ct.c_void_p, ct.c_void_p]
 
     def returnFixedArray(self, dll_function, length):
         dll_function.restype = ct.POINTER(ct.c_float)
@@ -101,30 +101,27 @@ class Kernel:
         """
         return self.dll.setEnums(potential_func)
 
-    def getSiblingNumber(self):
-        return self.dll.getSiblingNumber()
-
     def setBoundary(self, address, a, b):
         return self.dll.setBoundary(address, a, b)
 
-    def setRod(self, n, d, save=True):
+    def setRod(self, n, d, n_threads=4, save=True):
         if not save:
-            self.generatePotential(n, d)
+            self.generatePotential(n, d, n_threads)
             return
         if self.checkPotential(n, d):
             print("Load existing potential from file.")
             self.readPotential(n, d)
         else:
-            self.generatePotential(n, d)
+            self.generatePotential(n, d, n_threads)
             self.writePotential(n, d)
 
-    def generatePotential(self, n, d):
+    def generatePotential(self, n, d, n_threads):
         """
         generate potential look-up table for temporary usage
         """
         try:
             start_t = time.perf_counter()
-            self.dll.setRod(n, d)
+            self.dll.setRod(n, d, n_threads)
             end_t = time.perf_counter()
             dt = round(end_t - start_t, 2)
             print(f"Initialized the potential in {dt} seconds.")
@@ -171,6 +168,9 @@ class Kernel:
 
     def equilibriumGD(self, address, max_iterations: int):
         return self.dll.equilibriumGD(address, max_iterations)
+
+    def setStateData(self, address, configuration: np.ndarray):
+        return self.dll.setStateData(address, ut.ndarrayAddress(configuration))
 
 
 ker = Kernel()

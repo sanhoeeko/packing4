@@ -1,4 +1,7 @@
+from functools import lru_cache
+
 import h5py
+import numpy as np
 import pandas as pd
 
 import src.utils as ut
@@ -60,6 +63,22 @@ class DataSet:
 
     # Analysis Methods
 
+    @property
+    def rho0(self):
+        return self.data[0].rho
+
+    @property
+    def Gamma0(self):
+        return self.data[0].Gamma
+
+    @property
+    def rhos(self):
+        return np.array([state.rho for state in self.data])
+
+    @lru_cache(maxsize=None)
+    def curveTemplate(self, prop: str):
+        return np.array([getattr(state, prop) for state in self.data])
+
     def toDataFrame(self):
         """
         Extract abstract information and construct a line of the dataframe
@@ -67,7 +86,7 @@ class DataSet:
         dic = {
             'id': self.id,
             **self.metadata,
-            'rho0': self.data[0].rho,
-            'Gamma0': self.data[0].Gamma,
+            'rho0': self.rho0,
+            'Gamma0': self.Gamma0,
         }
         return pd.DataFrame([dic])

@@ -14,6 +14,12 @@ class StateRenderer(State):
     def __init__(self, state):
         self.__dict__ = state.__dict__
 
+    def plotEnergyCurve(self, handle):
+        fig, ax = handle
+        ax.plot(self.energy_curve)
+        ax.set_xlabel('×10³ iterations')
+        ax.set_ylabel('Energy')
+
     def drawBoundary(self, handle):
         fig, ax = handle
         ellipse = patches.Ellipse((0, 0), width=2 * self.A, height=2 * self.B, fill=False)

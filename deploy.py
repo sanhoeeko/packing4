@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import py7zr
 
-import singleExperiment as se
+import src.simulator as simu
 import src.utils as ut
 from src.kernel import ker
 from src.render import StateRenderer
@@ -48,7 +48,7 @@ def packResults(archive_name: str):
     return clearResults()
 
 
-class TaskHandle(se.StateHandle):
+class TaskHandle(simu.Simulator):
     def __init__(self, N, n, d, boundary_a, boundary_b):
         """
         potential_name: Hertzian | ScreenedCoulomb
@@ -58,8 +58,8 @@ class TaskHandle(se.StateHandle):
         open(self.log_file, 'w')  # create the file
         super().__init__(N, n, d, boundary_a, boundary_b, self.id)
 
-        q = 1 - 1e-3
-        self.setBoundaryScheduler(se.BoundaryScheduler.constant, lambda n, x: x * q ** n)
+        q = 1 - 1e-2
+        self.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
 
     def getSiblingId(self):
         return ker.getSiblingId(self.data_ptr)
@@ -94,12 +94,10 @@ class TaskHandle(se.StateHandle):
 class ExperimentsFixedParticleShape:
     def __init__(self, N, n, d, phi0, potential_name: str, Gammas: np.ndarray):
         self.siblings = len(Gammas)
-        if self.siblings > ker.getSiblingNumber():
-            raise ValueError("Too many siblings.")
         self.tasks = [TaskHandle
                       .fromCircDensity(N, n, d, phi0, Gamma)
                       for Gamma in Gammas]
-        self.tasks[0].initPotential(potential_name)
+        self.tasks[0].initPotential(potential_name, self.siblings)
 
     def compress(self):
         return list(map(lambda x: x.compress(), self.tasks))
@@ -119,14 +117,15 @@ def executeTask(task: TaskHandle):
 
 
 if __name__ == '__main__':
-    SIBLINGS = 2  # must be less equal than in defs.h
+    CORES = 2
+    SIBLINGS = 1  # must be less equal than in defs.h
 
-    with ut.MyThreadRecord('gengjie', SIBLINGS):
+    with ut.MyThreadRecord('gengjie', CORES * SIBLINGS):
         tasks = ExperimentsFixedParticleShape(
-            1000, 5, 0.25, 0.5,
+            1000, 2, 0.25, 0.3,
             "ScreenedCoulomb",
             np.linspace(0.5, 0.8, SIBLINGS, endpoint=True),
         )
         tasks.ExperimentAsync()
 
-        packResults('new data.7z')
+        packResults('results.7z')
