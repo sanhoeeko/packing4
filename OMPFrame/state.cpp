@@ -97,6 +97,15 @@ void State::descent(float a, VectorXf& g)
 	crashIfDataInvalid();
 }
 
+void State::loadFromData(float* data_src)
+{
+	/*
+		The format of data underlying `data_src` must be `4 * N`
+	*/
+	memcpy(configuration.data(), data_src, dof * N * sizeof(float));
+	clearCache();
+}
+
 bool isnan(xyt& q) {
 	return isnan(q.x) || isnan(q.y) || isnan(q.t);
 }
@@ -174,7 +183,7 @@ float State::equilibriumGD(int max_iterations)
 				}
 				// step size (descent speed) criterion
 				else if (abs(1 - E / current_min_energy) < 1e-4) {
-					step_size /= 2;
+					step_size *= 0.8;			// log(0.8)(0.1) ~ 10
 					if (step_size < 1e-4) {
 						break;
 					}

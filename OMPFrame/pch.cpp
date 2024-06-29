@@ -7,7 +7,7 @@
 #include"global.h"
 
 void init() {
-    omp_set_num_threads(CORES * SIBLINGS);
+    omp_set_num_threads(CORES);
     omp_set_nested(1);  // Enable nested parallelism
     setGlobal();
 }

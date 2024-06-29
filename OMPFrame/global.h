@@ -8,12 +8,10 @@ typedef float (State::* EquilibriumMethod)(int);
 
 
 struct Global {
-    State* states[SIBLINGS];
+    vector<State*> states;
     Rod* rod;
     PotentialFunc pf;
-    int n_states;
 
-    int newSibling();
     State* newState(int N);
 };
 

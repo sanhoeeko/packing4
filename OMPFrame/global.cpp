@@ -9,7 +9,6 @@ void setGlobal()
 {
     global = new Global();
     global->pf = PotentialFunc(-1);
-    memset(global->states, 0, SIBLINGS * sizeof(State*));
 }
 
 void setEnums(int potential_func)
@@ -17,16 +16,16 @@ void setEnums(int potential_func)
     global->pf = (PotentialFunc)potential_func;
 }
 
-void setRod(int n, float d)
+void setRod(int n, float d, int threads)
 {
-    typedef void (Rod::*Func)(void);
+    typedef void (Rod::*Func)(int);
     static Func funcs[2] = {
         &Rod::initPotential<Hertzian>,
         &Rod::initPotential<ScreenedCoulomb>,
     };
 
     global->rod = new Rod(n, d);
-    (global->rod->*funcs[global->pf])();
+    (global->rod->*funcs[global->pf])(threads);
 }
 
 void* createState(int N, float boundary_a, float boundary_b)
@@ -61,6 +60,12 @@ int getSiblingId(void* state_ptr)
     return s->sibling_id;
 }
 
+void setStateData(void* state_ptr, void* data_src)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    s->loadFromData((float*)data_src);
+}
+
 void readPotential(int n, float d)
 {
     global->rod = new Rod(n, d);
@@ -75,11 +80,6 @@ void writePotential()
 int getPotentialId()
 {
     return global->pf;
-}
-
-int getSiblingNumber()
-{
-    return SIBLINGS;
 }
 
 void* getStateMaxGradOrEnergy(void* state_ptr)
@@ -211,17 +211,9 @@ float* getMirrorOf(float A, float B, float x, float y, float t)
     return arr;
 }
 
-int Global::newSibling()
-{
-    int ret = n_states;
-    n_states++;
-    return ret;
-}
-
 State* Global::newState(int N)
 {
-    int idx = global->newSibling();
-    State* state = new State(N, idx);
-    global->states[idx] = state;
+    State* state = new State(N, global->states.size());
+    global->states.push_back(state);
     return state;
 }

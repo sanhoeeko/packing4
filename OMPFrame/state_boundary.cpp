@@ -46,10 +46,9 @@ void EllipseBoundary::solveNearestPointOnEllipse(float x1, float y1, float& x0, 
 
 		in the range of t > -b*b. The initial guess can be t0 = -b*b + b*y1.
 	*/
-	float
-		t_prolate = -b2 + b * y1,
-		t_oblate = -a2 + a * x1,
-		t = if_a_less_than_b ? t_oblate : t_prolate;
+	// float t_prolate = -b2 + b * y1;
+	// float t_oblate = -a2 + a * x1;
+	float t = if_a_less_than_b ? (-a2 + a * x1) : (-b2 + b * y1);
 
 	for (int i = 0; i < 16; i++) {
 		// Newton root finding. There is always `Ga * Ga + Gb * Gb - 1 > 0`.

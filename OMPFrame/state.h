@@ -40,6 +40,7 @@ struct State{
 
     void setBoundary(float a, float b);
     void descent(float a, VectorXf& g);
+    void loadFromData(float* data_src);
     void crashIfDataInvalid();
     float equilibriumGD(int max_iterations);
 

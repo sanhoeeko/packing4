@@ -61,7 +61,7 @@ XytPair Rod::StandardGradient(float x, float y, float t1, float t2) {
 }
 
 template<PotentialFunc what>
-void Rod::initPotential() {
+void Rod::initPotential(int threads) {
     vector<float> xs = linspace_including_endpoint(0, 1, szx);
     vector<float> ys = linspace_including_endpoint(0, 1, szy);
     vector<float> ts = linspace_including_endpoint(0, 1, szt);
@@ -69,7 +69,7 @@ void Rod::initPotential() {
     int m2 = ys.size();
     int m3 = ts.size();
 
-#pragma omp parallel for num_threads(CORES * SIBLINGS)  // use all cores
+#pragma omp parallel for num_threads(threads)  // use all cores
     for (int i = 0; i < m1; i++) {
         float x = xs[i];
         for (int j = 0; j < m2; j++) {

@@ -21,7 +21,7 @@
 // simulation
 DLLEXPORT void init();
 DLLEXPORT void setEnums(int potential_func);
-DLLEXPORT void setRod(int n, float d);
+DLLEXPORT void setRod(int n, float d, int threads);
 DLLEXPORT void* createState(int N, float boundary_a, float boundary_b);
 DLLEXPORT void initStateAsDisks(void* state_ptr);
 DLLEXPORT void setBoundary(void* state_ptr, float boundary_a, float boundary_b);
@@ -35,11 +35,13 @@ DLLEXPORT void* getStateMaxGradOrEnergy(void* state_ptr);
 DLLEXPORT void* getStateResidualForce(void* state_ptr);
 DLLEXPORT int getSiblingId(void* state_ptr);
 
+// load data
+DLLEXPORT void setStateData(void* state_ptr, void* data_src);
+
 // built-in IO
 DLLEXPORT void readPotential(int n, float d);
 DLLEXPORT void writePotential();
 DLLEXPORT int getPotentialId();
-DLLEXPORT int getSiblingNumber();
 
 // test of algorithms
 DLLEXPORT float fastPotential(float x, float y, float t);

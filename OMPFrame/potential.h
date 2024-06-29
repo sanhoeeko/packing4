@@ -43,7 +43,7 @@ struct Rod : ParticleShape {
     D4ScalarFunc<szx, szy, szt>* fv;
 
     Rod(int n, float d);
-    template<PotentialFunc what> void initPotential();
+    template<PotentialFunc what> void initPotential(int threads);
 
     // original definitions
     template<PotentialFunc what> float StandardPotential(const xyt& q);
