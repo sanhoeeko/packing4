@@ -44,10 +44,11 @@ class BoundaryScheduler:
 
 
 class Simulator:
-    def __init__(self, N, n, d, boundary_a, boundary_b, data_name='data'):
+    def __init__(self, N, n, d, boundary_a, boundary_b, potential_name: str, data_name='data'):
         self.N = N
         self.n, self.d = n, d
         self.A, self.B = boundary_a, boundary_b
+        self.potential_name = potential_name
         self.data_ptr = ker.createState(N, boundary_a, boundary_b)
         self.dataset = DataSet(f'{data_name}.h5', self.metadata)
         self.cnt = 0
@@ -55,14 +56,22 @@ class Simulator:
         self.boundary_scheduler = None
 
     @classmethod
-    def fromCircDensity(cls, N, n, d, fraction_as_disks, initial_boundary_aspect):
+    def fromCircDensity(cls, N, n, d, fraction_as_disks, initial_boundary_aspect, potential_name: str):
         B = np.sqrt(N / (fraction_as_disks * initial_boundary_aspect))
         A = B * initial_boundary_aspect
-        return cls(N, n, d, A, B)
+        return cls(N, n, d, A, B, potential_name)
 
     @property
     def density(self):
         return self.N / (np.pi * self.A * self.B)
+
+    def initPotential(self, workers: int):
+        potential_id = {
+            "Hertzian": 0,
+            "ScreenedCoulomb": 1,
+        }[self.potential_name]
+        ker.setEnums(potential_id)
+        return ker.setRod(self.n, self.d, workers)
 
     def get(self, record=True):
         s = State(
@@ -85,18 +94,11 @@ class Simulator:
     @property
     def metadata(self):
         return {
+            'potential': self.potential_name,
             'N': self.N,
             'n': self.n,
             'd': self.d,
         }
-
-    def initPotential(self, potential_name: str, n_threads: int):
-        potential_id = {
-            "Hertzian": 0,
-            "ScreenedCoulomb": 1,
-        }[potential_name]
-        ker.setEnums(potential_id)
-        return ker.setRod(self.n, self.d, n_threads)
 
     def maxGradients(self):
         return ker.getStateMaxGradients(self.data_ptr)

@@ -46,19 +46,19 @@ class DataViewer:
     def voronoi(self, state):
         self.dispStateTemplate(state, 'voronoi')
 
-    def density(self, density: float, Id: str) -> State:
+    def curve(self, state):
+        sr = StateRenderer(state)
+        handle = plt.subplots()
+        sr.plotEnergyCurve(handle)
+        plt.show()
+
+    def density(self, Id: str, density: float) -> State:
         density = float(density)
         rhos = np.array([data.rho for data in self.name(Id).data])
         dr = np.abs(rhos - density)
         idx = np.argmin(dr)
         print('Find at density:', rhos[idx])
         return self.name(Id).data[idx]
-
-    def curve(self, state):
-        sr = StateRenderer(state)
-        handle = plt.subplots()
-        sr.plotEnergyCurve(handle)
-        plt.show()
 
     def logE(self, Id: str):
         y = np.log(self.name(Id).curveTemplate('energy'))
@@ -96,41 +96,11 @@ def loadAll():
 
 
 def parse(cmd: str):
-    """
-    Format: command [arg] [-kwarg] [ | pipe command]
-    """
-
-    def subTokenize(cmd: str):
-        # Split the command by space
-        tokens = cmd.split()
-
-        # Initialize the variables
-        command = None
-        args = []
-        kwargs = {}
-
-        # Iterate over the tokens
-        for token in tokens:
-            if not command:
-                # The first token is the command
-                command = token.strip()
-            elif token.startswith('-'):
-                # If the token starts with '-', it's a kwarg
-                key, value = token[1:].split('=')
-                kwargs[key.strip()] = value.strip()
-            else:
-                # Otherwise, it's an arg
-                args.append(token.strip())
-
-        return command, args, kwargs
-
-    tokens = list(map(subTokenize, cmd.split('|')))
-    command, args, kwargs = tokens[0]
-    result = getattr(viewer, command)(*args, **kwargs)
-    for i in range(1, len(tokens)):
-        command, args, kwargs = tokens[i]
-        result = getattr(viewer, command)(result, *args, **kwargs)
-    return result
+    parser = ut.CommandQueue(viewer)
+    tokens = cmd.split()
+    for token in tokens:
+        parser.push(token)
+    return parser.result()
 
 
 if __name__ == '__main__':

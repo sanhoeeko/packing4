@@ -78,6 +78,8 @@ class Kernel:
 
     def getStateMaxGradOrEnergy(self, address):
         iterations = self.getNumOfIterations(address)
+        if iterations == 0:
+            return []
         array_pointer = ct.cast(self.dll.getStateMaxGradOrEnergy(address), ct.POINTER(ct.c_float * iterations))
         return np.ctypeslib.as_array(array_pointer.contents).copy()
 
@@ -170,7 +172,7 @@ class Kernel:
         return self.dll.equilibriumGD(address, max_iterations)
 
     def setStateData(self, address, configuration: np.ndarray):
-        return self.dll.setStateData(address, ut.ndarrayAddress(configuration))
+        return self.dll.setStateData(address, ut.ndarrayAddress(configuration.astype(np.float32)))
 
 
 ker = Kernel()

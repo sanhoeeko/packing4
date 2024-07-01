@@ -49,14 +49,14 @@ def packResults(archive_name: str):
 
 
 class TaskHandle(simu.Simulator):
-    def __init__(self, N, n, d, boundary_a, boundary_b):
+    def __init__(self, N, n, d, boundary_a, boundary_b, potential_name: str):
         """
         potential_name: Hertzian | ScreenedCoulomb
         """
         self.id = randomString()
         self.log_file = f'{self.id}.log.txt'
         open(self.log_file, 'w')  # create the file
-        super().__init__(N, n, d, boundary_a, boundary_b, self.id)
+        super().__init__(N, n, d, boundary_a, boundary_b, potential_name, self.id)
 
         q = 1 - 1e-2
         self.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
@@ -92,12 +92,18 @@ class TaskHandle(simu.Simulator):
 
 
 class ExperimentsFixedParticleShape:
-    def __init__(self, N, n, d, phi0, potential_name: str, Gammas: np.ndarray):
+    def __init__(self, N, n, d, phi0, potential_name: str, Gammas: np.ndarray, workers=1):
         self.siblings = len(Gammas)
+        self.cores = workers
+        self.potential_name = potential_name
+        self.n, self.d = n, d
         self.tasks = [TaskHandle
-                      .fromCircDensity(N, n, d, phi0, Gamma)
+                      .fromCircDensity(N, n, d, phi0, Gamma, potential_name)
                       for Gamma in Gammas]
-        self.tasks[0].initPotential(potential_name, self.siblings)
+        self.initPotential()
+
+    def initPotential(self):
+        self.tasks[0].initPotential(self.siblings * self.cores)
 
     def compress(self):
         return list(map(lambda x: x.compress(), self.tasks))
@@ -125,6 +131,7 @@ if __name__ == '__main__':
             1000, 2, 0.25, 0.3,
             "ScreenedCoulomb",
             np.linspace(0.5, 0.8, SIBLINGS, endpoint=True),
+            CORES,
         )
         tasks.ExperimentAsync()
 

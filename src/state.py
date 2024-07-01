@@ -3,7 +3,7 @@ from functools import lru_cache
 import numpy as np
 from scipy.spatial import Delaunay
 
-from .graph import Graph
+from src.graph import Graph
 
 
 class RenderSetup:
@@ -71,13 +71,16 @@ class State:
         )
         return obj
 
-    def makeSimulator(self, data_name):
+    def makeSimulator(self, dataset, data_name: str):
 
-        from simulator import Simulator
-        obj = Simulator(self.N, self.n, self.d, self.A, self.B, data_name)
+        from src.simulator import Simulator
+        obj = Simulator(self.N, self.n, self.d, self.A, self.B,
+                        potential_name=dataset.metadata['potential'], data_name=data_name)
+
+        obj.dataset = dataset
 
         # pretreatment of data: map (N, 3) to (N, 4)
-        data = np.hstack([self.xyt, np.zeros((self.N, 1))])
+        data = np.hstack([self.xyt, np.zeros((self.N, 1))]).reshape(-1)
         obj.loadDataToKernel(data)
         return obj
 

@@ -1,5 +1,7 @@
+import ctypes
 import datetime
 import hashlib
+import inspect as insp
 import json
 import os
 from concurrent.futures import ThreadPoolExecutor
@@ -78,7 +80,7 @@ def findFirst(lst, lambda_expr):
 def ndarrayAddress(a: np.ndarray):
     if not a.flags['C_CONTIGUOUS']:
         a = np.ascontiguousarray(a)
-    return a.ctypes.data
+    return a.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
 
 class MyThreadRecord:
@@ -103,3 +105,34 @@ class MyThreadRecord:
             for line in lines:
                 if not line.startswith(self.user_name):
                     f.write(line)
+
+
+class CommandQueue:
+    def __init__(self, method_class):
+        self.parameter_queue: list[str] = []
+        self.action_queue: list[str] = []
+        self.methods = method_class
+
+    def push(self, token: str):
+        if token.startswith('-'):
+            self.action_queue.append(token[1:])
+        else:
+            self.parameter_queue.append(token)
+        if len(self.action_queue) > 0 and len(self.parameter_queue) >= self.requires():
+            self.pop()
+
+    def top(self):
+        return getattr(self.methods, self.action_queue[0])
+
+    def requires(self):
+        return len(insp.signature(self.top()).parameters)
+
+    def pop(self):
+        req = self.requires()
+        params = self.parameter_queue[:req]
+        result = self.top()(*params)
+        self.action_queue = self.action_queue[1:]
+        self.parameter_queue = [result] + self.parameter_queue[req:]
+
+    def result(self):
+        return self.parameter_queue[0]

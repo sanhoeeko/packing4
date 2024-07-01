@@ -5,7 +5,17 @@ import numpy as np
 import pandas as pd
 
 import src.utils as ut
-from .state import State
+from src.state import State
+
+
+def isH5FileEmpty(file_path: str):
+    with h5py.File(file_path, 'r') as f:
+        return len(f.attrs) == 0
+
+
+def countH5Groups(file_path):
+    with h5py.File(file_path, 'r') as f:
+        return sum(1 for _ in f.values() if isinstance(_, h5py.Group))
 
 
 class DataSet:
@@ -15,7 +25,8 @@ class DataSet:
         self.data: list[State] = []
         # save metadata first, even if there is no data
         # if it is not in the reading mode
-        if len(metadata) > 0:
+        # and not in the appending mode
+        if isH5FileEmpty(filename) and len(metadata) > 0:
             with h5py.File(self.filename, 'w') as f:
                 for key, value in self.metadata.items():
                     f.attrs[key] = value
@@ -52,6 +63,7 @@ class DataSet:
             grp.create_dataset('data', data=state.xyt)
             for key, value in state.metadata.items():
                 grp.attrs[key] = value
+
 
     def saveAll(self):
         with h5py.File(self.filename, 'w') as f:
