@@ -19,6 +19,9 @@ class DataViewer:
     def __init__(self, datasets: list[DataSet]):
         self.abstract = pd.DataFrame()
         self.datasets = datasets
+        self.legend = None
+        self.sort('Gamma0')
+        self.initDensityCurveTemplates()
 
     def name(self, Id: str) -> DataSet:
         return ut.findFirst(self.datasets, lambda x: x.id == Id)
@@ -60,24 +63,35 @@ class DataViewer:
         print('Find at density:', rhos[idx])
         return self.name(Id).data[idx]
 
-    def logE(self, Id: str):
-        y = np.log(self.name(Id).curveTemplate('energy'))
-        rhos = self.name(Id).rhos
-        plt.plot(rhos, y)
-        plt.xlabel('number density')
-        plt.ylabel('log energy')
-        plt.show()
+    def curveVsDensityTemplate(self, prop: str):
+        def Y(Id: str):
+            y = self.name(Id).curveTemplate(prop)
+            rhos = self.name(Id).rhos
+            plt.plot(rhos, y)
+            plt.xlabel('number density')
+            plt.ylabel(prop)
+            plt.show()
 
-    def globalS(self, Id: str):
-        y = self.name(Id).curveTemplate('globalS')
-        rhos = self.name(Id).rhos
-        plt.plot(rhos, y)
+        return Y
+
+    def initDensityCurveTemplates(self):
+        for prop in ['energy', 'logE', 'globalS', 'globalSx']:
+            setattr(self, prop, self.curveVsDensityTemplate(prop))
+
+    def all(self, prop):
+        if self.legend is None:
+            raise ValueError('Cannot plot all until the data is sorted!')
+        for d in self.datasets:
+            y = d.curveTemplate(prop)
+            plt.plot(d.rhos, y)
         plt.xlabel('number density')
-        plt.ylabel('global S')
+        plt.ylabel(prop)
+        plt.legend(self.legend)
         plt.show()
 
     def sort(self, prop: str):
         self.datasets.sort(key=lambda x: getattr(x, prop))
+        self.legend = list(map(lambda x: str(getattr(x, prop)), self.datasets))
         self.print()
         return self
 
@@ -106,7 +120,6 @@ def parse(cmd: str):
 if __name__ == '__main__':
     target_dir = input('data folder name: ')
     viewer = loadAll()
-    viewer.print()
     while True:
         try:
             parse(input('>>>'))

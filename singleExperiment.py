@@ -38,7 +38,7 @@ if __name__ == '__main__':
     for i in range(1000):
         if state.density > 1.2: break
         state.compress()
-        dt = state.equilibriumGD(2e5)
+        dt = state.equilibriumGD(1e6)
         s = state.get()
         gs = state.maxGradients()
         its = len(gs)

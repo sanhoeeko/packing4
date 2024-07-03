@@ -1,3 +1,4 @@
+import os.path
 from functools import lru_cache
 
 import h5py
@@ -9,6 +10,8 @@ from src.state import State
 
 
 def isH5FileEmpty(file_path: str):
+    if not os.path.exists(file_path):
+        return True
     with h5py.File(file_path, 'r') as f:
         return len(f.attrs) == 0
 

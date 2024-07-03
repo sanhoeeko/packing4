@@ -110,6 +110,14 @@ class State:
         return abs(EiPhi), np.angle(EiPhi) / 2
         # return np.real(EiPhi), np.imag(EiPhi)
 
+    @property
+    def globalSx(self):
+        return np.mean(np.cos(2 * self.t))
+
+    @property
+    def logE(self):
+        return np.log(self.energy)
+
     # visualization
 
     def voronoi(self) -> RenderSetup:

@@ -58,8 +58,9 @@ class TaskHandle(simu.Simulator):
         open(self.log_file, 'w')  # create the file
         super().__init__(N, n, d, boundary_a, boundary_b, potential_name, self.id)
 
-        q = 1 - 1e-2
-        self.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
+        q = 1 - 4e-3
+        # self.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
+        self.setBoundaryScheduler(lambda n, x: x * q ** n, lambda n, x: x * q ** n)
 
     def getSiblingId(self):
         return ker.getSiblingId(self.data_ptr)
@@ -128,7 +129,7 @@ if __name__ == '__main__':
 
     with ut.MyThreadRecord('gengjie', CORES * SIBLINGS):
         tasks = ExperimentsFixedParticleShape(
-            1000, 2, 0.25, 0.3,
+            1000, 2, 0.25, 0.5,
             "ScreenedCoulomb",
             np.linspace(0.5, 0.8, SIBLINGS, endpoint=True),
             CORES,

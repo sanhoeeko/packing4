@@ -4,6 +4,7 @@ import matplotlib.patches as patches
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
+from . import art
 from .state import State, RenderSetup
 
 my_colors = ['floralWhite', 'lemonchiffon', 'wheat', 'lightsalmon', 'coral', 'crimson',
@@ -51,8 +52,8 @@ class StateRenderer(State):
 
         # For each point in the data, create a custom patch (ellipse) and add it to the list
         for xi, yi, ti in zip(self.x, self.y, np.degrees(self.t)):
-            ellipse = patches.Ellipse((xi, yi), width=self.a, height=self.b, angle=ti)
-            # ellipse = art.Capsule((xi, yi), width=self.a, height=self.b, angle=ti)
+            # ellipse = patches.Ellipse((xi, yi), width=self.a, height=self.b, angle=ti)
+            ellipse = art.Capsule((xi, yi), width=self.a, height=self.b, angle=ti)
             ellipses.append(ellipse)
 
         # Create a collection with the ellipses and add it to the axes

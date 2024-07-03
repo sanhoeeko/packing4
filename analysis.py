@@ -61,6 +61,6 @@ class InteractiveViewer:
 
 
 if __name__ == '__main__':
-    ds = DataSet.loadFrom('4yt2.h5')
-    iv = InteractiveViewer(ds, RenderPipe(StateRenderer.angle))
+    ds = DataSet.loadFrom('kgff.h5')
+    iv = InteractiveViewer(ds, RenderPipe(StateRenderer.voronoi))
     iv.show()
