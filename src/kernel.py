@@ -47,6 +47,8 @@ class Kernel:
         self.dll.getStateMaxGradOrEnergy.restype = ct.c_void_p
         self.dll.getStateResidualForce.argtypes = [ct.c_void_p]
         self.dll.getStateResidualForce.restype = ct.c_void_p
+        self.dll.getStateMaxResidualForce.argtypes = [ct.c_void_p]
+        self.dll.getStateMaxResidualForce.restype = ct.c_float
         self.dll.initStateAsDisks.argtypes = [ct.c_void_p]
         self.dll.singleStep.argtypes = [ct.c_void_p, ct.c_int, ct.c_float]
         self.dll.equilibriumGD.argtypes = [ct.c_void_p, ct.c_int]
@@ -93,6 +95,9 @@ class Kernel:
         array_pointer = ct.cast(self.dll.getStateResidualForce(address), ct.POINTER(ct.c_float * N * 4))
         raw_data = np.ctypeslib.as_array(array_pointer.contents).copy().reshape((N, 4))
         return raw_data[:, :3]
+
+    def getStateMaxResidualForce(self, address):
+        return self.dll.getStateMaxResidualForce(address)
 
     def initStateAsDisks(self, address):
         return self.dll.initStateAsDisks(address)

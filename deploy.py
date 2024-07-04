@@ -85,8 +85,10 @@ class TaskHandle(simu.Simulator):
                 self.compress()
                 dt = self.equilibriumGD(1e6)
                 s = self.get()
+                density = self.density
                 its = self.iterationSteps()
-                self.log(f'{i}:  G={s.max_residual_force}, E={s.energy}, nsteps={its}K, speed: {its / dt}K it/s')
+                g = self.maxResidualForce()
+                print(i, f'i={i}, rho={density}, G={g}, E={s.energy}, nsteps={its}K, speed: {its / dt} Kit/s')
         except Exception as e:
             print("An exception occurred!\n", e)
             print(f"In sibling{self.getSiblingId()}, ID: {self.id}")

@@ -51,13 +51,19 @@ class StateRenderer(State):
         ellipses = []
 
         # For each point in the data, create a custom patch (ellipse) and add it to the list
+        if setup.real_size:
+            aa, bb = np.sqrt(2) * self.a, np.sqrt(2) * self.b
+            alpha = 0.7
+        else:
+            aa, bb = self.a, self.b
+            alpha = 1.0
         for xi, yi, ti in zip(self.x, self.y, np.degrees(self.t)):
             # ellipse = patches.Ellipse((xi, yi), width=self.a, height=self.b, angle=ti)
-            ellipse = art.Capsule((xi, yi), width=self.a, height=self.b, angle=ti)
+            ellipse = art.Capsule((xi, yi), width=aa, height=bb, angle=ti)
             ellipses.append(ellipse)
 
         # Create a collection with the ellipses and add it to the axes
-        col = collections.PatchCollection(ellipses, array=setup.colors, norm=norm, cmap=cmap)
+        col = collections.PatchCollection(ellipses, array=setup.colors, norm=norm, cmap=cmap, alpha=alpha)
         ax.add_collection(col)
 
         # Set the limits of the plot

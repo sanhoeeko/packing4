@@ -187,7 +187,7 @@ def on_scroll(event):
         handler.rotateMinus()
 
 
-mode = 'ref'
+mode = 'test'
 ker.setEnums(1)
 
 if __name__ == '__main__':

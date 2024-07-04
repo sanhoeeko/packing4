@@ -25,9 +25,10 @@ def simulationExample():
         state.compress()
         dt = state.equilibriumGD(2e5)
         s = state.get()
-        gs = state.maxGradients()
-        its = len(gs)
-        print(i, f'G={gs[-1]}, E={s.energy}, nsteps={its}, speed: {its / dt} it/s')
+        density = state.density
+        its = state.iterationSteps()
+        g = state.maxResidualForce()
+        print(i, f'i={i}, rho={density}, G={g}, E={s.energy}, nsteps={its}K, speed: {its / dt} Kit/s')
 
 
 if __name__ == '__main__':
@@ -40,6 +41,7 @@ if __name__ == '__main__':
         state.compress()
         dt = state.equilibriumGD(1e6)
         s = state.get()
-        gs = state.maxGradients()
-        its = len(gs)
-        print(i, f'G={gs[-1]}, E={s.energy}, nsteps={its}, speed: {its / dt} it/s')
+        density = state.density
+        its = state.iterationSteps()
+        g = state.maxResidualForce()
+        print(i, f'i={i}, rho={density}, G={g}, E={s.energy}, nsteps={its}K, speed: {its / dt} Kit/s')

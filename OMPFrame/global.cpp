@@ -51,7 +51,19 @@ int getStateIterations(void* state_ptr)
 void* getStateResidualForce(void* state_ptr)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
-    return s->CalGradient<AsDisks>().data();
+    return s->CalGradient<Normal>().data();
+}
+
+float getStateMaxResidualForce(void* state_ptr)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    xyt* ptr = (xyt*)s->CalGradient<Normal>().data();
+    VectorXf g = VectorXf::Zero(s->N);
+#pragma omp parallel for num_threads(CORES)
+    for (int i = 0; i < s->N; i++) {
+        g[i] = ptr[i].amp2();
+    }
+    return sqrt(g.maxCoeff());
 }
 
 int getSiblingId(void* state_ptr)

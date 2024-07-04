@@ -1,6 +1,31 @@
+import math
+
+import matplotlib
 import matplotlib.patches as patches
+import numpy as np
+from matplotlib import pyplot as plt
 from matplotlib.path import Path
 from matplotlib.transforms import Affine2D
+
+
+def getColorForInterval(color_map_name: str, interval: tuple):
+    cmap = matplotlib.colormaps[color_map_name]
+    a = interval[0]
+    b = interval[1]
+    k = 1 / (b - a)
+
+    def callCmap(x: float):
+        y = k * (x - a)
+        return cmap(math.sqrt(y))
+
+    return callCmap
+
+
+def plotListOfArray(lst: list[np.ndarray]):
+    cmap = getColorForInterval('cool', (0, len(lst)))
+    for i in range(len(lst)):
+        plt.plot(lst[i], color=cmap(i), alpha=0.5)
+    plt.show()
 
 
 class Capsule(patches.Patch):

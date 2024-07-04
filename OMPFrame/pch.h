@@ -33,6 +33,7 @@ DLLEXPORT void* getStateData(void* state_ptr);
 DLLEXPORT int getStateIterations(void* state_ptr);
 DLLEXPORT void* getStateMaxGradOrEnergy(void* state_ptr);
 DLLEXPORT void* getStateResidualForce(void* state_ptr);
+DLLEXPORT float getStateMaxResidualForce(void* state_ptr);
 DLLEXPORT int getSiblingId(void* state_ptr);
 
 // load data

@@ -67,7 +67,6 @@ class DataSet:
             for key, value in state.metadata.items():
                 grp.attrs[key] = value
 
-
     def saveAll(self):
         with h5py.File(self.filename, 'w') as f:
             for i, state in enumerate(self.data):
@@ -87,12 +86,16 @@ class DataSet:
         return self.data[0].Gamma
 
     @property
-    def rhos(self):
-        return np.array([state.rho for state in self.data])
+    def descentCurves(self):
+        return [state.descent_curve for state in self.data]
 
     @lru_cache(maxsize=None)
     def curveTemplate(self, prop: str):
         return np.array([getattr(state, prop) for state in self.data])
+
+    @property
+    def rhos(self):
+        return self.curveTemplate('rho')
 
     def toDataFrame(self):
         """

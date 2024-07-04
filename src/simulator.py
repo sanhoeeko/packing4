@@ -80,7 +80,7 @@ class Simulator:
             {
                 'energy_curve': self.energyCurve(),
                 'energy': self.energy_cache,
-                'max_residual_force': np.max(self.residualForceAmp()),
+                'max_residual_force': self.maxResidualForce(),
             }
         )
         if record:
@@ -101,6 +101,9 @@ class Simulator:
         }
 
     def maxGradients(self):
+        """
+        Only for `initAsDisks`. Otherwise, gradient curve would not be saved.
+        """
         return ker.getStateMaxGradients(self.data_ptr)
 
     def energyCurve(self):
@@ -112,9 +115,8 @@ class Simulator:
     def residualForce(self):
         return ker.getStateResidualForce(self.data_ptr, self.N)
 
-    def residualForceAmp(self):
-        f2 = self.residualForce() ** 2
-        return np.sqrt(np.sum(f2, axis=1))
+    def maxResidualForce(self):
+        return ker.getStateMaxResidualForce(self.data_ptr)
 
     def setBoundary(self, boundary_a, boundary_b):
         self.A, self.B = boundary_a, boundary_b

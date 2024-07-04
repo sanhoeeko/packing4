@@ -7,9 +7,10 @@ from src.graph import Graph
 
 
 class RenderSetup:
-    def __init__(self, colors: np.ndarray, style: str):
+    def __init__(self, colors: np.ndarray, style: str, real_size=False):
         self.colors = colors
         self.style = style
+        self.real_size = real_size
 
 
 class State:
@@ -118,16 +119,21 @@ class State:
     def logE(self):
         return np.log(self.energy)
 
+    @property
+    def descent_curve(self):
+        return self.energy_curve
+
+    @property
+    def residualForce(self):
+        return self.max_residual_force
+
     # visualization
 
     def voronoi(self) -> RenderSetup:
-        """
-        for visualization
-        """
         return RenderSetup(self.voronoiDiagram().neighborNums(), 'voronoi')
 
     def angle(self) -> RenderSetup:
-        """
-        for visualization
-        """
         return RenderSetup(self.t, 'angle')
+
+    def real(self) -> RenderSetup:
+        return RenderSetup(self.t, 'angle', real_size=True)

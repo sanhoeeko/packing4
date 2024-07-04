@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+import src.art as art
 import src.utils as ut
 from analysis import InteractiveViewer, RenderPipe
 from src.myio import DataSet
@@ -26,6 +27,12 @@ class DataViewer:
     def name(self, Id: str) -> DataSet:
         return ut.findFirst(self.datasets, lambda x: x.id == Id)
 
+    def sort(self, prop: str):
+        self.datasets.sort(key=lambda x: getattr(x, prop))
+        self.legend = list(map(lambda x: str(getattr(x, prop)), self.datasets))
+        self.print()
+        return self
+
     def print(self):
         # re-generate the abstract
         self.abstract = pd.DataFrame()
@@ -33,8 +40,11 @@ class DataViewer:
             self.abstract = pd.concat([self.abstract, d.toDataFrame()], ignore_index=True)
         print(self.abstract)
 
+    def render(self, Id: str, render_mode: str):
+        InteractiveViewer(self.name(Id), RenderPipe(getattr(StateRenderer, render_mode))).show()
+
     def show(self, Id: str):
-        InteractiveViewer(self.name(Id), RenderPipe(StateRenderer.angle)).show()
+        self.render(Id, 'angle')
 
     def dispStateTemplate(self, state, method):
         sr = StateRenderer(state)
@@ -43,21 +53,15 @@ class DataViewer:
         sr.drawParticles(handle, getattr(state, method)())
         plt.show()
 
-    def disp(self, state):
+    def angle(self, state):
         self.dispStateTemplate(state, 'angle')
 
     def voronoi(self, state):
         self.dispStateTemplate(state, 'voronoi')
 
-    def curve(self, state):
-        sr = StateRenderer(state)
-        handle = plt.subplots()
-        sr.plotEnergyCurve(handle)
-        plt.show()
-
     def density(self, Id: str, density: float) -> State:
         density = float(density)
-        rhos = np.array([data.rho for data in self.name(Id).data])
+        rhos = self.name(Id).rhos
         dr = np.abs(rhos - density)
         idx = np.argmin(dr)
         print('Find at density:', rhos[idx])
@@ -75,7 +79,7 @@ class DataViewer:
         return Y
 
     def initDensityCurveTemplates(self):
-        for prop in ['energy', 'logE', 'globalS', 'globalSx']:
+        for prop in ['energy', 'logE', 'residualForce', 'globalS', 'globalSx']:
             setattr(self, prop, self.curveVsDensityTemplate(prop))
 
     def all(self, prop):
@@ -89,11 +93,18 @@ class DataViewer:
         plt.legend(self.legend)
         plt.show()
 
-    def sort(self, prop: str):
-        self.datasets.sort(key=lambda x: getattr(x, prop))
-        self.legend = list(map(lambda x: str(getattr(x, prop)), self.datasets))
-        self.print()
-        return self
+    def critical(self, Id: str, energy_threshold: str) -> State:
+        energy_threshold = float(energy_threshold)
+        es = self.name(Id).curveTemplate('energy')
+        idx = ut.findFirstOfLastSubsequence(es, lambda x: x > energy_threshold)
+        print('Find at density:', self.name(Id).rhos[idx])
+        return self.name(Id).data[idx]
+
+    def desCurve(self, Id: str):
+        curves = self.name(Id).descentCurves
+        curves = [cur / cur[0] - 1 if len(cur) > 1 else None for cur in curves]
+        curves = list(filter(lambda x: x is not None, curves))
+        art.plotListOfArray(curves)
 
 
 def collectResultFiles(path: str):
