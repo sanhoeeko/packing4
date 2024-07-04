@@ -1,6 +1,7 @@
 from math import sin, cos
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from .kernel_for_test import ker
 
@@ -24,4 +25,5 @@ if __name__ == '__main__':
     ker.setEnums(1)
     ker.setRod(n, d)
     mat = rotationTest()
-    
+    plt.plot(mat)
+    plt.show()

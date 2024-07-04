@@ -151,7 +151,7 @@ float precisePotential(float x, float y, float t)
 float* interpolateGradient(float x, float y, float t)
 {
     // note: this function is single threaded
-    static float arr[3];
+    static float arr[dof];
     if (abs(x) > 2 * global->rod->a || abs(y) > global->rod->a + global->rod->b) {
         arr[0] = 0; arr[1] = 0; arr[2] = 0;
     }
@@ -170,7 +170,7 @@ float* gradientReference(float x, float y, float t1, float t2)
         &Rod::StandardGradient<Hertzian>,
         &Rod::StandardGradient<ScreenedCoulomb>,
     };
-    static float arr[6];
+    static float arr[2 * dof];
     XytPair g = (global->rod->*funcs[global->pf])(x, y, t1, t2);
     memcpy(arr, &g, sizeof(XytPair));
     return arr;
@@ -179,7 +179,7 @@ float* gradientReference(float x, float y, float t1, float t2)
 float* gradientTest(float x, float y, float t1, float t2)
 {
     // note: this function is single threaded
-    static float arr[6];
+    static float arr[2 * dof];
     if (x * x + y * y > 4) {
         memset(arr, 0, sizeof(XytPair));
     }
@@ -194,11 +194,11 @@ float* gradientTest(float x, float y, float t1, float t2)
 float* getMirrorOf(float A, float B, float x, float y, float t)
 {
     // note: this function is single threaded
-    static float arr[3];
+    static float arr[dof];
     EllipseBoundary b = EllipseBoundary(A, B);
     Maybe<ParticlePair> pp = b.collide(0, { x,y,t });
     if (!pp.valid || pp.obj.id2 == -114514) {
-        memset(arr, 0, 3 * sizeof(float));
+        memset(arr, 0, dof * sizeof(float));
     }
     else {
         float
