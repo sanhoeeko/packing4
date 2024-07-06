@@ -61,7 +61,6 @@ class Simulator:
         self.dataset = DataSet(f'{data_name}.h5', self.metadata)
         self.cnt = 0
         self.energy_cache = None
-        self.boundary_scheduler = None
         return self
 
     @classmethod

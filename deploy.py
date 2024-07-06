@@ -53,10 +53,13 @@ class TaskHandle(simu.Simulator):
         """
         potential_name: Hertzian | ScreenedCoulomb
         """
-        self.id = randomString()
+        Id = randomString()
+        obj = simu.Simulator.createState(N, n, d, boundary_a, boundary_b, potential_name, Id)
+        self.__dict__ = obj.__dict__
+
+        self.id = Id
         self.log_file = f'{self.id}.log.txt'
         open(self.log_file, 'w')  # create the file
-        super().__init__(N, n, d, boundary_a, boundary_b, potential_name, self.id)
 
         q = 1 - 1e-3
         self.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
@@ -90,7 +93,7 @@ class TaskHandle(simu.Simulator):
                 print(i, f'i={i}, rho={density}, G={g}, E={s.energy}, nsteps={its}K, speed: {its / dt} Kit/s')
         except Exception as e:
             print("An exception occurred!\n", e)
-            print(f"In sibling{self.getSiblingId()}, ID: {self.id}")
+            print(f"In sibling {self.getSiblingId()}, ID: {self.id}")
 
 
 class ExperimentsFixedParticleShape:
