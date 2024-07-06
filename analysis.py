@@ -61,6 +61,6 @@ class InteractiveViewer:
 
 
 if __name__ == '__main__':
-    ds = DataSet.loadFrom('data/sc-n4/3mzt.h5')
-    iv = InteractiveViewer(ds, RenderPipe(StateRenderer.torque), True)
+    ds = DataSet.loadFrom('data.h5')
+    iv = InteractiveViewer(ds, RenderPipe(StateRenderer.angle), True)
     iv.show()

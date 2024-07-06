@@ -50,19 +50,18 @@ def packResults(archive_name: str):
 
 class TaskHandle(simu.Simulator):
     def __init__(self, N, n, d, boundary_a, boundary_b, potential_name: str):
-        """
-        potential_name: Hertzian | ScreenedCoulomb
-        """
-        Id = randomString()
-        obj = simu.Simulator.createState(N, n, d, boundary_a, boundary_b, potential_name, Id)
-        self.__dict__ = obj.__dict__
+        super().__init__(N, n, d, boundary_a, boundary_b, potential_name)
 
-        self.id = Id
-        self.log_file = f'{self.id}.log.txt'
-        open(self.log_file, 'w')  # create the file
+    @classmethod
+    def fromCircDensity(cls, N, n, d, fraction_as_disks, initial_boundary_aspect, potential_name: str, data_name: str):
+        obj = cls._fromCircDensity(N, n, d, fraction_as_disks, initial_boundary_aspect, potential_name, data_name)
+
+        obj.log_file = f'{obj.id}.log.txt'
+        open(obj.log_file, 'w')  # create a log file
 
         q = 1 - 1e-3
-        self.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
+        obj.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
+        return obj
 
     def getSiblingId(self):
         return ker.getSiblingId(self.data_ptr)
@@ -90,7 +89,7 @@ class TaskHandle(simu.Simulator):
                 density = self.density
                 its = self.iterationSteps()
                 g = self.maxResidualForce()
-                print(i, f'i={i}, rho={density}, G={g}, E={s.energy}, nsteps={its}K, speed: {its / dt} Kit/s')
+                self.log(f'i={i}, rho={density}, G={g}, E={s.energy}, nsteps={its}K, speed: {its / dt} Kit/s')
         except Exception as e:
             print("An exception occurred!\n", e)
             print(f"In sibling {self.getSiblingId()}, ID: {self.id}")
@@ -103,7 +102,7 @@ class ExperimentsFixedParticleShape:
         self.potential_name = potential_name
         self.n, self.d = n, d
         self.tasks = [TaskHandle
-                      .fromCircDensity(N, n, d, phi0, Gamma, potential_name)
+                      .fromCircDensity(N, n, d, phi0, Gamma, potential_name, randomString())
                       for Gamma in Gammas]
         self.initPotential()
 
@@ -129,7 +128,7 @@ def executeTask(task: TaskHandle):
 
 if __name__ == '__main__':
     CORES = 2
-    SIBLINGS = 1  # must be less equal than in defs.h
+    SIBLINGS = 2  # must be less equal than in defs.h
 
     with ut.MyThreadRecord('gengjie', CORES * SIBLINGS):
         tasks = ExperimentsFixedParticleShape(

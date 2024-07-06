@@ -58,16 +58,17 @@ class Simulator:
         """
         self = cls(N, n, d, boundary_a, boundary_b, potential_name)
         self.data_ptr = ker.createState(N, boundary_a, boundary_b)
+        self.id = data_name
         self.dataset = DataSet(f'{data_name}.h5', self.metadata)
         self.cnt = 0
         self.energy_cache = None
         return self
 
     @classmethod
-    def fromCircDensity(cls, N, n, d, fraction_as_disks, initial_boundary_aspect, potential_name: str):
+    def _fromCircDensity(cls, N, n, d, fraction_as_disks, initial_boundary_aspect, potential_name: str, data_name: str):
         B = np.sqrt(N / (fraction_as_disks * initial_boundary_aspect))
         A = B * initial_boundary_aspect
-        return cls.createState(N, n, d, A, B, potential_name)
+        return cls.createState(N, n, d, A, B, potential_name, data_name)
 
     @classmethod
     def fromDataPtr(cls, N, n, d, boundary_a, boundary_b, potential_name: str, data_ptr: int):
