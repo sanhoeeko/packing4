@@ -40,17 +40,18 @@ class DataViewer:
             self.abstract = pd.concat([self.abstract, d.toDataFrame()], ignore_index=True)
         print(self.abstract)
 
-    def render(self, Id: str, render_mode: str):
-        InteractiveViewer(self.name(Id), RenderPipe(getattr(StateRenderer, render_mode))).show()
+    def render(self, Id: str, render_mode: str, *args):
+        real = True if len(args) > 0 and args[0] == 'real' else False
+        InteractiveViewer(self.name(Id), RenderPipe(getattr(StateRenderer, render_mode)), real).show()
 
     def show(self, Id: str):
         self.render(Id, 'angle')
 
-    def dispStateTemplate(self, state, method):
+    def dispStateTemplate(self, state, method, real=False):
         sr = StateRenderer(state)
         handle = plt.subplots()
         sr.drawBoundary(handle)
-        sr.drawParticles(handle, getattr(state, method)())
+        sr.drawParticles(handle, getattr(state, method)(real))
         plt.show()
 
     def angle(self, state):
@@ -106,6 +107,13 @@ class DataViewer:
         curves = list(filter(lambda x: x is not None, curves))
         art.plotListOfArray(curves)
 
+    def distanceCurve(self, Id: str):
+        d = self.name(Id)
+        plt.plot(d.rhos[1:], d.distanceCurve)
+        plt.xlabel('number density')
+        plt.ylabel('distance between two states')
+        plt.show()
+
 
 def collectResultFiles(path: str):
     files = []
@@ -116,7 +124,7 @@ def collectResultFiles(path: str):
 
 def loadAll():
     data_files = collectResultFiles(target_dir)
-    ds = ut.Map('Debug')(DataSet.loadFrom, data_files)
+    ds = ut.Map('Release')(DataSet.loadFrom, data_files)
     return DataViewer(ds)
 
 

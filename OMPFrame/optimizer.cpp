@@ -26,6 +26,7 @@ void prune(VectorXf& g, float max_element_abs) {
 
 float Modify(VectorXf& g)
 {
+    /*
     // calculate the mean value and the standard deviation
     VectorXf absg = g.cwiseAbs();
     float 
@@ -35,6 +36,7 @@ float Modify(VectorXf& g)
 
     // prune out bad cases
     prune(g, max_element_abs);
+    */
 
     // calculate the max amplitude before normalization
     float res = maxGradientAbs(g);

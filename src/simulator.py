@@ -44,22 +44,37 @@ class BoundaryScheduler:
 
 
 class Simulator:
-    def __init__(self, N, n, d, boundary_a, boundary_b, potential_name: str, data_name='data'):
+    def __init__(self, N, n, d, boundary_a, boundary_b, potential_name: str):
         self.N = N
         self.n, self.d = n, d
         self.A, self.B = boundary_a, boundary_b
         self.potential_name = potential_name
+        self.data_ptr = None
+
+    @classmethod
+    def createState(cls, N, n, d, boundary_a, boundary_b, potential_name: str, data_name='data'):
+        """
+        This method manages side effects
+        """
+        self = cls(N, n, d, boundary_a, boundary_b, potential_name)
         self.data_ptr = ker.createState(N, boundary_a, boundary_b)
         self.dataset = DataSet(f'{data_name}.h5', self.metadata)
         self.cnt = 0
         self.energy_cache = None
         self.boundary_scheduler = None
+        return self
 
     @classmethod
     def fromCircDensity(cls, N, n, d, fraction_as_disks, initial_boundary_aspect, potential_name: str):
         B = np.sqrt(N / (fraction_as_disks * initial_boundary_aspect))
         A = B * initial_boundary_aspect
-        return cls(N, n, d, A, B, potential_name)
+        return cls.createState(N, n, d, A, B, potential_name)
+
+    @classmethod
+    def fromDataPtr(cls, N, n, d, boundary_a, boundary_b, potential_name: str, data_ptr: int):
+        self = cls(N, n, d, boundary_a, boundary_b, potential_name)
+        self.data_ptr = data_ptr
+        return self
 
     @property
     def density(self):
@@ -150,3 +165,20 @@ class Simulator:
         end_t = time.perf_counter()
         elapse_t = end_t - start_t
         return elapse_t
+
+
+class CommonSimulator:
+    def __init__(self):
+        self.simulator = None
+
+    def load(self, s: State):
+        if self.simulator is None:
+            self.simulator = s.makeSimulator(None, s.potential, 'data')
+            self.simulator.initPotential(4)
+        else:
+            self.simulator = Simulator.fromDataPtr(
+                s.N, s.n, s.d, s.A, s.B, s.potential, self.simulator.data_ptr
+            )
+
+
+common_simulator = CommonSimulator()

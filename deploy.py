@@ -58,9 +58,8 @@ class TaskHandle(simu.Simulator):
         open(self.log_file, 'w')  # create the file
         super().__init__(N, n, d, boundary_a, boundary_b, potential_name, self.id)
 
-        q = 1 - 4e-3
-        # self.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
-        self.setBoundaryScheduler(lambda n, x: x * q ** n, lambda n, x: x * q ** n)
+        q = 1 - 1e-3
+        self.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
 
     def getSiblingId(self):
         return ker.getSiblingId(self.data_ptr)

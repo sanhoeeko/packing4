@@ -27,8 +27,10 @@ struct Maybe
         obj = ref;
     }
     void clear() {
-        valid = false;
-        obj->clear();
+        if (valid) {
+            valid = false;
+            obj->clear();
+        }
     }
 };
 

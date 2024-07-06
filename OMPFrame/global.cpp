@@ -50,8 +50,10 @@ int getStateIterations(void* state_ptr)
 
 void* getStateResidualForce(void* state_ptr)
 {
+    static VectorXf res;
     State* s = reinterpret_cast<State*>(state_ptr);
-    return s->CalGradient<Normal>().data();
+    res = s->CalGradient<Normal>();
+    return res.data();
 }
 
 float getStateMaxResidualForce(void* state_ptr)

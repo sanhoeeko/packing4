@@ -12,8 +12,9 @@ my_colors = ['floralWhite', 'lemonchiffon', 'wheat', 'lightsalmon', 'coral', 'cr
 
 
 class StateRenderer(State):
-    def __init__(self, state):
+    def __init__(self, state, real_size=False):
         self.__dict__ = state.__dict__
+        self.real_size = real_size
 
     def plotEnergyCurve(self, handle):
         fig, ax = handle
@@ -78,3 +79,14 @@ class StateRenderer(State):
         # Add a color bar
         fig.colorbar(col, cax=cax)
         return handle
+
+    # Render options
+
+    def voronoi(self) -> RenderSetup:
+        return RenderSetup(self.voronoiDiagram().neighborNums(), 'voronoi', self.real_size)
+
+    def angle(self) -> RenderSetup:
+        return RenderSetup(self.t, 'angle', self.real_size)
+
+    def torque(self) -> RenderSetup:
+        return RenderSetup(self.moment, 'normal', self.real_size)

@@ -6,7 +6,7 @@ from src.myio import DataSet
 def rebootSimulation(filename: str):
     dataset = DataSet.loadFrom(filename)
     state_data = dataset.data[-1]
-    simulator = state_data.makeSimulator(dataset, ut.fileNameToId(filename))
+    simulator = state_data.makeSimulator(dataset, dataset.metadata['potential'], ut.fileNameToId(filename))
     simulator.initPotential(4)
     return simulator
 

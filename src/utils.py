@@ -14,16 +14,23 @@ def applyPipeline(obj, funcs):
     return reduce(lambda x, f: f(x), funcs, obj)
 
 
-def reverseClassMethod(func):
+def reverseClassMethod(func, *args):
     """
     Assume that the class method is curry, i.e, only has a parameter `self`.
     If not, please curry it first.
     """
 
     def inner(obj):
-        return func(obj)
+        return func(obj, *args)
 
     return inner
+
+
+def map2(func, lst):
+    """
+    like np.diff
+    """
+    return [func(lst[i], lst[i + 1]) for i in range(len(lst) - 1)]
 
 
 def getFileHash(path):

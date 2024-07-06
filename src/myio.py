@@ -97,6 +97,10 @@ class DataSet:
     def rhos(self):
         return self.curveTemplate('rho')
 
+    @property
+    def distanceCurve(self):
+        return ut.map2(State.distance, self.data)
+
     def toDataFrame(self):
         """
         Extract abstract information and construct a line of the dataframe

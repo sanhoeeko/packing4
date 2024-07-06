@@ -1,23 +1,23 @@
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 
-import src.utils as fp
+import src.utils as ut
 from src.myio import DataSet
 from src.render import StateRenderer
 
 
 class RenderPipe:
     def __init__(self, *funcs):
-        self.sequence = list(map(fp.reverseClassMethod, funcs))
+        self.sequence = list(map(ut.reverseClassMethod, funcs))
 
     def eval(self, obj):
-        return fp.applyPipeline(obj, self.sequence)
+        return ut.applyPipeline(obj, self.sequence)
 
 
 class InteractiveViewer:
-    def __init__(self, dataset: DataSet, pipe: RenderPipe):
+    def __init__(self, dataset: DataSet, pipe: RenderPipe, *args):
         self.metadata = dataset.metadata
-        self.data = list(map(lambda x: StateRenderer(x), dataset.data))
+        self.data = list(map(lambda x: StateRenderer(x, *args), dataset.data))
         self.index = 0
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111)
@@ -61,6 +61,6 @@ class InteractiveViewer:
 
 
 if __name__ == '__main__':
-    ds = DataSet.loadFrom('data.h5')
-    iv = InteractiveViewer(ds, RenderPipe(StateRenderer.angle))
+    ds = DataSet.loadFrom('data/sc-n4/3mzt.h5')
+    iv = InteractiveViewer(ds, RenderPipe(StateRenderer.torque), True)
     iv.show()

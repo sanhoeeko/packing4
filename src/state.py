@@ -61,23 +61,22 @@ class State:
     def load(cls, configuration, up_meta: dict, metadata: dict):
         obj = cls(
             metadata['id'],
-            up_meta['N'], up_meta['n'], up_meta['d'],
-            metadata['A'], metadata['B'],
+            int(up_meta['N']), int(up_meta['n']), float(up_meta['d']),
+            float(metadata['A']), float(metadata['B']),
             configuration,
             others={
                 'energy_curve': metadata['energy_curve'],
                 'energy': metadata['energy'],
                 'max_residual_force': metadata['max_residual_force'],
+                'potential': up_meta['potential'],
             }
         )
         return obj
 
-    def makeSimulator(self, dataset, data_name: str):
+    def makeSimulator(self, dataset, potential_name, data_name: str):
 
         from src.simulator import Simulator
-        obj = Simulator(self.N, self.n, self.d, self.A, self.B,
-                        potential_name=dataset.metadata['potential'], data_name=data_name)
-
+        obj = Simulator.createState(self.N, self.n, self.d, self.A, self.B, potential_name, data_name)
         obj.dataset = dataset
 
         # pretreatment of data: map (N, 3) to (N, 4)
@@ -106,12 +105,6 @@ class State:
     # analysis
 
     @property
-    def globalS(self):
-        EiPhi = np.mean(np.exp(2j * self.t))
-        return abs(EiPhi), np.angle(EiPhi) / 2
-        # return np.real(EiPhi), np.imag(EiPhi)
-
-    @property
     def globalSx(self):
         return np.mean(np.cos(2 * self.t))
 
@@ -124,16 +117,21 @@ class State:
         return self.energy_curve
 
     @property
-    def residualForce(self):
-        return self.max_residual_force
+    def maxResidualForce(self):
+        # return self.max_residual_force  # bug in recording this
+        return np.sqrt(np.max(np.sum(self.gradient ** 2, axis=1)))
 
-    # visualization
+    @property
+    def gradient(self):
+        from src.simulator import common_simulator as cs
+        cs.load(self)
+        return cs.simulator.residualForce()
 
-    def voronoi(self) -> RenderSetup:
-        return RenderSetup(self.voronoiDiagram().neighborNums(), 'voronoi')
+    @property
+    def moment(self):
+        return self.gradient[:, 2]
 
-    def angle(self) -> RenderSetup:
-        return RenderSetup(self.t, 'angle')
-
-    def real(self) -> RenderSetup:
-        return RenderSetup(self.t, 'angle', real_size=True)
+    @staticmethod
+    def distance(s1: 'State', s2: 'State'):
+        dq = s2.xyt - s1.xyt
+        return np.sqrt(np.mean(dq ** 2))

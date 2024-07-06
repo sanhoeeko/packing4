@@ -82,11 +82,11 @@ def gradientTest(m):
     print(f"median ratio: {r}")
     g_abs = np.sqrt(np.sum(g_ref ** 2, axis=1))
     print(f"mean amplitude of gradients: {np.mean(g_abs)}")
-    dif = np.sqrt(np.sum((g/r - g_ref) ** 2, axis=1))
+    dif = np.sqrt(np.sum((g / r - g_ref) ** 2, axis=1))
     return TestResult((x, y, t1, t2), dif)
 
 
-n = 5
+n = 2
 d = 0.25
 ker.setEnums(1)
 ker.setRod(n, d)
@@ -94,9 +94,8 @@ a, b = 1, 1 / (1 + (n - 1) * d / 2)
 
 m = 100000
 
-
-res = gradientTest(m)
+res = potentialTest(m)
 print(res)
 # res.show(lambda x, y: x - y, 2, 3)
-res.show(lambda x, y: np.sqrt(x**2 + y**2), 0, 1)
+res.show(lambda x, y: np.sqrt(x ** 2 + y ** 2), 0, 1)
 plt.show()

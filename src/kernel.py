@@ -7,7 +7,7 @@ import numpy as np
 
 import src.utils as ut
 
-kernel_mode = "Release"
+kernel_mode = 'Release'
 
 
 def getLibraryPath():
