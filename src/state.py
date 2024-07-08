@@ -74,14 +74,10 @@ class State:
         return obj
 
     def makeSimulator(self, dataset, potential_name, data_name: str):
-
         from src.simulator import Simulator
         obj = Simulator.createState(self.N, self.n, self.d, self.A, self.B, potential_name, data_name)
         obj.dataset = dataset
-
-        # pretreatment of data: map (N, 3) to (N, 4)
-        data = np.hstack([self.xyt, np.zeros((self.N, 1))]).reshape(-1)
-        obj.loadDataToKernel(data)
+        obj.loadDataToKernel(self.xyt)
         return obj
 
     @lru_cache(maxsize=None)
@@ -118,7 +114,10 @@ class State:
 
     @property
     def maxResidualForce(self):
-        # return self.max_residual_force  # bug in recording this
+        # bug?
+        # from src.simulator import common_simulator as cs
+        # cs.load(self)
+        # return cs.simulator.maxResidualForce()
         return np.sqrt(np.max(np.sum(self.gradient ** 2, axis=1)))
 
     @property
@@ -130,6 +129,10 @@ class State:
     @property
     def moment(self):
         return self.gradient[:, 2]
+
+    @property
+    def gradientAmp(self):
+        return np.sqrt(np.sum(self.gradient ** 2, axis=1))
 
     @staticmethod
     def distance(s1: 'State', s2: 'State'):

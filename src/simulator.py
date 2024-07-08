@@ -103,8 +103,15 @@ class Simulator:
             self.cnt += 1
         return s
 
-    def loadDataToKernel(self, data: np.ndarray):
+    def _loadDataToKernel(self, data: np.ndarray):
         return ker.setStateData(self.data_ptr, data)
+
+    def loadDataToKernel(self, data: np.ndarray):
+        """
+        Assume that data is of the shape (N, 3)
+        """
+        data_n4 = np.hstack([data, np.zeros((self.N, 1))]).reshape(-1)
+        return self._loadDataToKernel(data_n4)
 
     @property
     def metadata(self):
@@ -179,6 +186,7 @@ class CommonSimulator:
             self.simulator = Simulator.fromDataPtr(
                 s.N, s.n, s.d, s.A, s.B, s.potential, self.simulator.data_ptr
             )
+            self.simulator.loadDataToKernel(s.xyt)
 
 
 common_simulator = CommonSimulator()

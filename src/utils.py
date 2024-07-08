@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import reduce
 
 import numpy as np
+import pandas as pd
 
 
 def applyPipeline(obj, funcs):
@@ -101,6 +102,14 @@ def ndarrayAddress(a: np.ndarray):
     return a.ctypes.data_as(ctypes.POINTER(ctypes.c_float))
 
 
+def sortListByDataFrame(df, lst):
+    # list -> DataFrame -> sort -> list
+    lst_df = pd.DataFrame([(obj.id, obj) for obj in lst], columns=['id', 'object'])
+    merged_df = pd.merge(df, lst_df, on='id',
+                         how='inner')  # inner: collect if it appears both at left and right DataFrame
+    return merged_df['object'].tolist()
+
+
 class MyThreadRecord:
     def __init__(self, user_name: str, num_threads):
         self.user_name = user_name
@@ -127,10 +136,10 @@ class MyThreadRecord:
 
 
 class CommandQueue:
-    def __init__(self, method_class):
+    def __init__(self, current_obj):
         self.parameter_queue: list[str] = []
         self.action_queue: list[str] = []
-        self.methods = method_class
+        self.current_obj = current_obj
 
     def push(self, token: str):
         if token.startswith('-'):
@@ -141,7 +150,7 @@ class CommandQueue:
             self.pop()
 
     def top(self):
-        return getattr(self.methods, self.action_queue[0])
+        return getattr(self.current_obj, self.action_queue[0])
 
     def requires(self):
         return len(insp.signature(self.top()).parameters)
@@ -149,9 +158,9 @@ class CommandQueue:
     def pop(self):
         req = self.requires()
         params = self.parameter_queue[:req]
-        result = self.top()(*params)
+        self.current_obj = self.top()(*params)
         self.action_queue = self.action_queue[1:]
-        self.parameter_queue = [result] + self.parameter_queue[req:]
+        self.parameter_queue = self.parameter_queue[req:]
 
     def result(self):
-        return self.parameter_queue[0]
+        return self.current_obj

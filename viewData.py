@@ -1,5 +1,6 @@
 import glob
 import os
+from functools import lru_cache
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,27 +19,55 @@ viewer = None
 
 class DataViewer:
     def __init__(self, datasets: list[DataSet]):
-        self.abstract = pd.DataFrame()
         self.datasets = datasets
-        self.legend = None
-        self.sort('Gamma0')
         self.initDensityCurveTemplates()
+        self.sort()
 
     def name(self, Id: str) -> DataSet:
         return ut.findFirst(self.datasets, lambda x: x.id == Id)
 
-    def sort(self, prop: str):
-        self.datasets.sort(key=lambda x: getattr(x, prop))
-        self.legend = list(map(lambda x: str(getattr(x, prop)), self.datasets))
-        self.print()
-        return self
+    @property
+    def _abstract(self):
+        df = pd.DataFrame()
+        for d in self.datasets:
+            df = pd.concat([df, d.toDataFrame()], ignore_index=True)
+        return df
+
+    @property
+    def abstract(self):
+        return self.sortedAbstract(('potential', 'n', 'Gamma0'))
+
+    @lru_cache(maxsize=None)
+    def sortedAbstract(self, props: tuple):
+        return self._abstract.sort_values(by=list(props)).reset_index(drop=True)
+
+    def sort(self):
+        self.datasets = ut.sortListByDataFrame(self.abstract, self.datasets)
 
     def print(self):
-        # re-generate the abstract
-        self.abstract = pd.DataFrame()
-        for d in self.datasets:
-            self.abstract = pd.concat([self.abstract, d.toDataFrame()], ignore_index=True)
         print(self.abstract)
+        return self
+
+    def filter(self, key: str, value: str) -> 'DataViewer':
+        ds = list(filter(
+            lambda dataset: str(getattr(dataset, key)) == value,
+            self.datasets))
+        if len(ds) == 0:
+            print('No data that matches the case!')
+        return DataViewer(ds)
+
+    def take(self, *kvs: str):
+        x = self
+        for kv in kvs:
+            x = x.filter(*kv.split('='))
+        return x.print()
+
+    def potential(self, potential_nickname: str):
+        dic = {
+            'hz': 'Hertzian',
+            'sc': 'ScreenedCoulomb',
+        }
+        return self.filter('potential', dic[potential_nickname]).print()
 
     def render(self, Id: str, render_mode: str, *args):
         real = True if len(args) > 0 and args[0] == 'real' else False
@@ -46,19 +75,6 @@ class DataViewer:
 
     def show(self, Id: str):
         self.render(Id, 'angle')
-
-    def dispStateTemplate(self, state, method, real=False):
-        sr = StateRenderer(state)
-        handle = plt.subplots()
-        sr.drawBoundary(handle)
-        sr.drawParticles(handle, getattr(state, method)(real))
-        plt.show()
-
-    def angle(self, state):
-        self.dispStateTemplate(state, 'angle')
-
-    def voronoi(self, state):
-        self.dispStateTemplate(state, 'voronoi')
 
     def density(self, Id: str, density: float) -> State:
         density = float(density)
@@ -84,14 +100,14 @@ class DataViewer:
             setattr(self, prop, self.curveVsDensityTemplate(prop))
 
     def all(self, prop):
-        if self.legend is None:
-            raise ValueError('Cannot plot all until the data is sorted!')
+        # if self.legend is None:
+        #     raise ValueError('Cannot plot all until the data is sorted!')
         for d in self.datasets:
             y = d.curveTemplate(prop)
             plt.plot(d.rhos, y)
         plt.xlabel('number density')
         plt.ylabel(prop)
-        plt.legend(self.legend)
+        # plt.legend(self.legend)
         plt.show()
 
     def critical(self, Id: str, energy_threshold: str) -> State:
@@ -124,7 +140,7 @@ def collectResultFiles(path: str):
 
 def loadAll():
     data_files = collectResultFiles(target_dir)
-    ds = ut.Map('Release')(DataSet.loadFrom, data_files)
+    ds = ut.Map('Debug')(DataSet.loadFrom, data_files)
     return DataViewer(ds)
 
 
@@ -138,7 +154,7 @@ def parse(cmd: str):
 
 if __name__ == '__main__':
     target_dir = input('data folder name: ')
-    viewer = loadAll()
+    viewer = loadAll().print()
     while True:
         try:
             parse(input('>>>'))

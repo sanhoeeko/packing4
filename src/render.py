@@ -1,6 +1,7 @@
 import matplotlib.collections as collections
 import matplotlib.colors as mcolors
 import matplotlib.patches as patches
+import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -90,3 +91,19 @@ class StateRenderer(State):
 
     def torque(self) -> RenderSetup:
         return RenderSetup(self.moment, 'normal', self.real_size)
+
+    def gradamp(self) -> RenderSetup:
+        return RenderSetup(self.gradientAmp, 'normal', self.real_size)
+
+    # integral plot
+
+    def dispStateTemplate(self, method: str, real=False):
+        sr = StateRenderer(self)
+        handle = plt.subplots()
+        sr.drawBoundary(handle)
+        sr.drawParticles(handle, getattr(self, method)(real))
+        plt.show()
+
+    def show(self, method: str, *args):
+        real = True if len(args) > 0 and args[0] == 'real' else False
+        self.dispStateTemplate(method, real)

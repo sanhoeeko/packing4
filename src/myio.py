@@ -24,19 +24,53 @@ def countH5Groups(file_path):
 class DataSet:
     def __init__(self, filename: str, metadata: dict):
         self.filename = filename
-        self.metadata: dict = metadata
-        self.data: list[State] = []
+        self.metadata: dict = metadata  # See State.metadata
+        self._data: list[State] = []
         # save metadata first, even if there is no data
-        # if it is not in the reading mode
-        # and not in the appending mode
+        # if it is not in the reading mode and not in the appending mode
         if isH5FileEmpty(filename) and len(metadata) > 0:
             with h5py.File(self.filename, 'w') as f:
                 for key, value in self.metadata.items():
                     f.attrs[key] = value
 
+    def __getattr__(self, name):
+        """
+        If getattr requires a non-exist attribute of this, try to find it in the metadata
+        """
+        if name in self.metadata:
+            return self.metadata[name]
+        else:
+            raise AttributeError
+
     @property
     def id(self):
         return ut.fileNameToId(self.filename)
+
+    @property
+    def data(self):
+        if not self._data:
+            with h5py.File(self.filename, 'r') as f:
+                for key in f.keys():
+                    self._data.append(self.load_key(f, key))
+            self._data.sort(key=lambda x: x.id)
+        return self._data
+
+    @property
+    def data_head(self):
+        return self.load_data_by_id(0)
+
+    def load_data_by_id(self, Id) -> State:
+        with h5py.File(self.filename, 'r') as f:
+            for key in f.keys():
+                if f[key].attrs['id'] == Id:
+                    return self.load_key(f, key)
+
+    def load_key(self, h5_file_handle, key) -> State:
+        configuration = h5_file_handle[key]['data'][...]  # [...] converts a h5 object to a numpy array
+        dic = {}
+        for k in h5_file_handle[key].attrs.keys():
+            dic[k] = h5_file_handle[key].attrs[k]
+        return State.load(configuration, self.metadata, dic)
 
     @classmethod
     def loadFrom(cls, filename):
@@ -44,23 +78,16 @@ class DataSet:
         with h5py.File(filename, 'r') as f:
             for key in f.attrs.keys():
                 obj.metadata[key] = f.attrs[key]
-            for key in f.keys():
-                configuration = f[key]['data'][...]  # [...] converts a h5 object to a numpy array
-                dic = {}
-                for k in f[key].attrs.keys():
-                    dic[k] = f[key].attrs[k]
-                obj.data.append(State.load(configuration, obj.metadata, dic))
-        obj.data.sort(key=lambda x: x.id)
         return obj
 
     # Simulation Methods
 
     def append(self, state: State):
-        self.data.append(state)
+        self._data.append(state)
         self.increase(state)
 
     def increase(self, state: State):
-        n_existing_groups = len(self.data)
+        n_existing_groups = len(self._data)
         with h5py.File(self.filename, 'a') as f:
             grp = f.create_group(str(n_existing_groups))
             grp.create_dataset('data', data=state.xyt)
@@ -69,7 +96,7 @@ class DataSet:
 
     def saveAll(self):
         with h5py.File(self.filename, 'w') as f:
-            for i, state in enumerate(self.data):
+            for i, state in enumerate(self._data):
                 grp = f.create_group(str(i))
                 grp.create_dataset('data', data=state.xyt)
                 for key, value in state.metadata.items():
@@ -79,11 +106,11 @@ class DataSet:
 
     @property
     def rho0(self):
-        return self.data[0].rho
+        return self.data_head.rho
 
     @property
     def Gamma0(self):
-        return self.data[0].Gamma
+        return self.data_head.Gamma
 
     @property
     def descentCurves(self):
