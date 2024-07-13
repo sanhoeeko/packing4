@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+# in PyCharm: File -> Settings -> Project -> Project Structure -> Add content root
+# delete the old root and add "/code" as a root
+
 import src.art as art
 import src.utils as ut
 from analysis import InteractiveViewer, RenderPipe
@@ -56,9 +59,9 @@ class DataViewer:
             print('No data that matches the case!')
         return DataViewer(ds)
 
-    def take(self, *kvs: str):
+    def take(self, kvs: str):
         x = self
-        for kv in kvs:
+        for kv in kvs.split(','):
             x = x.filter(*kv.split('='))
         return x.print()
 
@@ -100,14 +103,12 @@ class DataViewer:
             setattr(self, prop, self.curveVsDensityTemplate(prop))
 
     def all(self, prop):
-        # if self.legend is None:
-        #     raise ValueError('Cannot plot all until the data is sorted!')
         for d in self.datasets:
             y = d.curveTemplate(prop)
             plt.plot(d.rhos, y)
         plt.xlabel('number density')
         plt.ylabel(prop)
-        # plt.legend(self.legend)
+        plt.legend(list(map(lambda x: x.id, self.datasets)))
         plt.show()
 
     def critical(self, Id: str, energy_threshold: str) -> State:

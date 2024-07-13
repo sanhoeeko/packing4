@@ -1,5 +1,4 @@
 import ctypes
-import datetime
 import hashlib
 import inspect as insp
 import json
@@ -108,31 +107,6 @@ def sortListByDataFrame(df, lst):
     merged_df = pd.merge(df, lst_df, on='id',
                          how='inner')  # inner: collect if it appears both at left and right DataFrame
     return merged_df['object'].tolist()
-
-
-class MyThreadRecord:
-    def __init__(self, user_name: str, num_threads):
-        self.user_name = user_name
-        self.num_threads = num_threads
-        self.file_path = "/home/share/thread.txt"
-        self.pid_str = f"[{os.getpid()}]"
-
-    def __enter__(self):
-        if not os.path.exists(self.file_path):
-            return
-        with open(self.file_path, 'a') as f:
-            time_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            f.write(f"{self.pid_str} {self.user_name} {self.num_threads} threads, {time_str}\n")
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if not os.path.exists(self.file_path):
-            return
-        with open(self.file_path, 'r') as f:
-            lines = f.readlines()
-        with open(self.file_path, 'w') as f:
-            for line in lines:
-                if not line.startswith(self.pid_str):  # delete the line that starts with the current PID
-                    f.write(line)
 
 
 class CommandQueue:

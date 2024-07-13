@@ -3,6 +3,7 @@ import os
 import random
 import string
 import threading
+from multiprocessing import Process
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +13,7 @@ import src.simulator as simu
 import src.utils as ut
 from src.kernel import ker
 from src.render import StateRenderer
+from src.threadrecord import MyThreadRecord
 
 
 class RandomStringGenerator:
@@ -126,17 +128,37 @@ def executeTask(task: TaskHandle):
     return task.execute()
 
 
-if __name__ == '__main__':
-    CORES = 2
+def main():
+    """
+    All process of a simulation, except exception catching and restarting
+    """
+    CORES = 2     # is FIXED, because it is determined in the DLL (in defs.h)
     SIBLINGS = 2  # must be less equal than in defs.h
 
-    with ut.MyThreadRecord('gengjie', CORES * SIBLINGS):
+    with MyThreadRecord('gengjie', CORES * SIBLINGS):
         tasks = ExperimentsFixedParticleShape(
-            1000, 2, 0.25, 0.5,
-            "ScreenedCoulomb",
-            np.linspace(0.5, 0.8, SIBLINGS, endpoint=True),
-            CORES,
+            N=1000,
+            n=2,
+            d=0.25,
+            phi0=0.5,
+            potential_name="ScreenedCoulomb",
+            Gammas=np.linspace(0.5, 0.8, SIBLINGS, endpoint=True),
+            workers=CORES,
         )
         tasks.ExperimentAsync()
 
         packResults('results.7z')
+
+
+if __name__ == '__main__':
+    while True:
+        p = Process(target=main)
+        p.start()
+        p.join()
+
+        # if an error occurs
+        if p.exitcode != 0:
+            print("An error occurred in the child process. Restarting...")
+            p.terminate()
+        else:
+            break

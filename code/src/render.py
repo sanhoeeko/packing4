@@ -3,6 +3,7 @@ import matplotlib.colors as mcolors
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import rcParams
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from . import art
@@ -10,6 +11,10 @@ from .state import State, RenderSetup
 
 my_colors = ['floralWhite', 'lemonchiffon', 'wheat', 'lightsalmon', 'coral', 'crimson',
              'paleturquoise', 'blue', 'teal', 'seagreen', 'green']
+
+rcParams.update({
+    'font.size': 22
+})
 
 
 class StateRenderer(State):
@@ -73,12 +78,17 @@ class StateRenderer(State):
         ax.set_ylim(-self.B - 1, self.B + 1)
         ax.set_aspect('equal')
 
+        # Add a text [at the top left side] to show information of the state
+        ax.text(-self.A, self.B * 1.1,
+                f"n={self.n}, d={self.d}, ρ={'{:.3f}'.format(self.rho)}, E={'{:.3f}'.format(self.energy)}")
+
         # Create an axes for the color bar
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.05)
 
         # Add a color bar
-        fig.colorbar(col, cax=cax)
+        cbar = fig.colorbar(col, cax=cax)
+        cbar.set_label('θ')
         return handle
 
     # Render options

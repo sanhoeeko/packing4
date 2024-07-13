@@ -58,9 +58,13 @@ void* getStateResidualForce(void* state_ptr)
 
 float getStateMaxResidualForce(void* state_ptr)
 {
+    static VectorXf temp;
     State* s = reinterpret_cast<State*>(state_ptr);
-    xyt* ptr = (xyt*)s->CalGradient<Normal>().data();
     VectorXf g = VectorXf::Zero(s->N);
+
+    temp = s->CalGradient<Normal>();
+    xyt* ptr = (xyt*)temp.data();
+    
 #pragma omp parallel for num_threads(CORES)
     for (int i = 0; i < s->N; i++) {
         g[i] = ptr[i].amp2();

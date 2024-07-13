@@ -18,6 +18,7 @@ def dynamicVisualize(n_thetas, x, y, theta, v):
 
     # Initial image (theta = 0)
     im = ax.imshow(v[:, :, 0], extent=[np.min(x), np.max(x), np.min(y), np.max(y)], aspect='auto', origin='lower')
+    fig.colorbar(im, ax=ax)
 
     # Update function for the slider
     def update(val):
@@ -38,17 +39,17 @@ def dynamicVisualize(n_thetas, x, y, theta, v):
 
 
 if __name__ == '__main__':
-    n = 2
-    d = 1
+    n = 6
+    d = 0.05
     a = 1
     b = 1 / (1 + (n - 1) * d / 2)
+    ker.setEnums(1)
+    ker.setRod(n, d)
     x = np.arange(-2 * a, 2 * a, 0.01)
     y = np.arange(-a - b, a + b, 0.01)
     t = np.arange(0, np.pi, 0.1)
     n_theta = len(t)
     X, Y, T = np.meshgrid(x, y, t)
-    ker.setEnums(1)
-    ker.setRod(n, d)
     V = np.vectorize(ker.interpolatePotential)(X, Y, T)
     V[V < 1e-6] = np.nan
     dynamicVisualize(n_theta, X, Y, T, V)
