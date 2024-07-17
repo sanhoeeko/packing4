@@ -54,6 +54,8 @@ class Kernel:
         self.dll.equilibriumGD.argtypes = [ct.c_void_p, ct.c_int]
         self.dll.equilibriumGD.restype = ct.c_float
         self.dll.setStateData.argtypes = [ct.c_void_p, ct.c_void_p]
+        self.dll.landscapeAlongGradient.argtypes = [ct.c_void_p, ct.c_float, ct.c_int]
+        self.dll.landscapeAlongGradient.restype = ct.c_void_p
 
     def returnFixedArray(self, dll_function, length):
         dll_function.restype = ct.POINTER(ct.c_float)
@@ -178,6 +180,9 @@ class Kernel:
 
     def setStateData(self, address, configuration: np.ndarray):
         return self.dll.setStateData(address, ut.ndarrayAddress(configuration.astype(np.float32)))
+
+    def landscapeAlongGradient(self, address, max_stepsize: float, n: int):
+        return self.returnFixedArray(self.dll.landscapeAlongGradient, n)(address, max_stepsize, n)
 
 
 ker = Kernel()

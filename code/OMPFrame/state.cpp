@@ -12,25 +12,23 @@ inline static float randf() {
 }
 
 
-void State::commonInit(int N)
+State::State(int N)
 {
 	this->N = N;
+	this->sibling_id = -1;
+	boundary = NULL;
 	configuration = VectorXf::Zero(dof * N);
 	grid = Maybe<Grid*>(new Grid());
 	pair_info = Maybe<PairInfo*>(new PairInfo(N));
 }
 
-State::State(int N, int sibling)
+State::State(int N, int sibling) : State(N)
 {
-	commonInit(N);
 	this->sibling_id = sibling;
-	boundary = NULL;
 }
 
-State::State(VectorXf q, EllipseBoundary* b, int N, int sibling)
+State::State(int N, int sibling, VectorXf q, EllipseBoundary* b) : State(N, sibling)
 {
-	commonInit(N);
-	this->sibling_id = sibling;
 	configuration = q;
 	boundary = b;
 }

@@ -63,6 +63,9 @@
     <ClInclude Include="optimizer.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="analysis.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -99,6 +102,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="optimizer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="analysis.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

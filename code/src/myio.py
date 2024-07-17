@@ -139,3 +139,15 @@ class DataSet:
             'Gamma0': self.Gamma0,
         }
         return pd.DataFrame([dic])
+
+    def stateAtDensity(self, density: float) -> State:
+        dr = np.abs(self.rhos - density)
+        idx = np.argmin(dr)
+        print('Find at density:', self.rhos[idx])
+        return self.data[idx]
+
+    def critical(self, energy_threshold: float) -> State:
+        es = self.curveTemplate('energy')
+        idx = ut.findFirstOfLastSubsequence(es, lambda x: x > energy_threshold)
+        print('Find at density:', self.rhos[idx])
+        return self.data[idx]

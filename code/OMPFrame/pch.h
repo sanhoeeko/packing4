@@ -44,6 +44,9 @@ DLLEXPORT void readPotential(int n, float d);
 DLLEXPORT void writePotential();
 DLLEXPORT int getPotentialId();
 
+// analysis
+DLLEXPORT float* landscapeAlongGradient(void* state_ptr, float max_stepsize, int samples);
+
 // test of algorithms
 DLLEXPORT float fastPotential(float x, float y, float t);
 DLLEXPORT float interpolatePotential(float x, float y, float t);

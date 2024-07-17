@@ -12,32 +12,8 @@ float maxGradientAbs(VectorXf& g) {
     return sqrtf(s);
 }
 
-float sigmaGradientAbs(VectorXf& absg, float mean) {
-    VectorXf diff = absg.array() - mean;
-    float sq_sum = diff.array().square().sum();
-    float std_dev = sqrtf(sq_sum / absg.size());
-    return std_dev;
-}
-
-void prune(VectorXf& g, float max_element_abs) {
-    g.array() = g.array().min(max_element_abs);
-    g.array() = g.array().max(-max_element_abs);
-}
-
 float Modify(VectorXf& g)
 {
-    /*
-    // calculate the mean value and the standard deviation
-    VectorXf absg = g.cwiseAbs();
-    float 
-        mu = absg.mean(),
-        sigma = sigmaGradientAbs(absg, mu),
-        max_element_abs = mu + 3 * sigma;
-
-    // prune out bad cases
-    prune(g, max_element_abs);
-    */
-
     // calculate the max amplitude before normalization
     float res = maxGradientAbs(g);
 

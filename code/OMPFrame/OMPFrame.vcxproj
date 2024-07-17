@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="analysis.h" />
     <ClInclude Include="array.h" />
     <ClInclude Include="defs.h" />
     <ClInclude Include="framework.h" />
@@ -161,6 +162,7 @@
     <ClInclude Include="vectorlist.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="analysis.cpp" />
     <ClCompile Include="array.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="global.cpp" />

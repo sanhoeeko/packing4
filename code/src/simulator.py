@@ -173,10 +173,13 @@ class Simulator:
         elapse_t = end_t - start_t
         return elapse_t
 
+    def energyLandscapeAlongGradient(self, max_stepsize: float, n: int):
+        return ker.landscapeAlongGradient(self.data_ptr, max_stepsize, n)
+
 
 class CommonSimulator:
     def __init__(self):
-        self.simulator = None
+        self.simulator = None  # CommonSimulator does not inherit Simulator because self.simulator can be None
 
     def load(self, s: State):
         if self.simulator is None:

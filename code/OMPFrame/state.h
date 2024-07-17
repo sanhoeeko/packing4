@@ -21,7 +21,7 @@ struct EllipseBoundary {
 struct State{
     VectorXf configuration;
     EllipseBoundary* boundary;
-    vector<float> ge;               // ge can either be: a) max gradient amplitudes; b) energy records.
+    vector<float> ge;               // ge can be either a) max gradient amplitudes, or b) energy records.
 
     int N;
     int sibling_id;
@@ -31,9 +31,9 @@ struct State{
 
     // methods
 
-    void commonInit(int N);
+    State(int N);
     State(int N, int sibling);
-    State(VectorXf q, EllipseBoundary* b, int N, int sibling);
+    State(int N, int sibling, VectorXf q, EllipseBoundary* b);
     void clearCache();
     void randomInitStateCC();
     float initAsDisks(int max_iterations);

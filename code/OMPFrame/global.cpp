@@ -100,6 +100,16 @@ int getPotentialId()
     return global->pf;
 }
 
+float* landscapeAlongGradient(void* state_ptr, float max_stepsize, int samples)
+{
+    static vector<float>* res = new vector<float>();
+    State* s = reinterpret_cast<State*>(state_ptr);
+    vector<float> energies = _landscapeAlongGradient(s, max_stepsize, samples);
+    res->resize(energies.size());
+    memcpy(res->data(), energies.data(), energies.size() * sizeof(float));
+    return res->data();
+}
+
 void* getStateMaxGradOrEnergy(void* state_ptr)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
