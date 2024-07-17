@@ -102,12 +102,30 @@ int getPotentialId()
 
 float* landscapeAlongGradient(void* state_ptr, float max_stepsize, int samples)
 {
-    static vector<float>* res = new vector<float>();
+    static float* res = NULL;
+    if (res) {
+        delete[] res; res = NULL;
+    }
+    res = new float[samples];
     State* s = reinterpret_cast<State*>(state_ptr);
     vector<float> energies = _landscapeAlongGradient(s, max_stepsize, samples);
-    res->resize(energies.size());
-    memcpy(res->data(), energies.data(), energies.size() * sizeof(float));
-    return res->data();
+    memcpy(res, energies.data(), samples * sizeof(float));
+    return res;
+}
+
+float* landscapeOnGradientSections(void* state_ptr, float max_stepsize, int samples)
+{
+    static float* res = NULL;
+    if (res) {
+        delete[] res; res = NULL;
+    }
+    res = new float[(2 * samples + 1) * samples];
+    State* s = reinterpret_cast<State*>(state_ptr);
+    vector<vector<float>> energies = _landscapeOnGradientSections(s, max_stepsize, samples);
+    for (int i = 0; i < 2 * samples + 1; i++) {
+        memcpy(res + i * samples, energies[i].data(), samples * sizeof(float));
+    }
+    return res;
 }
 
 void* getStateMaxGradOrEnergy(void* state_ptr)
