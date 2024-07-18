@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
-from scipy.optimize import curve_fit
+
 from src.myio import DataSet
 from src.simulator import common_simulator as cs
 
@@ -42,6 +41,22 @@ def landscape1dAndFit(state, ss, n_samples, n_points, deg=4):
     plt.show()
 
 
+def lineSearch1dTest(state, max_stepsize, n_samples):
+    cs.load(state)
+    sc = cs.simulator.ERoot(max_stepsize)
+    best_ss = cs.simulator.bestStepSize(max_stepsize)
+
+    ys = cs.simulator.energyLandscapeAlongGradient(sc, n_samples)
+    xs = np.linspace(0, sc, n_samples + 1)[1:]
+    fitted_func = np.poly1d(np.polyfit(xs, ys, deg=3))
+    y_pred = np.vectorize(fitted_func)(xs)
+
+    plt.scatter(xs, ys, marker='.')
+    plt.plot(xs, y_pred, c='orange')
+    plt.axvline(x=best_ss, color='red')
+    plt.show()
+
+
 def landscape2d(state, ss, n_samples):
     cs.load(state)
     Z = cs.simulator.energyLandscapeOnGradientSections(ss, n_samples)
@@ -58,8 +73,8 @@ def landscape2d(state, ss, n_samples):
 # Hertzian example: qxpp
 # Screened Coulomb example: 356v
 
-dataset = DataSet.loadFrom('data/qxpp.h5')
-state = dataset.critical(0.1)
-ss = 3e-2
+dataset = DataSet.loadFrom('data/356v.h5')
+state = dataset.critical(0.01)
+ss = 6e-3
 n_samples = 10
-landscape1dAndFit(state, ss, n_samples, 100, deg=4)
+lineSearch1dTest(state, 1e-1, 100)

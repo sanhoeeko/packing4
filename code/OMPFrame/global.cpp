@@ -257,9 +257,16 @@ float* getMirrorOf(float A, float B, float x, float y, float t)
     return arr;
 }
 
-State* Global::newState(int N)
+float testERoot(void* state_ptr, float max_stepsize)
 {
-    State* state = new State(N, global->states.size());
-    global->states.push_back(state);
-    return state;
+    State* s = reinterpret_cast<State*>(state_ptr);
+    VectorXf g = s->CalGradient<Normal>();
+    return ERoot(s, g, max_stepsize).first;
+}
+
+float testBestStepSize(void* state_ptr, float max_stepsize)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    VectorXf g = s->CalGradient<Normal>();
+    return BestStepSize(s, g, max_stepsize);
 }

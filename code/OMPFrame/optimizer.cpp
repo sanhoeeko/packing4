@@ -22,3 +22,120 @@ float Modify(VectorXf& g)
     if(norm_g > 0) g /= norm_g;
     return res;
 }
+
+struct StateLoader {
+    State* s_ref;
+    State* s_temp;
+
+    StateLoader(State* s) {
+        s_ref = s;
+        s_temp = new State(s->N);
+        s_temp->boundary = s->boundary;
+    }
+    void clear() {
+        s_temp->loadFromData(s_ref->configuration.data());
+    }
+    State* setDescent(float a, VectorXf& g) {
+        clear();
+        s_temp->descent(a, g);
+        return s_temp;
+    }
+};
+
+static VectorXf polyFit(VectorXf& x, VectorXf& y, int deg) {
+    MatrixXf mtxVandermonde(x.size(), deg + 1); // Vandermonde matrix of X-axis coordinate vector of sample data
+    VectorXf vectColVandermonde = x; // Vandermonde column
+    VectorXf coeffs;
+
+    mtxVandermonde.col(0) = VectorXf::Constant(x.size(), 1, 1);
+    mtxVandermonde.col(1) = vectColVandermonde;
+
+    // construct Vandermonde matrix column by column
+    for (int i = 2; i < deg + 1; i++) {
+        vectColVandermonde = vectColVandermonde.array() * x.array();
+        mtxVandermonde.col(i) = vectColVandermonde;
+    }
+
+    // calculate coefficients vector of fitted polynomial
+    coeffs = (mtxVandermonde.transpose() * mtxVandermonde).ldlt().solve(mtxVandermonde.transpose() * y);
+
+    return coeffs;
+}
+
+/*
+    Return: an array of length [samples + 1]
+*/
+static VectorXf landscape(State* s, VectorXf& g, float max_stepsize, int samples)
+{
+    VectorXf res(samples + 1);
+    float d_stepsize = max_stepsize / samples;
+    State* s_temp = new State(s->N);
+    s_temp->boundary = s->boundary;
+
+    for (int i = 1; i < samples; i++) {
+        s_temp->loadFromData(s->configuration.data());
+        s_temp->descent(i * d_stepsize, g);
+        res[i] = s_temp->CalEnergy();
+    }
+    res[0] = 0;     // res[last] = ec
+    return res;     // for performance, the first and the last element is not calculated
+}
+
+static float minimizeCubic(float a, float b, float c, float sc) {
+    float
+        p1 = -b / (3 * a),
+        p2 = sqrt(b * b - 3 * a * c) / (3 * a),
+        root = p1 - p2;
+    if (root > 0 && root < sc) {
+        return root;
+    }
+    else {
+        return p1 + p2;
+    }
+}
+
+/*
+    Return: step size of the equal energy and its corresponding energy
+*/
+std::pair<float, float> ERoot(State* s, VectorXf& g, float expected_stepsize) 
+{
+    StateLoader sl(s);
+    float s1 = expected_stepsize;
+    float e_ref = s->CalEnergy();
+    float e0 = sl.setDescent(s1, g)->CalEnergy() - e_ref;
+    float e1;
+    while (true) {
+        s1 /= 2;
+        e1 = sl.setDescent(s1, g)->CalEnergy() - e_ref;
+        if (e1 < 0) break;
+    }
+    float s0 = s1 * 2;
+    float sc = (e1 * s0 - e0 * s1) / (e1 - e0);
+    float sc_cache = 0;
+    float ec;
+    for (int i = 0; i < 8; i++) {   // usually done within 4 iterations
+        ec = sl.setDescent(sc, g)->CalEnergy() - e_ref;
+        if (abs(ec) < 1e-3 || abs(sc - sc_cache) < 1e-5) break;
+        if (ec * e1 > 0) {
+            s0 = sc; e0 = ec; 
+        }
+        else {
+            s1 = sc; e1 = ec;
+        }
+        sc_cache = sc;
+        sc = (e1 * s0 - e0 * s1) / (e1 - e0);
+    }
+    return { sc, ec };
+}
+
+float BestStepSize(State* s, VectorXf& g, float max_stepsize) {
+    const int n_sample = 10;
+    float sc, ec;
+    std::tie(sc, ec) = ERoot(s, g, max_stepsize);
+    VectorXf ys = landscape(s, g, sc, n_sample); 
+    ys[ys.size() - 1] = ec;
+    vector<float> _xs = linspace_including_endpoint(0, sc, n_sample + 1);
+    VectorXf xs = Map<VectorXf>(_xs.data(), _xs.size());
+    VectorXf coeffs = polyFit(xs, ys, 3);
+    return minimizeCubic(coeffs[3], coeffs[2], coeffs[1], sc);
+}

@@ -11,3 +11,10 @@ void init() {
     omp_set_nested(1);  // Enable nested parallelism
     setGlobal();
 }
+
+State* Global::newState(int N)
+{
+    State* state = new State(N, global->states.size());
+    global->states.push_back(state);
+    return state;
+}

@@ -56,5 +56,7 @@ DLLEXPORT float* interpolateGradient(float x, float y, float t);
 DLLEXPORT float* gradientReference(float x, float y, float t1, float t2);
 DLLEXPORT float* gradientTest(float x, float y, float t1, float t2);
 DLLEXPORT float* getMirrorOf(float A, float B, float x, float y, float t);
+DLLEXPORT float testERoot(void* state_ptr, float max_stepsize);
+DLLEXPORT float testBestStepSize(void* state_ptr, float max_stepsize);
 
 #endif //PCH_H
