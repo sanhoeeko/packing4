@@ -176,6 +176,15 @@ class Simulator:
     def energyLandscapeAlongGradient(self, max_stepsize: float, n: int):
         return ker.landscapeAlongGradient(self.data_ptr, max_stepsize, n)
 
+    def energyLandscapeOnGradientSections(self, max_stepsize: float, n: int):
+        return ker.landscapeOnGradientSections(self.data_ptr, max_stepsize, n)
+
+    def ERoot(self, max_stepsize: float):
+        return ker.ERoot(self.data_ptr, max_stepsize)
+
+    def bestStepSize(self, max_stepsize: float):
+        return ker.bestStepSize(self.data_ptr, max_stepsize)
+
 
 class CommonSimulator:
     def __init__(self):

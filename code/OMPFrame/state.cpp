@@ -15,7 +15,7 @@ inline static float randf() {
 State::State(int N)
 {
 	this->N = N;
-	this->sibling_id = -1;
+	this->sibling_id = 255;  // default: only for test
 	boundary = NULL;
 	configuration = VectorXf::Zero(dof * N);
 	grid = Maybe<Grid*>(new Grid());

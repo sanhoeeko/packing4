@@ -56,6 +56,12 @@ class Kernel:
         self.dll.setStateData.argtypes = [ct.c_void_p, ct.c_void_p]
         self.dll.landscapeAlongGradient.argtypes = [ct.c_void_p, ct.c_float, ct.c_int]
         self.dll.landscapeAlongGradient.restype = ct.c_void_p
+        self.dll.landscapeOnGradientSections.argtypes = [ct.c_void_p, ct.c_float, ct.c_int]
+        self.dll.landscapeOnGradientSections.restype = ct.c_void_p
+        self.dll.testERoot.argtypes = [ct.c_void_p, ct.c_float]
+        self.dll.testERoot.restype = ct.c_float
+        self.dll.testBestStepSize.argtypes = [ct.c_void_p, ct.c_float]
+        self.dll.testBestStepSize.restype = ct.c_float
 
     def returnFixedArray(self, dll_function, length):
         dll_function.restype = ct.POINTER(ct.c_float)
@@ -183,6 +189,17 @@ class Kernel:
 
     def landscapeAlongGradient(self, address, max_stepsize: float, n: int):
         return self.returnFixedArray(self.dll.landscapeAlongGradient, n)(address, max_stepsize, n)
+
+    def landscapeOnGradientSections(self, address, max_stepsize: float, n: int):
+        m = (2 * n + 1) * n
+        mat = self.returnFixedArray(self.dll.landscapeOnGradientSections, m)(address, max_stepsize, m)
+        return mat.reshape((2 * n + 1, n))
+
+    def ERoot(self, address, max_stepsize: float):
+        return self.dll.testERoot(address, max_stepsize)
+
+    def bestStepSize(self, address, max_stepsize: float):
+        return self.dll.testBestStepSize(address, max_stepsize)
 
 
 ker = Kernel()

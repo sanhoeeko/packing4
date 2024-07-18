@@ -32,13 +32,38 @@ struct StateLoader {
         s_temp = new State(s->N);
         s_temp->boundary = s->boundary;
     }
-    void clear() {
+    StateLoader* redefine(State* s) {
+        s_ref = s;
+        s_temp->boundary = s_ref->boundary;
+        return this;
+    }
+    State* clear() {
         s_temp->loadFromData(s_ref->configuration.data());
+        return s_temp;
     }
     State* setDescent(float a, VectorXf& g) {
         clear();
         s_temp->descent(a, g);
         return s_temp;
+    }
+};
+
+/*
+    Reuse state loaders to prevent memory leakage.
+*/
+struct StateLoaderManager
+{
+    vector<StateLoader*> lst;
+
+    StateLoader* loader(State* s) {
+        if (s->sibling_id < lst.size()) {
+            return lst[s->sibling_id]->redefine(s);
+        }
+        else {
+            lst.resize(s->sibling_id + 1);
+            lst[s->sibling_id] = new StateLoader(s);
+            return lst[s->sibling_id];
+        }
     }
 };
 
@@ -67,14 +92,13 @@ static VectorXf polyFit(VectorXf& x, VectorXf& y, int deg) {
 */
 static VectorXf landscape(State* s, VectorXf& g, float max_stepsize, int samples)
 {
+    static StateLoaderManager slm;
     VectorXf res(samples + 1);
     float d_stepsize = max_stepsize / samples;
-    State* s_temp = new State(s->N);
-    s_temp->boundary = s->boundary;
+    State* s_temp = slm.loader(s)->clear();
 
     for (int i = 1; i < samples; i++) {
-        s_temp->loadFromData(s->configuration.data());
-        s_temp->descent(i * d_stepsize, g);
+        s_temp->descent(d_stepsize, g);
         res[i] = s_temp->CalEnergy();
     }
     res[0] = 0;     // res[last] = ec
@@ -99,14 +123,18 @@ static float minimizeCubic(float a, float b, float c, float sc) {
 */
 std::pair<float, float> ERoot(State* s, VectorXf& g, float expected_stepsize) 
 {
-    StateLoader sl(s);
+    static StateLoaderManager slm;
+    StateLoader* sl = slm.loader(s);
     float s1 = expected_stepsize;
     float e_ref = s->CalEnergy();
-    float e0 = sl.setDescent(s1, g)->CalEnergy() - e_ref;
+    float e0 = sl->setDescent(s1, g)->CalEnergy() - e_ref;
+    if (e0 < 0) {
+        return { -1.0f , e0};
+    }
     float e1;
     while (true) {
         s1 /= 2;
-        e1 = sl.setDescent(s1, g)->CalEnergy() - e_ref;
+        e1 = sl->setDescent(s1, g)->CalEnergy() - e_ref;
         if (e1 < 0) break;
     }
     float s0 = s1 * 2;
@@ -114,7 +142,7 @@ std::pair<float, float> ERoot(State* s, VectorXf& g, float expected_stepsize)
     float sc_cache = 0;
     float ec;
     for (int i = 0; i < 8; i++) {   // usually done within 4 iterations
-        ec = sl.setDescent(sc, g)->CalEnergy() - e_ref;
+        ec = sl->setDescent(sc, g)->CalEnergy() - e_ref;
         if (abs(ec) < 1e-3 || abs(sc - sc_cache) < 1e-5) break;
         if (ec * e1 > 0) {
             s0 = sc; e0 = ec; 
@@ -132,6 +160,9 @@ float BestStepSize(State* s, VectorXf& g, float max_stepsize) {
     const int n_sample = 10;
     float sc, ec;
     std::tie(sc, ec) = ERoot(s, g, max_stepsize);
+    if (sc == -1.0f) {
+        return max_stepsize;    // directly descent
+    }
     VectorXf ys = landscape(s, g, sc, n_sample); 
     ys[ys.size() - 1] = ec;
     vector<float> _xs = linspace_including_endpoint(0, sc, n_sample + 1);
