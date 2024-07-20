@@ -47,6 +47,8 @@ struct PairInfo
     void clear();
     template<HowToCalGradient how> GradientBuffer* CalGradient();
     EnergyBuffer* CalEnergy();
+    int contactNumberZ();
+    float meanDistance();
 };
 
 #include "gradient_impl.h"

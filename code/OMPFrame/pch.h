@@ -27,6 +27,7 @@ DLLEXPORT void initStateAsDisks(void* state_ptr);
 DLLEXPORT void setBoundary(void* state_ptr, float boundary_a, float boundary_b);
 DLLEXPORT void singleStep(void* state_ptr, int mode, float step_size);
 DLLEXPORT float equilibriumGD(void* state_ptr, int max_iterations);
+DLLEXPORT float eqLineGD(void* state_ptr, int max_iterations);
 
 // fetching data
 DLLEXPORT void* getStateData(void* state_ptr);
@@ -34,6 +35,8 @@ DLLEXPORT int getStateIterations(void* state_ptr);
 DLLEXPORT void* getStateMaxGradOrEnergy(void* state_ptr);
 DLLEXPORT void* getStateResidualForce(void* state_ptr);
 DLLEXPORT float getStateMaxResidualForce(void* state_ptr);
+DLLEXPORT float meanDistance(void* state_ptr);
+DLLEXPORT float meanContactZ(void* state_ptr);
 DLLEXPORT int getSiblingId(void* state_ptr);
 
 // load data

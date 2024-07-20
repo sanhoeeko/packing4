@@ -195,6 +195,49 @@ float State::equilibriumGD(int max_iterations)
 	return CalEnergy();
 }
 
+float State::eqLineGD(int max_iterations)
+{
+	/*
+		use `ge` as max gradient energies
+	*/
+	float max_step_size_ratio = 1e-2;
+	float current_min_energy = CalEnergy();
+	float max_step_size = 0.1f * powf(current_min_energy, -0.5f);
+
+	ge.clear();
+
+	for (int i = 0; i < max_iterations; i++)
+	{
+		VectorXf g = CalGradient<Normal>();
+		float gm = Modify(g);
+
+		// gradient criterion
+		if (gm < 1e-2) {
+			break;
+		}
+		else {
+			if ((i + 1) % ENERGY_STRIDE == 0) {
+				float E = CalEnergy();
+				ge.push_back(E);
+				// energy criterion
+				if (E < 5e-5) {
+					break;
+				}
+				// step size (descent speed) criterion
+				else if (abs(1 - E / current_min_energy) < 1e-4) {
+					break;
+				}
+				// moving average
+				current_min_energy = (current_min_energy + E) / 2;
+				max_step_size = 0.1f * powf(current_min_energy, -0.5f);
+			}
+			float step_size = BestStepSize(this, g, max_step_size);
+			descent(step_size, g);
+		}
+	}
+	return CalEnergy();
+}
+
 void _gridLocate(State* s, Grid* grid) {
 	grid->init(2, s->boundary->a, s->boundary->b);		// including gird->clear()
 	grid->gridLocate(s->configuration.data(), s->N);
@@ -221,4 +264,14 @@ PairInfo* State::CollisionDetect()
 float State::CalEnergy()
 {
 	return this->CollisionDetect()->CalEnergy()->sum();
+}
+
+float State::meanDistance()
+{
+	return this->CollisionDetect()->meanDistance();
+}
+
+float State::meanContactZ()
+{
+	return this->CollisionDetect()->contactNumberZ() / (float)N;
 }

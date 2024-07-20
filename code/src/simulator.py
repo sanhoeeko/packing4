@@ -140,6 +140,12 @@ class Simulator:
     def maxResidualForce(self):
         return ker.getStateMaxResidualForce(self.data_ptr)
 
+    def meanDistance(self):
+        return ker.meanDistance(self.data_ptr)
+
+    def meanContactZ(self):
+        return ker.meanContactZ(self.data_ptr)
+
     def setBoundary(self, boundary_a, boundary_b):
         self.A, self.B = boundary_a, boundary_b
         return ker.setBoundary(self.data_ptr, boundary_a, boundary_b)

@@ -134,6 +134,18 @@ class State:
     def gradientAmp(self):
         return np.sqrt(np.sum(self.gradient ** 2, axis=1))
 
+    @property
+    def meanDistance(self):
+        from src.simulator import common_simulator as cs
+        cs.load(self)
+        return cs.simulator.meanDistance()
+
+    @property
+    def meanZ(self):
+        from src.simulator import common_simulator as cs
+        cs.load(self)
+        return cs.simulator.meanContactZ()
+
     @staticmethod
     def distance(s1: 'State', s2: 'State'):
         dq = s2.xyt - s1.xyt

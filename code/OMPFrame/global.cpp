@@ -72,6 +72,18 @@ float getStateMaxResidualForce(void* state_ptr)
     return sqrt(g.maxCoeff());
 }
 
+float meanDistance(void* state_ptr)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    return s->meanDistance();
+}
+
+float meanContactZ(void* state_ptr)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    return s->meanContactZ();
+}
+
 int getSiblingId(void* state_ptr)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
@@ -162,6 +174,12 @@ float equilibriumGD(void* state_ptr, int max_iterations)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
     return s->equilibriumGD(max_iterations);
+}
+
+DLLEXPORT float eqLineGD(void* state_ptr, int max_iterations)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    return s->eqLineGD(max_iterations);
 }
 
 float fastPotential(float x, float y, float t)

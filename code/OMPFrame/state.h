@@ -43,10 +43,13 @@ struct State{
     void loadFromData(float* data_src);
     void crashIfDataInvalid();
     float equilibriumGD(int max_iterations);
+    float eqLineGD(int max_iterations);
 
     Grid* GridLocate();
     PairInfo* CollisionDetect();
     float CalEnergy();
+    float meanDistance();
+    float meanContactZ();
 
     template<HowToCalGradient how> VectorXf CalGradient() 
     {
