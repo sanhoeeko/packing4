@@ -57,10 +57,18 @@ struct StateLoaderManager
 
     StateLoader* loader(State* s) {
         if (s->sibling_id < lst.size()) {
-            return lst[s->sibling_id]->redefine(s);
+            if (lst[s->sibling_id] == NULL) {
+                lst[s->sibling_id] = new StateLoader(s);
+            }
+            else {
+                return lst[s->sibling_id]->redefine(s);
+            }
         }
         else {
-            lst.resize(s->sibling_id + 1);
+            int n = lst.size();
+            int m = s->sibling_id + 1;
+            lst.resize(m);
+            memset(lst.data() + n, 0, (m - n) * sizeof(StateLoader*));
             lst[s->sibling_id] = new StateLoader(s);
             return lst[s->sibling_id];
         }

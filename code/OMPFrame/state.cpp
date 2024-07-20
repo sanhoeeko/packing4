@@ -200,7 +200,6 @@ float State::eqLineGD(int max_iterations)
 	/*
 		use `ge` as max gradient energies
 	*/
-	float max_step_size_ratio = 1e-2;
 	float current_min_energy = CalEnergy();
 	float max_step_size = 0.1f * powf(current_min_energy, -0.5f);
 
