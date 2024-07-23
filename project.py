@@ -35,12 +35,13 @@ def createProject(src_folder, config_file):
 
         # 遍历每一行，查找并替换参数
         for i, line in enumerate(lines):
-            for param in params_to_replace:
-                if param in line:
-                    # 使用正则表达式找到参数值并替换
-                    pattern = rf'(\s*{param}\s*=\s*)([^,)]*)(,|\))?'
-                    replacement = rf'\g<1>{config[param]}\g<3>'
-                    lines[i] = re.sub(pattern, replacement, line)
+            if '# mutable' in line:
+                for param in params_to_replace:
+                    if param in line:
+                        # 使用正则表达式找到参数值并替换
+                        pattern = rf'(\s*{param}\s*=\s*)([^,)]*)(,|\))?'
+                        replacement = rf'\g<1>{config[param]}\g<3>'
+                        lines[i] = re.sub(pattern, replacement, line)
 
         # 将修改后的内容写回文件
         with open(example_file, 'w') as f:

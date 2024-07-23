@@ -118,7 +118,8 @@ class DataSet:
 
     @lru_cache(maxsize=None)
     def curveTemplate(self, prop: str):
-        return np.array([getattr(state, prop) for state in self.data])
+        # parallel calculation will cause a crash??
+        return np.array(ut.Map('Debug')(lambda state: getattr(state, prop), self.data))
 
     @property
     def rhos(self):

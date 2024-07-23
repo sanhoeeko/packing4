@@ -11,19 +11,23 @@ def rebootSimulation(filename: str):
     return simulator
 
 
-def simulationExample():
+def simulationExample(method: str):
+    """
+    methods: equilibriumGD, eqLineGD, eqLBFGS
+    """
     q = 1 - 1e-3
-    state = simu.Simulator.fromCircDensity(
-        1000, 2, 0.25, 0.4, 1.0, 'ScreenedCoulomb'
+    state = simu.Simulator._fromCircDensity(
+        1000, 6, 0.05, 0.5, 1.0,
+        'ScreenedCoulomb', 'data'
     )
     state.initAsDisks()
     state.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
     state.initPotential(4)
 
     for i in range(1000):
-        if state.density > 1.2: break
+        if state.density > 0.8: break
         state.compress()
-        dt = state.equilibriumGD(2e5)
+        dt = getattr(state, method)(1e6)
         s = state.get()
         density = state.density
         its = state.iterationSteps()
@@ -31,7 +35,7 @@ def simulationExample():
         print(i, f'i={i}, rho={density}, G={g}, E={s.energy}, nsteps={its}K, speed: {its / dt} Kit/s')
 
 
-if __name__ == '__main__':
+def rebootExample():
     state = rebootSimulation('j5e5.h5')
     q = 1 - 1e-2
     state.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
@@ -45,3 +49,7 @@ if __name__ == '__main__':
         its = state.iterationSteps()
         g = state.maxResidualForce()
         print(i, f'i={i}, rho={density}, G={g}, E={s.energy}, nsteps={its}K, speed: {its / dt} Kit/s')
+
+
+if __name__ == '__main__':
+    simulationExample('eqLineGD')

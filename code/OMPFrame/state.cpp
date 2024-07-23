@@ -15,7 +15,7 @@ inline static float randf() {
 State::State(int N)
 {
 	this->N = N;
-	this->sibling_id = 255;  // default: only for test
+	this->sibling_id = 255;  // default: only for test functions
 	boundary = NULL;
 	configuration = VectorXf::Zero(dof * N);
 	grid = Maybe<Grid*>(new Grid());
@@ -27,10 +27,14 @@ State::State(int N, int sibling) : State(N)
 	this->sibling_id = sibling;
 }
 
-State::State(int N, int sibling, VectorXf q, EllipseBoundary* b) : State(N, sibling)
+State::State(int N, int sibling, EllipseBoundary* b) : State(N, sibling)
+{
+	boundary = b;
+}
+
+State::State(int N, int sibling, EllipseBoundary* b, VectorXf q) : State(N, sibling, b)
 {
 	configuration = q;
-	boundary = b;
 }
 
 /*
@@ -127,23 +131,28 @@ string toString(EllipseBoundary* eb) {
 
 void State::crashIfDataInvalid()
 {
-#if ENABLE_NAN_CHECK
+#if ENABLE_NAN_CHECK || ENABLE_OUT_CHECK
 	xyt* ptr = (xyt*)configuration.data();
 	bool flag = true;
 	float
 		a1 = boundary->a + 1,
 		b1 = boundary->b + 1;
 
+#pragma omp parallel for
 	for (int i = 0; i < N; i++) {
+#if ENABLE_NAN_CHECK
 		if (isnan(ptr[i]) || isinf(ptr[i])) {
 			cout << "Nan data: " << toString(ptr[i]) << endl;
 			flag = false;
 		}
+#endif
+#if ENABLE_OUT_CHECK
 		if (outside(ptr[i], a1, b1)) {
 			cout << "Out of boundary: " << toString(ptr[i]) << "; "
 				 << "where: " << toString(boundary) << endl;
 			flag = false;
 		}
+#endif
 	}
 	if (!flag) {
 		cout << "In thread " << this->sibling_id << endl;
@@ -182,7 +191,7 @@ float State::equilibriumGD(int max_iterations)
 				// step size (descent speed) criterion
 				else if (abs(1 - E / current_min_energy) < 1e-4) {
 					step_size *= 0.8;			// log(0.8)(0.1) ~ 10
-					if (step_size < 1e-4) {
+					if (step_size < 1e-5) {
 						break;
 					}
 				}
@@ -201,7 +210,7 @@ float State::eqLineGD(int max_iterations)
 		use `ge` as max gradient energies
 	*/
 	float current_min_energy = CalEnergy();
-	float max_step_size = 0.1f * powf(current_min_energy, -0.5f);
+	float step_size = 1e-3;
 
 	ge.clear();
 
@@ -228,11 +237,64 @@ float State::eqLineGD(int max_iterations)
 				}
 				// moving average
 				current_min_energy = (current_min_energy + E) / 2;
-				max_step_size = 0.1f * powf(current_min_energy, -0.5f);
 			}
-			float step_size = BestStepSize(this, g, max_step_size);
+			try {
+				step_size = BestStepSize(this, g, 0.1);
+			}
+			catch(int exception){
+				step_size = 1e-3;
+			}
 			descent(step_size, g);
 		}
+	}
+	return CalEnergy();
+}
+
+float State::eqLBFGS(int max_iterations)
+{
+	const int m = 10;							// determine the precision of the inverse Hessian
+	const float epsilon = 1e-3f;
+	const float a0 = 1e-4f;
+
+	RollList<VectorXf, m> x, g, s, y;
+	RollList<float, m> a, b, rho;
+	a[0] = a0;
+	x[0] = configuration;
+	g[0] = CalGradient<Normal>();
+
+	// for the first m steps, use the classical gradient descent method
+	for (int k = 0; k < m; k++) {
+		s[k] = a[k] * g[k];
+		x[k + 1] = x[k] + s[k]; 
+		this->configuration = x[k + 1]; clearCache();
+		g[k + 1] = this->CalGradient<Normal>();
+		y[k] = g[k + 1] - g[k];
+		rho[k] = 1.0f / y[k].dot(s[k]);
+	}
+
+	for (int k = 0; k < max_iterations; k++) {
+		// solve for the descent direction: z
+		VectorXf q = CalGradient<Normal>();
+		for (int i = k - 1; i >= k - m; i--) {
+			a[i] = rho[i] * s[i].dot(q);
+			q -= a[i] * y[i];
+		}
+		VectorXf z = (s[k - 1].dot(y[k - 1]) / y[k - 1].dot(y[k - 1])) * q;
+		for (int i = k - m; i <= k - 1; i++) {
+			b[i] = rho[i] * y[i].dot(z);
+			z += (a[i] - b[i]) * s[i];
+		}
+		z /= z.norm();
+
+		// descent: use a fixed step size or line search
+		// and update the storage
+		float step_size = 1e-3;
+		s[k] = a[k] * g[k];
+		x[k + 1] = x[k] + s[k];
+		this->configuration = x[k + 1]; clearCache();
+		g[k + 1] = this->CalGradient<Normal>();
+		y[k] = g[k + 1] - g[k];
+		rho[k] = 1.0f / y[k].dot(s[k]);
 	}
 	return CalEnergy();
 }

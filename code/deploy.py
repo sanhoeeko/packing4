@@ -56,13 +56,15 @@ class TaskHandle(simu.Simulator):
 
     @classmethod
     def fromCircDensity(cls, N, n, d, fraction_as_disks, initial_boundary_aspect, potential_name: str, data_name: str):
-        obj = cls._fromCircDensity(N, n, d, fraction_as_disks, initial_boundary_aspect, potential_name, data_name)
+        obj = cls._fromCircDensity(
+            N, n, d, fraction_as_disks, initial_boundary_aspect, potential_name, data_name)
 
         obj.log_file = f'{obj.id}.log.txt'
         open(obj.log_file, 'w')  # create a log file
 
         q = 1 - 1e-3
-        obj.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
+        obj.setBoundaryScheduler(
+            simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
         return obj
 
     def getSiblingId(self):
@@ -84,14 +86,16 @@ class TaskHandle(simu.Simulator):
         try:
             self.initAsDisks()
             for i in range(10000):
-                if self.density > 1.2: break
+                if self.density > 1.2:
+                    break
                 self.compress()
                 dt = self.equilibriumGD(1e6)
                 s = self.get()
                 density = self.density
                 its = self.iterationSteps()
                 g = self.maxResidualForce()
-                self.log(f'i={i}, rho={density}, G={g}, E={s.energy}, nsteps={its}K, speed: {its / dt} Kit/s')
+                self.log(
+                    f'i={i}, rho={density}, G={g}, E={s.energy}, nsteps={its}K, speed: {its / dt} Kit/s')
         except Exception as e:
             print("An exception occurred!\n", e)
             print(f"In sibling {self.getSiblingId()}, ID: {self.id}")
@@ -132,17 +136,17 @@ def main():
     """
     All process of a simulation, except exception catching and restarting
     """
-    CORES = 2     # is FIXED, because it is determined in the DLL (in defs.h)
-    SIBLINGS = 2  # must be less equal than in defs.h
+    CORES = 4     # is FIXED, because it is determined in the DLL (in defs.h)
+    SIBLINGS = 2  # mutable
 
     with MyThreadRecord('gengjie', CORES * SIBLINGS):
         tasks = ExperimentsFixedParticleShape(
-            N=1000,
-            n=2,
-            d=0.25,
-            phi0=0.5,
-            potential_name="ScreenedCoulomb",
-            Gammas=np.linspace(0.5, 0.8, SIBLINGS, endpoint=True),
+            N=1000,  # mutable
+            n=2,  # mutable
+            d=0.25,  # mutable
+            phi0=0.5,  # mutable
+            potential_name="ScreenedCoulomb",  # mutable
+            Gammas=np.linspace(0.5, 0.8, SIBLINGS, endpoint=True),  # mutable
             workers=CORES,
         )
         tasks.ExperimentAsync()
@@ -160,5 +164,6 @@ if __name__ == '__main__':
         if p.exitcode != 0:
             print("An error occurred in the child process. Restarting...")
             p.terminate()
+            clearResults()
         else:
             break

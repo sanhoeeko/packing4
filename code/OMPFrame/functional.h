@@ -92,3 +92,17 @@ struct D4ScalarFunc
         writeArrayToFile<float>((float*)data, capacity, filename);
     }
 };
+
+/*
+    Rolling queue: when roll, delete the first element add add on the last element
+*/
+
+template<typename ty, int m>
+struct RollList {
+    ty data[m];
+    int shift = 0;
+
+    ty& operator[](int idx) {
+        return data[(idx + shift) % m];
+    }
+};

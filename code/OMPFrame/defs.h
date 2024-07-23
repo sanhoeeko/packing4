@@ -12,9 +12,10 @@
 #endif
 using namespace Eigen;
 
-#define CORES 2
+#define CORES 4
 #define NAN_IF_PENETRATE false
 #define ENABLE_NAN_CHECK true
+#define ENABLE_OUT_CHECK true
 
 #define DIGIT_X 9
 #define DIGIT_Y 9

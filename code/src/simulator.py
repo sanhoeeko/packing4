@@ -179,6 +179,13 @@ class Simulator:
         elapse_t = end_t - start_t
         return elapse_t
 
+    def eqLineGD(self, max_iterations):
+        start_t = time.perf_counter()
+        self.energy_cache = ker.eqLineGD(self.data_ptr, int(max_iterations))
+        end_t = time.perf_counter()
+        elapse_t = end_t - start_t
+        return elapse_t
+
     def energyLandscapeAlongGradient(self, max_stepsize: float, n: int):
         return ker.landscapeAlongGradient(self.data_ptr, max_stepsize, n)
 

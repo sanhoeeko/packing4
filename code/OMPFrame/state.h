@@ -33,7 +33,8 @@ struct State{
 
     State(int N);
     State(int N, int sibling);
-    State(int N, int sibling, VectorXf q, EllipseBoundary* b);
+    State(int N, int sibling, EllipseBoundary* b);
+    State(int N, int sibling, EllipseBoundary* b, VectorXf q);
     void clearCache();
     void randomInitStateCC();
     float initAsDisks(int max_iterations);
@@ -44,6 +45,7 @@ struct State{
     void crashIfDataInvalid();
     float equilibriumGD(int max_iterations);
     float eqLineGD(int max_iterations);
+    float eqLBFGS(int max_iterations);
 
     Grid* GridLocate();
     PairInfo* CollisionDetect();

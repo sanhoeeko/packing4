@@ -33,7 +33,7 @@ vector<float> landscapeAlong(State* s, VectorXf& g, float max_stepsize, int samp
 
 vector<float> _landscapeAlongGradient(State* s, float max_stepsize, int samples) 
 {
-    VectorXf gradient = s->CalGradient<Normal>();
+    VectorXf gradient = normalize(s->CalGradient<Normal>());
     return landscapeAlong(s, gradient, max_stepsize, samples);
 }
 
@@ -46,7 +46,7 @@ vector<vector<float>> _landscapeOnGradientSections(State* s, float max_stepsize,
 {
     vector<vector<float>> res; res.reserve(2 * samples + 1);
     float d_stepsize = max_stepsize / samples;
-    VectorXf g = s->CalGradient<Normal>();
+    VectorXf g = normalize(s->CalGradient<Normal>());
     VectorXf u = randomUnitVector(s->N);
     State* s_temp = new State(s->N);
     s_temp->boundary = s->boundary;

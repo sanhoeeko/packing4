@@ -73,8 +73,6 @@ def landscape2d(state, ss, n_samples):
 # Hertzian example: qxpp
 # Screened Coulomb example: 356v
 
-dataset = DataSet.loadFrom('data/356v.h5')
-state = dataset.critical(10000)
-ss = 6e-3
-n_samples = 10
-lineSearch1dTest(state, 1e-3, 100)
+dataset = DataSet.loadFrom('data/45cn.h5')
+state = dataset.critical(70000)
+lineSearch1dTest(state, 10, 400)

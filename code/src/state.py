@@ -146,6 +146,16 @@ class State:
         cs.load(self)
         return cs.simulator.meanContactZ()
 
+    @property
+    def finalStepSize(self):
+        from src.simulator import common_simulator as cs
+        cs.load(self)
+        try:
+            return cs.simulator.bestStepSize(10.0)
+        except:
+            return np.nan
+
+
     @staticmethod
     def distance(s1: 'State', s2: 'State'):
         dq = s2.xyt - s1.xyt

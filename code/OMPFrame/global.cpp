@@ -176,10 +176,16 @@ float equilibriumGD(void* state_ptr, int max_iterations)
     return s->equilibriumGD(max_iterations);
 }
 
-DLLEXPORT float eqLineGD(void* state_ptr, int max_iterations)
+float eqLineGD(void* state_ptr, int max_iterations)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
     return s->eqLineGD(max_iterations);
+}
+
+float eqLBFGS(void* state_ptr, int max_iterations)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    return s->eqLBFGS(max_iterations);
 }
 
 float fastPotential(float x, float y, float t)
@@ -278,13 +284,18 @@ float* getMirrorOf(float A, float B, float x, float y, float t)
 float testERoot(void* state_ptr, float max_stepsize)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
-    VectorXf g = s->CalGradient<Normal>();
-    return ERoot(s, g, max_stepsize).first;
+    VectorXf g = normalize(s->CalGradient<Normal>());
+    return ERoot(s, g, max_stepsize);
 }
 
 float testBestStepSize(void* state_ptr, float max_stepsize)
 {
-    State* s = reinterpret_cast<State*>(state_ptr);
-    VectorXf g = s->CalGradient<Normal>();
-    return BestStepSize(s, g, max_stepsize);
+    try {
+        State* s = reinterpret_cast<State*>(state_ptr);
+        VectorXf g = normalize(s->CalGradient<Normal>());
+        return BestStepSize(s, g, max_stepsize);
+    }
+    catch (int exception) {
+        return NAN;
+    }
 }

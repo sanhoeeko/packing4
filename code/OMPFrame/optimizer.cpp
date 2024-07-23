@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "optimizer.h"
+#include <random>
 
 float maxGradientAbs(VectorXf& g) {
     int n = g.size() / dof;
@@ -21,6 +22,10 @@ float Modify(VectorXf& g)
     float norm_g = g.norm();
     if(norm_g > 0) g /= norm_g;
     return res;
+}
+
+VectorXf normalize(const VectorXf& g) {
+    return g / g.norm();
 }
 
 struct StateLoader {
@@ -59,6 +64,7 @@ struct StateLoaderManager
         if (s->sibling_id < lst.size()) {
             if (lst[s->sibling_id] == NULL) {
                 lst[s->sibling_id] = new StateLoader(s);
+                return lst[s->sibling_id];
             }
             else {
                 return lst[s->sibling_id]->redefine(s);
@@ -96,40 +102,65 @@ static VectorXf polyFit(VectorXf& x, VectorXf& y, int deg) {
 }
 
 /*
-    Return: an array of length [samples + 1]
+    sample in a Gaussian distribution centered at a half of [max_stepsize]
+    Return: an array of length [samples]
 */
-static VectorXf landscape(State* s, VectorXf& g, float max_stepsize, int samples)
+static std::pair<VectorXf, VectorXf> landscape(State* s, VectorXf& g, float max_stepsize, int samples)
 {
     static StateLoaderManager slm;
-    VectorXf res(samples + 1);
-    float d_stepsize = max_stepsize / samples;
-    State* s_temp = slm.loader(s)->clear();
+    VectorXf xs(samples), ys(samples);
+    std::default_random_engine generator;
+    std::normal_distribution<float> distribution(max_stepsize / 2, max_stepsize / 2);
 
-    for (int i = 1; i < samples; i++) {
-        s_temp->descent(d_stepsize, g);
-        res[i] = s_temp->CalEnergy();
+    StateLoader* s_temp = slm.loader(s);
+    int cnt = 0;
+    int max_attemps = 12;
+    bool flag = false;
+
+    for (int i = 0; i < max_attemps; i++) {
+        try {
+            float d;
+            while (true) {
+                d = distribution(generator);
+                if (d > 0 && d < max_stepsize)break;
+            }
+            State* s_prime = s_temp->setDescent(d, g);
+            ys[cnt] = s_prime->CalEnergy();
+            // if the calculation of energy is successful
+            xs[cnt] = d;
+            cnt++;
+            if (cnt == samples) {
+                flag = true;
+                break;
+            }
+        }
+        catch (int exception) {
+            ;
+        }
     }
-    res[0] = 0;     // res[last] = ec
-    return res;     // for performance, the first and the last element is not calculated
+    if (!flag) {
+        // if there are too many fails
+        cout << "Fail to find the best step size." << endl;
+        throw 114514;
+    }
+    return {xs, ys};     // for performance, the first and the last element is not calculated
 }
 
 static float minimizeCubic(float a, float b, float c, float sc) {
     float
         p1 = -b / (3 * a),
         p2 = sqrt(b * b - 3 * a * c) / (3 * a),
-        root = p1 - p2;
-    if (root > 0 && root < sc) {
-        return root;
+        root[2] = { p1 - p2, p1 + p2 };
+    for (int i = 0; i < 2; i++) {
+        if (root[i] > 0 && root[i] < sc && 3 * a * root[i] + b > 0) return root[i];
     }
-    else {
-        return p1 + p2;
-    }
+    throw STEP_SIZE_TOO_SMALL;
 }
 
 /*
     Return: step size of the equal energy and its corresponding energy
 */
-std::pair<float, float> ERoot(State* s, VectorXf& g, float expected_stepsize) 
+float ERoot(State* s, VectorXf& g, float expected_stepsize) 
 {
     static StateLoaderManager slm;
     StateLoader* sl = slm.loader(s);
@@ -137,7 +168,7 @@ std::pair<float, float> ERoot(State* s, VectorXf& g, float expected_stepsize)
     float e_ref = s->CalEnergy();
     float e0 = sl->setDescent(s1, g)->CalEnergy() - e_ref;
     if (e0 < 0) {
-        return { -1.0f , e0};
+        throw STEP_SIZE_TOO_SMALL;
     }
     float e1;
     while (true) {
@@ -145,36 +176,17 @@ std::pair<float, float> ERoot(State* s, VectorXf& g, float expected_stepsize)
         e1 = sl->setDescent(s1, g)->CalEnergy() - e_ref;
         if (e1 < 0) break;
     }
-    float s0 = s1 * 2;
-    float sc = (e1 * s0 - e0 * s1) / (e1 - e0);
-    float sc_cache = 0;
-    float ec;
-    for (int i = 0; i < 8; i++) {   // usually done within 4 iterations
-        ec = sl->setDescent(sc, g)->CalEnergy() - e_ref;
-        if (abs(ec) < 1e-3 || abs(sc - sc_cache) < 1e-5) break;
-        if (ec * e1 > 0) {
-            s0 = sc; e0 = ec; 
-        }
-        else {
-            s1 = sc; e1 = ec;
-        }
-        sc_cache = sc;
-        sc = (e1 * s0 - e0 * s1) / (e1 - e0);
-    }
-    return { sc, ec };
+    return s1 * 1.5;
 }
 
 float BestStepSize(State* s, VectorXf& g, float max_stepsize) {
-    const int n_sample = 10;
-    float sc, ec;
-    std::tie(sc, ec) = ERoot(s, g, max_stepsize);
-    if (sc == -1.0f) {
-        return max_stepsize;    // directly descent
-    }
-    VectorXf ys = landscape(s, g, sc, n_sample); 
-    ys[ys.size() - 1] = ec;
-    vector<float> _xs = linspace_including_endpoint(0, sc, n_sample + 1);
-    VectorXf xs = Map<VectorXf>(_xs.data(), _xs.size());
+    const int n_sample = 12;
+    float sc = ERoot(s, g, max_stepsize);
+    VectorXf xs, ys;
+    std::tie(xs, ys) = landscape(s, g, sc, n_sample);
     VectorXf coeffs = polyFit(xs, ys, 3);
-    return minimizeCubic(coeffs[3], coeffs[2], coeffs[1], sc);
+    float bs = minimizeCubic(coeffs[3], coeffs[2], coeffs[1], sc);
+    if (bs < 1e-5) return 1e-5;
+    if (bs > sc) return sc;
+    return bs;
 }
