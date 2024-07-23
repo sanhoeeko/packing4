@@ -74,5 +74,5 @@ def landscape2d(state, ss, n_samples):
 # Screened Coulomb example: 356v
 
 dataset = DataSet.loadFrom('data/45cn.h5')
-state = dataset.critical(70000)
+state = dataset.critical(0.001)
 lineSearch1dTest(state, 10, 400)

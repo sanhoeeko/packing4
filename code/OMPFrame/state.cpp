@@ -224,7 +224,7 @@ float State::eqLineGD(int max_iterations)
 			break;
 		}
 		else {
-			if ((i + 1) % ENERGY_STRIDE == 0) {
+			if ((i + 1) % 10 == 0) {
 				float E = CalEnergy();
 				ge.push_back(E);
 				// energy criterion
@@ -239,7 +239,7 @@ float State::eqLineGD(int max_iterations)
 				current_min_energy = (current_min_energy + E) / 2;
 			}
 			try {
-				step_size = BestStepSize(this, g, 0.1);
+				step_size = BestStepSize(this, g, 1.0);
 			}
 			catch(int exception){
 				step_size = 1e-3;
@@ -252,49 +252,24 @@ float State::eqLineGD(int max_iterations)
 
 float State::eqLBFGS(int max_iterations)
 {
-	const int m = 10;							// determine the precision of the inverse Hessian
-	const float epsilon = 1e-3f;
-	const float a0 = 1e-4f;
+	const int m = 10;					// determine the precision of the inverse Hessian
+	const float step_size = 1e-3;
+	L_bfgs<m> lbfgs(this);
 
-	RollList<VectorXf, m> x, g, s, y;
-	RollList<float, m> a, b, rho;
-	a[0] = a0;
-	x[0] = configuration;
-	g[0] = CalGradient<Normal>();
+	ge.clear();
 
-	// for the first m steps, use the classical gradient descent method
-	for (int k = 0; k < m; k++) {
-		s[k] = a[k] * g[k];
-		x[k + 1] = x[k] + s[k]; 
-		this->configuration = x[k + 1]; clearCache();
-		g[k + 1] = this->CalGradient<Normal>();
-		y[k] = g[k + 1] - g[k];
-		rho[k] = 1.0f / y[k].dot(s[k]);
-	}
-
-	for (int k = 0; k < max_iterations; k++) {
-		// solve for the descent direction: z
-		VectorXf q = CalGradient<Normal>();
-		for (int i = k - 1; i >= k - m; i--) {
-			a[i] = rho[i] * s[i].dot(q);
-			q -= a[i] * y[i];
+	for (int i = 0; i < max_iterations; i++) {
+		VectorXf d = lbfgs.CalDirection(this, i);
+		descent(step_size, d);
+		lbfgs.update(this, i);
+		if ((i + 1) % ENERGY_STRIDE == 0) {
+			float E = CalEnergy();
+			ge.push_back(E);
+			// energy criterion
+			if (E < 5e-5) {
+				break;
+			}
 		}
-		VectorXf z = (s[k - 1].dot(y[k - 1]) / y[k - 1].dot(y[k - 1])) * q;
-		for (int i = k - m; i <= k - 1; i++) {
-			b[i] = rho[i] * y[i].dot(z);
-			z += (a[i] - b[i]) * s[i];
-		}
-		z /= z.norm();
-
-		// descent: use a fixed step size or line search
-		// and update the storage
-		float step_size = 1e-3;
-		s[k] = a[k] * g[k];
-		x[k + 1] = x[k] + s[k];
-		this->configuration = x[k + 1]; clearCache();
-		g[k + 1] = this->CalGradient<Normal>();
-		y[k] = g[k + 1] - g[k];
-		rho[k] = 1.0f / y[k].dot(s[k]);
 	}
 	return CalEnergy();
 }

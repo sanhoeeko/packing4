@@ -114,7 +114,7 @@ static std::pair<VectorXf, VectorXf> landscape(State* s, VectorXf& g, float max_
 
     StateLoader* s_temp = slm.loader(s);
     int cnt = 0;
-    int max_attemps = 12;
+    int max_attemps = 8;
     bool flag = false;
 
     for (int i = 0; i < max_attemps; i++) {
@@ -173,6 +173,7 @@ float ERoot(State* s, VectorXf& g, float expected_stepsize)
     float e1;
     while (true) {
         s1 /= 2;
+        if (s1 < 1e-5) throw STEP_SIZE_TOO_SMALL;
         e1 = sl->setDescent(s1, g)->CalEnergy() - e_ref;
         if (e1 < 0) break;
     }
@@ -180,7 +181,7 @@ float ERoot(State* s, VectorXf& g, float expected_stepsize)
 }
 
 float BestStepSize(State* s, VectorXf& g, float max_stepsize) {
-    const int n_sample = 12;
+    const int n_sample = 8;
     float sc = ERoot(s, g, max_stepsize);
     VectorXf xs, ys;
     std::tie(xs, ys) = landscape(s, g, sc, n_sample);
