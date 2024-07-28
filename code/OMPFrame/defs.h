@@ -24,7 +24,7 @@ using namespace Eigen;
 
 const float pi = 3.141592654;
 
-enum HowToCalGradient{ Normal, AsDisks, Test, HowToCalGradient_Count };
+enum HowToCalGradient{ Normal, AsDisks, LBFGS, Test, HowToCalGradient_Count };
 enum PotentialFunc{ Hertzian, ScreenedCoulomb, PotentialFunc_Count };
 enum HashFunc { _h2pi, _h4 };
 

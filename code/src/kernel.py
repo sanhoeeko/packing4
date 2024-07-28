@@ -60,6 +60,8 @@ class Kernel:
         self.dll.setStateData.argtypes = [ct.c_void_p, ct.c_void_p]
         self.dll.landscapeAlongGradient.argtypes = [ct.c_void_p, ct.c_float, ct.c_int]
         self.dll.landscapeAlongGradient.restype = ct.c_void_p
+        self.dll.landscapeLBFGS.argtypes = [ct.c_void_p, ct.c_float, ct.c_int]
+        self.dll.landscapeLBFGS.restype = ct.c_void_p
         self.dll.landscapeOnGradientSections.argtypes = [ct.c_void_p, ct.c_float, ct.c_int]
         self.dll.landscapeOnGradientSections.restype = ct.c_void_p
         self.dll.testERoot.argtypes = [ct.c_void_p, ct.c_float]
@@ -203,6 +205,9 @@ class Kernel:
 
     def landscapeAlongGradient(self, address, max_stepsize: float, n: int):
         return self.returnFixedArray(self.dll.landscapeAlongGradient, n)(address, max_stepsize, n)
+
+    def landscapeLBFGS(self, address, max_stepsize: float, n: int):
+        return self.returnFixedArray(self.dll.landscapeLBFGS, n)(address, max_stepsize, n)
 
     def landscapeOnGradientSections(self, address, max_stepsize: float, n: int):
         m = (2 * n + 1) * n

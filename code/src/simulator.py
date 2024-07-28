@@ -196,6 +196,9 @@ class Simulator:
     def energyLandscapeAlongGradient(self, max_stepsize: float, n: int):
         return ker.landscapeAlongGradient(self.data_ptr, max_stepsize, n)
 
+    def energyLandscapeLBFGS(self, max_stepsize: float, n: int):
+        return ker.landscapeLBFGS(self.data_ptr, max_stepsize, n)
+
     def energyLandscapeOnGradientSections(self, max_stepsize: float, n: int):
         return ker.landscapeOnGradientSections(self.data_ptr, max_stepsize, n)
 

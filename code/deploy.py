@@ -155,6 +155,7 @@ def main():
 
 
 if __name__ == '__main__':
+    os.chdir(os.path.dirname(__file__))
     while True:
         p = Process(target=main)
         p.start()

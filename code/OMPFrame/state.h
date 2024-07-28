@@ -53,8 +53,10 @@ struct State{
     float meanDistance();
     float meanContactZ();
 
+    VectorXf LbfgsDirection(int iterations);
     template<HowToCalGradient how> VectorXf CalGradient() 
     {
         return this->CollisionDetect()->CalGradient<how>()->join();
-    };
+    }
+    template<> VectorXf CalGradient<LBFGS>();
 };

@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 
 import src.utils as ut
+import src.art as art
 from src.myio import DataSet
 from src.render import StateRenderer
 
@@ -61,6 +62,7 @@ class InteractiveViewer:
 
 
 if __name__ == '__main__':
-    ds = DataSet.loadFrom('aj7r.h5')
-    iv = InteractiveViewer(ds, RenderPipe(StateRenderer.gradamp), True)
-    iv.show()
+    ds = DataSet.loadFrom('../data.h5')
+    # iv = InteractiveViewer(ds, RenderPipe(StateRenderer.gradamp), True)
+    # iv.show()
+    art.plotListOfArray(ds.descentCurves)

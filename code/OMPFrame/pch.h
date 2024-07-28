@@ -50,6 +50,7 @@ DLLEXPORT int getPotentialId();
 
 // analysis
 DLLEXPORT float* landscapeAlongGradient(void* state_ptr, float max_stepsize, int samples);
+DLLEXPORT float* landscapeLBFGS(void* state_ptr, float max_stepsize, int samples);
 DLLEXPORT float* landscapeOnGradientSections(void* state_ptr, float max_stepsize, int samples);
 
 // test of algorithms

@@ -211,6 +211,7 @@ float State::eqLineGD(int max_iterations)
 	*/
 	float current_min_energy = CalEnergy();
 	float step_size = 1e-3;
+	int turns_of_criterion = 0;
 
 	ge.clear();
 
@@ -232,17 +233,21 @@ float State::eqLineGD(int max_iterations)
 					break;
 				}
 				// step size (descent speed) criterion
-				else if (abs(1 - E / current_min_energy) < 1e-4) {
-					break;
+				else if (abs(1 - E / current_min_energy) < 1e-6) {
+					turns_of_criterion++;
+					if (turns_of_criterion >= 10)break;
+				}
+				else {
+					turns_of_criterion = 0;
 				}
 				// moving average
 				current_min_energy = (current_min_energy + E) / 2;
 			}
 			try {
-				step_size = BestStepSize(this, g, 1.0);
+				step_size = BestStepSize(this, g, 0.1);
 			}
-			catch(int exception){
-				step_size = 1e-3;
+			catch(int exception){  // exception == STEP_SIZE_TOO_SMALL
+				step_size = 1e-2;
 			}
 			descent(step_size, g);
 		}
@@ -311,3 +316,24 @@ float State::meanContactZ()
 {
 	return this->CollisionDetect()->contactNumberZ() / (float)N;
 }
+
+VectorXf State::LbfgsDirection(int iterations)
+{
+	const int m = 10;					// determine the precision of the inverse Hessian
+	const float step_size = 1e-3;
+	L_bfgs<m> lbfgs(this);
+	StateLoader sl(this); sl.clear();
+
+	VectorXf d(N);
+	for (int i = 0; i < iterations; i++) {
+		d = lbfgs.CalDirection(sl.s_temp, i);
+		lbfgs.update(sl.setDescent(step_size, d), i);
+	}
+	d = lbfgs.CalDirection(sl.s_temp, iterations);
+	return d;
+}
+
+template<> VectorXf State::CalGradient<LBFGS>()
+{
+	return this->LbfgsDirection(20);
+};

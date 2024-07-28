@@ -41,7 +41,7 @@ def rebootExample():
     state.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
 
     for i in range(1000):
-        if state.density > 1.2: break
+        if state.density > 0.8: break
         state.compress()
         dt = state.equilibriumGD(1e6)
         s = state.get()

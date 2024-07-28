@@ -28,30 +28,7 @@ VectorXf normalize(const VectorXf& g) {
     return g / g.norm();
 }
 
-struct StateLoader {
-    State* s_ref;
-    State* s_temp;
 
-    StateLoader(State* s) {
-        s_ref = s;
-        s_temp = new State(s->N);
-        s_temp->boundary = s->boundary;
-    }
-    StateLoader* redefine(State* s) {
-        s_ref = s;
-        s_temp->boundary = s_ref->boundary;
-        return this;
-    }
-    State* clear() {
-        s_temp->loadFromData(s_ref->configuration.data());
-        return s_temp;
-    }
-    State* setDescent(float a, VectorXf& g) {
-        clear();
-        s_temp->descent(a, g);
-        return s_temp;
-    }
-};
 
 /*
     Reuse state loaders to prevent memory leakage.
@@ -114,7 +91,7 @@ static std::pair<VectorXf, VectorXf> landscape(State* s, VectorXf& g, float max_
 
     StateLoader* s_temp = slm.loader(s);
     int cnt = 0;
-    int max_attemps = 8;
+    int max_attemps = 5;
     bool flag = false;
 
     for (int i = 0; i < max_attemps; i++) {
@@ -181,7 +158,7 @@ float ERoot(State* s, VectorXf& g, float expected_stepsize)
 }
 
 float BestStepSize(State* s, VectorXf& g, float max_stepsize) {
-    const int n_sample = 8;
+    const int n_sample = 5;
     float sc = ERoot(s, g, max_stepsize);
     VectorXf xs, ys;
     std::tie(xs, ys) = landscape(s, g, sc, n_sample);
@@ -190,4 +167,31 @@ float BestStepSize(State* s, VectorXf& g, float max_stepsize) {
     if (bs < 1e-5) return 1e-5;
     if (bs > sc) return sc;
     return bs;
+}
+
+StateLoader::StateLoader(State* s)
+{
+    s_ref = s;
+    s_temp = new State(s->N);
+    s_temp->boundary = s->boundary;
+}
+
+StateLoader* StateLoader::redefine(State* s)
+{
+    s_ref = s;
+    s_temp->boundary = s_ref->boundary;
+    return this;
+}
+
+State* StateLoader::clear()
+{
+    s_temp->loadFromData(s_ref->configuration.data());
+    return s_temp;
+}
+
+State* StateLoader::setDescent(float a, VectorXf& g)
+{
+    clear();
+    s_temp->descent(a, g);
+    return s_temp;
 }

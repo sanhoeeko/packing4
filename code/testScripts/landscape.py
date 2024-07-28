@@ -69,10 +69,26 @@ def landscape2d(state, ss, n_samples):
     plt.show()
 
 
+def lineSearch1dTestLbfgs(state, max_stepsize, n_samples):
+    cs.load(state)
+    sc = cs.simulator.ERoot(max_stepsize)
+    best_ss = cs.simulator.bestStepSize(max_stepsize)
+
+    ys = cs.simulator.energyLandscapeLBFGS(sc, n_samples)
+    xs = np.linspace(0, sc, n_samples + 1)[1:]
+    fitted_func = np.poly1d(np.polyfit(xs, ys, deg=3))
+    y_pred = np.vectorize(fitted_func)(xs)
+
+    plt.scatter(xs, ys, marker='.')
+    plt.plot(xs, y_pred, c='orange')
+    plt.axvline(x=best_ss, color='red')
+    plt.show()
+
+
 # for n=6, d=0.05,
 # Hertzian example: qxpp
 # Screened Coulomb example: 356v
 
-dataset = DataSet.loadFrom('data/45cn.h5')
+dataset = DataSet.loadFrom('data0/45cn.h5')
 state = dataset.critical(0.001)
-lineSearch1dTest(state, 10, 400)
+lineSearch1dTestLbfgs(state, 10, 400)

@@ -15,6 +15,16 @@ VectorXf normalize(const VectorXf& g);
 float ERoot(State* s, VectorXf& g, float expected_stepsize);
 float BestStepSize(State* s, VectorXf& g, float max_stepsize);
 
+struct StateLoader {
+    State* s_ref;
+    State* s_temp;
+
+    StateLoader(State* s);
+    StateLoader* redefine(State* s);
+    State* clear();
+    State* setDescent(float a, VectorXf& g);
+};
+
 template<int m>
 struct L_bfgs {
     RollList<VectorXf, m> x, g, s, y;

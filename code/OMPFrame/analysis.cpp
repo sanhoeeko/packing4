@@ -31,12 +31,6 @@ vector<float> landscapeAlong(State* s, VectorXf& g, float max_stepsize, int samp
     return res;
 }
 
-vector<float> _landscapeAlongGradient(State* s, float max_stepsize, int samples) 
-{
-    VectorXf gradient = normalize(s->CalGradient<Normal>());
-    return landscapeAlong(s, gradient, max_stepsize, samples);
-}
-
 /*
     make a 2D energy landscape on a random section,
     one direction of which is the gradient.

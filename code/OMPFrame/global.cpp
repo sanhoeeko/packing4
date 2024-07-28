@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "global.h"
+#include "analysis.h"
+#include "optimizer.h"
 
 Global* global;
 
@@ -112,7 +114,8 @@ int getPotentialId()
     return global->pf;
 }
 
-float* landscapeAlongGradient(void* state_ptr, float max_stepsize, int samples)
+template<HowToCalGradient how>
+float* landscapeAlongGradient_helper(void* state_ptr, float max_stepsize, int samples)
 {
     static float* res = NULL;
     if (res) {
@@ -120,9 +123,19 @@ float* landscapeAlongGradient(void* state_ptr, float max_stepsize, int samples)
     }
     res = new float[samples];
     State* s = reinterpret_cast<State*>(state_ptr);
-    vector<float> energies = _landscapeAlongGradient(s, max_stepsize, samples);
+    vector<float> energies = _landscapeAlongGradient<how>(s, max_stepsize, samples);
     memcpy(res, energies.data(), samples * sizeof(float));
     return res;
+}
+
+float* landscapeAlongGradient(void* state_ptr, float max_stepsize, int samples) 
+{
+    return landscapeAlongGradient_helper<Normal>(state_ptr, max_stepsize, samples);
+}
+
+float* landscapeLBFGS(void* state_ptr, float max_stepsize, int samples)
+{
+    return landscapeAlongGradient_helper<LBFGS>(state_ptr, max_stepsize, samples);
 }
 
 float* landscapeOnGradientSections(void* state_ptr, float max_stepsize, int samples)
