@@ -25,7 +25,9 @@ float Modify(VectorXf& g)
 }
 
 VectorXf normalize(const VectorXf& g) {
-    return g / g.norm();
+    float norm_g = g.norm();
+    if (norm_g > 0) return g / norm_g;
+    return g;
 }
 
 

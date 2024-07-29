@@ -108,21 +108,8 @@ void State::loadFromData(float* data_src)
 	clearCache();
 }
 
-bool isnan(xyt& q) {
-	return isnan(q.x) || isnan(q.y) || isnan(q.t);
-}
-
-bool isinf(xyt& q) {
-	return isinf(q.x) || isinf(q.y) || isinf(q.t);
-}
-
-
 bool outside(xyt& q, float Xmax, float Ymax) {
 	return abs(q.x) > Xmax || abs(q.y) > Ymax;
-}
-
-string toString(xyt& q) {
-	return "(" + to_string(q.x) + ", " + to_string(q.y) + ", " + to_string(q.t) + ")";
 }
 
 string toString(EllipseBoundary* eb) {
@@ -258,16 +245,22 @@ float State::eqLineGD(int max_iterations)
 float State::eqLBFGS(int max_iterations)
 {
 	const int m = 10;					// determine the precision of the inverse Hessian
-	const float step_size = 1e-3;
+	float step_size = 1e-3;
 	L_bfgs<m> lbfgs(this);
-
+	
 	ge.clear();
 
 	for (int i = 0; i < max_iterations; i++) {
 		VectorXf d = lbfgs.CalDirection(this, i);
+		try {
+			step_size = BestStepSize(this, d, 0.1);
+		}
+		catch (int exception) {  // exception == STEP_SIZE_TOO_SMALL
+			step_size = 1e-2;
+		}
 		descent(step_size, d);
 		lbfgs.update(this, i);
-		if ((i + 1) % ENERGY_STRIDE == 0) {
+		if ((i + 1) % 100 == 0) {
 			float E = CalEnergy();
 			ge.push_back(E);
 			// energy criterion

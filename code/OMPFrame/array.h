@@ -7,3 +7,8 @@ using namespace std;
 
 vector<float> linspace(float start, float stop, int size);
 vector<float> linspace_including_endpoint(float start, float stop, int size);
+
+bool isnan(xyt& q);
+bool isinf(xyt& q);
+string toString(xyt& q);
+void nanCheck(const VectorXf& v);

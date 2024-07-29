@@ -20,3 +20,26 @@ vector<float> linspace_including_endpoint(float start, float stop, int size) {
     float step = (stop - start) / (size - 1);
     return arange(start, stop + step, step);
 }
+
+bool isnan(xyt& q) {
+    return isnan(q.x) || isnan(q.y) || isnan(q.t);
+}
+
+bool isinf(xyt& q) {
+    return isinf(q.x) || isinf(q.y) || isinf(q.t);
+}
+
+string toString(xyt& q) {
+    return "(" + to_string(q.x) + ", " + to_string(q.y) + ", " + to_string(q.t) + ")";
+}
+
+void nanCheck(const VectorXf& v) {
+    int N = v.size() / 4;
+    xyt* ptr = (xyt*)v.data();
+    for (int i = 0; i < N; i++) {
+        if (isnan(ptr[i]) || isinf(ptr[i])) {
+            cout << "(**nan check**) Nan data: " << toString(ptr[i]) << endl;
+            throw 0x0d000721;
+        }
+    }
+}

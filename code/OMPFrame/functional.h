@@ -100,9 +100,8 @@ struct D4ScalarFunc
 template<typename ty, int m>
 struct RollList {
     ty data[m];
-    int shift = 0;
 
     ty& operator[](int idx) {
-        return data[(idx + shift) % m];
+        return data[idx % m];
     }
 };

@@ -49,18 +49,20 @@ template<int m>
 inline void L_bfgs<m>::update(State* state, int k)
 {
     /*
-        Readonly: do not change state in this function!
+        Readonly: do not change the state in this function!
     */
+    const float e = 1e-6f;  // to avoid the denominator being zero
     x[k + 1] = state->configuration;
     s[k] = x[k + 1] - x[k];
     g[k + 1] = state->CalGradient<Normal>();
     y[k] = g[k + 1] - g[k];
-    rho[k] = 1.0f / y[k].dot(s[k]);
+    rho[k] = 1.0f / (y[k].dot(s[k]) + e);
 }
 
 template<int m>
 inline VectorXf L_bfgs<m>::CalDirection(State* state, int k)
 {
+    const float e = 1e-6f;  // to avoid the denominator being zero
     if (k < m) {
         return normalize(state->CalGradient<Normal>());
     }
@@ -71,7 +73,7 @@ inline VectorXf L_bfgs<m>::CalDirection(State* state, int k)
             a[i] = rho[i] * s[i].dot(q);
             q -= a[i] * y[i];
         }
-        VectorXf z = (s[k - 1].dot(y[k - 1]) / y[k - 1].dot(y[k - 1])) * q;
+        VectorXf z = (s[k - 1].dot(y[k - 1]) / (y[k - 1].dot(y[k - 1]) + e)) * q;
         for (int i = k - m; i <= k - 1; i++) {
             b[i] = rho[i] * y[i].dot(z);
             z += (a[i] - b[i]) * s[i];
