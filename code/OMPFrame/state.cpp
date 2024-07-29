@@ -164,7 +164,7 @@ float State::equilibriumGD(int max_iterations)
 		float gm = Modify(g);
 
 		// gradient criterion
-		if (gm < 1e-2) {	
+		if (gm < 1e-1) {	
 			break;
 		}
 		else {
@@ -177,7 +177,7 @@ float State::equilibriumGD(int max_iterations)
 				}
 				// step size (descent speed) criterion
 				else if (abs(1 - E / current_min_energy) < 1e-4) {
-					step_size *= 0.8;			// log(0.8)(0.1) ~ 10
+					step_size *= 0.5;										// log(0.8)(0.1) ~ 10
 					if (step_size < 1e-5) {
 						break;
 					}
@@ -208,7 +208,7 @@ float State::eqLineGD(int max_iterations)
 		float gm = Modify(g);
 
 		// gradient criterion
-		if (gm < 1e-2) {
+		if (gm < 1e-1) {
 			break;
 		}
 		else {
@@ -220,7 +220,7 @@ float State::eqLineGD(int max_iterations)
 					break;
 				}
 				// step size (descent speed) criterion
-				else if (abs(1 - E / current_min_energy) < 1e-6) {
+				else if (abs(1 - E / current_min_energy) < 1e-3) {
 					turns_of_criterion++;
 					if (turns_of_criterion >= 10)break;
 				}
@@ -244,8 +244,10 @@ float State::eqLineGD(int max_iterations)
 
 float State::eqLBFGS(int max_iterations)
 {
-	const int m = 10;					// determine the precision of the inverse Hessian
+	const int m = 4;					// determine the precision of the inverse Hessian
 	float step_size = 1e-3;
+	float current_min_energy = CalEnergy();
+	int turns_of_criterion = 0;
 	L_bfgs<m> lbfgs(this);
 	
 	ge.clear();
@@ -260,13 +262,23 @@ float State::eqLBFGS(int max_iterations)
 		}
 		descent(step_size, d);
 		lbfgs.update(this, i);
-		if ((i + 1) % 100 == 0) {
+		if ((i + 1) % 10 == 0) {
 			float E = CalEnergy();
 			ge.push_back(E);
 			// energy criterion
 			if (E < 5e-5) {
 				break;
 			}
+			// step size (descent speed) criterion
+			else if (abs(1 - E / current_min_energy) < 1e-2) {
+				turns_of_criterion++;
+				if (turns_of_criterion >= 10)break;
+			}
+			else {
+				turns_of_criterion = 0;
+			}
+			// moving average
+			current_min_energy = (current_min_energy + E) / 2;
 		}
 	}
 	return CalEnergy();
@@ -312,7 +324,7 @@ float State::meanContactZ()
 
 VectorXf State::LbfgsDirection(int iterations)
 {
-	const int m = 10;					// determine the precision of the inverse Hessian
+	const int m = 4;					// determine the precision of the inverse Hessian
 	const float step_size = 1e-3;
 	L_bfgs<m> lbfgs(this);
 	StateLoader sl(this); sl.clear();
