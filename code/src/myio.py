@@ -72,8 +72,13 @@ class DataSet:
             dic[k] = h5_file_handle[key].attrs[k]
         return State.load(configuration, self.metadata, dic)
 
+    @property
+    def data_length(self):
+        with h5py.File(self.filename, 'r') as f:
+            return len(f.keys())
+
     @classmethod
-    def loadFrom(cls, filename):
+    def loadFrom(cls, filename):  # this method loads ALL data!
         obj = cls(filename, dict())
         with h5py.File(filename, 'r') as f:
             for key in f.attrs.keys():
@@ -105,6 +110,10 @@ class DataSet:
     # Analysis Methods
 
     @property
+    def gamma(self):
+        return 1 + (self.n - 1) * self.d / 2
+
+    @property
     def rho0(self):
         return self.data_head.rho
 
@@ -119,7 +128,8 @@ class DataSet:
     @lru_cache(maxsize=None)
     def curveTemplate(self, prop: str):
         # parallel calculation will cause a crash??
-        return np.array(ut.Map('Debug')(lambda state: getattr(state, prop), self.data))
+        parallel_mode = 'Debug' if prop in ['meanDistance', 'meanZ', 'finalStepSize'] else 'Release'
+        return np.array(ut.Map(parallel_mode)(lambda state: getattr(state, prop), self.data))
 
     @property
     def rhos(self):
@@ -135,9 +145,11 @@ class DataSet:
         """
         dic = {
             'id': self.id,
-            **self.metadata,
+            'length': self.data_length,
+            'gamma': self.gamma,
             'rho0': self.rho0,
             'Gamma0': self.Gamma0,
+            **self.metadata,
         }
         return pd.DataFrame([dic])
 

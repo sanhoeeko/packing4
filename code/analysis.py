@@ -1,10 +1,76 @@
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 from matplotlib.widgets import Slider
+from scipy.interpolate import CubicSpline
 
-import src.utils as ut
 import src.art as art
+import src.utils as ut
 from src.myio import DataSet
 from src.render import StateRenderer
+
+
+class CurveManager:
+    def __init__(self, abstract: pd.DataFrame, xs: list[np.ndarray], data: list[np.ndarray]):
+        self.abstract = abstract
+        self.original_xs = xs
+        self.original_data = data
+        self._xs = None
+        self._curves = None
+
+    @classmethod
+    def derived(cls, abstract: pd.DataFrame, xs: np.ndarray, curves: np.ndarray):
+        obj = cls(abstract, None, None)
+        obj._xs = xs
+        obj._curves = curves
+        return obj
+
+    @property
+    def xs(self):
+        dx = 1e-4
+        if self._xs is not None:
+            return self._xs
+        min_x = min([x.min() for x in self.original_xs])
+        max_x = max([x.max() for x in self.original_xs])
+        return np.arange(min_x, max_x, dx)
+
+    @property
+    def curves(self):
+        if self._curves is not None:
+            return self._curves
+        interpolated_data = []
+        for x, y in zip(self.original_xs, self.original_data):
+            cs = CubicSpline(x, y, extrapolate=False)
+            new_y = cs(self.xs)
+            interpolated_data.append(new_y)
+        return np.array(interpolated_data)
+
+    def _averageBy(self, merge_list: list[tuple[int]]) -> np.ndarray:
+        new_curves = []
+        std_vars = []
+        for merge in merge_list:
+            curve_slice = np.array([self.curves[i] for i in merge])
+            ave_curve = np.nanmean(curve_slice, axis=0)
+            diff = curve_slice - ave_curve.reshape(1, -1)
+            std = np.linalg.norm(np.nan_to_num(diff)) / np.sqrt(np.sum(~np.isnan(diff)))
+            new_curves.append(ave_curve)
+            std_vars.append(std)
+        print(f'Estimated standard deviation: {np.mean(std_vars)}')
+        return np.array(new_curves)
+
+    def average(self, props: str) -> 'CurveManager':
+        # 'props' should be interpreted as a list[str]
+        props = list(map(lambda x: x.strip(' '), props[1:-1].split(',')))
+        return CurveManager.derived(
+            ut.groupAndMergeRows(self.abstract, props), self.xs,
+            self._averageBy(ut.indicesOfTheSame(self.abstract, props))
+        )
+
+    def __str__(self):
+        for curve in self.curves:
+            plt.plot(self.xs, curve)
+        plt.show()
+        return f'<CurveManager of {len(self.curves)} curve(s).>'
 
 
 class RenderPipe:
@@ -63,6 +129,5 @@ class InteractiveViewer:
 
 if __name__ == '__main__':
     ds = DataSet.loadFrom('../data.h5')
-    # iv = InteractiveViewer(ds, RenderPipe(StateRenderer.gradamp), True)
-    # iv.show()
+    # InteractiveViewer(ds, RenderPipe(StateRenderer.gradamp), True).show()
     art.plotListOfArray(ds.descentCurves)

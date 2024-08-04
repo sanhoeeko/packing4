@@ -78,6 +78,82 @@ inline VectorXf L_bfgs<m>::CalDirection(State* state, int k)
             b[i] = rho[i] * y[i].dot(z);
             z += (a[i] - b[i]) * s[i];
         }
-        return normalize(z);
+        return z;
     }
+}
+
+template<bool enable_line_search, bool enable_lbfgs>
+inline float State::equilibrium(int max_iterations, float min_energy_slope)
+{
+    /*
+        use `ge` as max gradient energies
+    */
+    float current_min_energy = CalEnergy();
+    float step_size = enable_lbfgs ? 5e-3 : 1e-3;
+    int turns_of_criterion = 0;
+
+    const int m = 4;					// determine the precision of the inverse Hessian
+    L_bfgs<m>* lbfgs = NULL;
+    if constexpr (enable_lbfgs)lbfgs = new L_bfgs<m>(this);
+
+    int energy_stride = (enable_line_search || enable_lbfgs) ? 10 : 1000;
+
+    for (int i = 0; i < max_iterations; i++)
+    {
+        VectorXf g;
+        // calculate the direction of descent
+        if constexpr (enable_lbfgs) {
+            g = lbfgs->CalDirection(this, i);
+        }
+        else {
+            g = CalGradient<Normal>();
+        }
+        float gm = Modify(g);
+        // gradient criterion
+        if (gm < 1e-1) break;
+
+        // calculate the step size
+        if constexpr (enable_line_search) {
+            try {
+                step_size = BestStepSize(this, g, 0.1f);
+            }
+            catch (int exception) {  // exception == STEP_SIZE_TOO_SMALL
+                step_size = 1e-2f;
+            }
+        }
+        // descent
+        descent(step_size, g);
+        if constexpr (enable_lbfgs)lbfgs->update(this, i);
+
+        // other criteria
+        if ((i + 1) % energy_stride == 0) {
+            float E = CalEnergy();
+            ge.push_back(E);
+            // energy criterion
+            if (E < 1e-3) {
+                break;
+            }
+            // step size (descent speed) criterion
+            if (abs(1 - E / current_min_energy) < min_energy_slope) {
+                if constexpr (enable_line_search) {
+                    turns_of_criterion++;
+                    if (turns_of_criterion >= 10)break;
+                }
+                else {
+                    turns_of_criterion++;
+                    if (turns_of_criterion >= 4) {
+                        step_size *= 0.6;
+                        turns_of_criterion = 0;
+                        if (step_size < 1e-4)break;
+                    }
+                }
+            }
+            // moving average
+            if (E < current_min_energy) {
+                current_min_energy = (current_min_energy + E) / 2;
+            }
+        }
+    }
+    if constexpr (enable_lbfgs)delete lbfgs;
+    return CalEnergy();
 }

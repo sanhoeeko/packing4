@@ -57,6 +57,8 @@ class Kernel:
         self.dll.eqLineGD.restype = ct.c_float
         self.dll.eqLBFGS.argtypes = [ct.c_void_p, ct.c_int]
         self.dll.eqLBFGS.restype = ct.c_float
+        self.dll.eqMix.argtypes = [ct.c_void_p, ct.c_int]
+        self.dll.eqMix.restype = ct.c_float
         self.dll.setStateData.argtypes = [ct.c_void_p, ct.c_void_p]
         self.dll.landscapeAlongGradient.argtypes = [ct.c_void_p, ct.c_float, ct.c_int]
         self.dll.landscapeAlongGradient.restype = ct.c_void_p
@@ -199,6 +201,9 @@ class Kernel:
 
     def eqLBFGS(self, address, max_iterations: int):
         return self.dll.eqLBFGS(address, max_iterations)
+
+    def eqMix(self, address, max_iterations: int):
+        return self.dll.eqMix(address, max_iterations)
 
     def setStateData(self, address, configuration: np.ndarray):
         return self.dll.setStateData(address, ut.ndarrayAddress(configuration.astype(np.float32)))

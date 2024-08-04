@@ -60,3 +60,9 @@ GradientBuffer* PairInfo::CalGradient()
     }
     return g_buffer.obj;
 }
+
+template<HowToCalGradient how>
+inline VectorXf State::CalGradient() {
+    // require: PairInto::CalGradient<how>
+    return this->CollisionDetect()->CalGradient<how>()->join();
+}

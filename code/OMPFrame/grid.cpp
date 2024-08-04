@@ -1,6 +1,6 @@
 #include"pch.h"
 #include"grid.h"
-
+#include"gradient.h"
 #include"state.h"
 #include <cassert>
 

@@ -29,6 +29,7 @@ DLLEXPORT void singleStep(void* state_ptr, int mode, float step_size);
 DLLEXPORT float equilibriumGD(void* state_ptr, int max_iterations);
 DLLEXPORT float eqLineGD(void* state_ptr, int max_iterations);
 DLLEXPORT float eqLBFGS(void* state_ptr, int max_iterations);
+DLLEXPORT float eqMix(void* state_ptr, int max_iterations);
 
 // fetching data
 DLLEXPORT void* getStateData(void* state_ptr);

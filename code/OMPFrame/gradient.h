@@ -1,7 +1,7 @@
 #pragma once
 
 #include"defs.h"
-#include "functional.h"
+#include"functional.h"
 #include<vector>
 
 using namespace std;

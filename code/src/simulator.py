@@ -80,13 +80,13 @@ class Simulator:
     def density(self):
         return self.N / (np.pi * self.A * self.B)
 
-    def initPotential(self, workers: int):
+    def initPotential(self, workers: int, save_data=True):
         potential_id = {
             "Hertzian": 0,
             "ScreenedCoulomb": 1,
         }[self.potential_name]
         ker.setEnums(potential_id)
-        return ker.setRod(self.n, self.d, workers)
+        return ker.setRod(self.n, self.d, workers, save_data)
 
     def get(self, record=True):
         s = State(
@@ -172,26 +172,24 @@ class Simulator:
 
         return inner
 
-    def equilibriumGD(self, max_iterations):
+    def equilibriumTemplate(self, method: str, max_iterations):
         start_t = time.perf_counter()
-        self.energy_cache = ker.equilibriumGD(self.data_ptr, int(max_iterations))
+        self.energy_cache = getattr(ker, method)(self.data_ptr, int(max_iterations))
         end_t = time.perf_counter()
         elapse_t = end_t - start_t
         return elapse_t
+
+    def equilibriumGD(self, max_iterations):
+        return self.equilibriumTemplate('equilibriumGD', max_iterations)
 
     def eqLineGD(self, max_iterations):
-        start_t = time.perf_counter()
-        self.energy_cache = ker.eqLineGD(self.data_ptr, int(max_iterations))
-        end_t = time.perf_counter()
-        elapse_t = end_t - start_t
-        return elapse_t
+        return self.equilibriumTemplate('eqLineGD', max_iterations)
 
     def eqLBFGS(self, max_iterations):
-        start_t = time.perf_counter()
-        self.energy_cache = ker.eqLBFGS(self.data_ptr, int(max_iterations))
-        end_t = time.perf_counter()
-        elapse_t = end_t - start_t
-        return elapse_t
+        return self.equilibriumTemplate('eqLBFGS', max_iterations)
+
+    def eqMix(self, max_iterations):
+        return self.equilibriumTemplate('eqMix', max_iterations)
 
     def energyLandscapeAlongGradient(self, max_stepsize: float, n: int):
         return ker.landscapeAlongGradient(self.data_ptr, max_stepsize, n)

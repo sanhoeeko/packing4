@@ -1,7 +1,9 @@
 #include "pch.h"
 #include "state.h"
-#include "potential.h"
 #include "optimizer.h"
+#include "potential.h"
+#include "grid.h"
+#include "gradient.h"
 
 float xyt::amp2(){
 	return x * x + y * y + t * t;
@@ -148,140 +150,29 @@ void State::crashIfDataInvalid()
 #endif
 }
 
+float State::eqMix(int max_iterations)
+{
+	ge.clear();
+	this->template equilibrium<false, true>(max_iterations, 0.4);
+	return this->template equilibrium<false, false>(max_iterations, 1e-3);
+}
+
 float State::equilibriumGD(int max_iterations)
 {
-	/*
-		use `ge` as max gradient energies
-	*/
-	float step_size = 1e-3;
-	float current_min_energy = CalEnergy();
-
 	ge.clear();
-
-	for (int i = 0; i < max_iterations; i++)
-	{
-		VectorXf g = CalGradient<Normal>();
-		float gm = Modify(g);
-
-		// gradient criterion
-		if (gm < 1e-1) {	
-			break;
-		}
-		else {
-			if ((i + 1) % ENERGY_STRIDE == 0) {
-				float E = CalEnergy();
-				ge.push_back(E);
-				// energy criterion
-				if (E < 5e-5) {
-					break;
-				}
-				// step size (descent speed) criterion
-				else if (abs(1 - E / current_min_energy) < 1e-4) {
-					step_size *= 0.5;										// log(0.8)(0.1) ~ 10
-					if (step_size < 1e-5) {
-						break;
-					}
-				}
-				// moving average
-				current_min_energy = (current_min_energy + E) / 2;
-			}
-			descent(step_size, g);
-		}
-	}
-	return CalEnergy();
+	return this->template equilibrium<false, false>(max_iterations, 1e-4);
 }
 
 float State::eqLineGD(int max_iterations)
 {
-	/*
-		use `ge` as max gradient energies
-	*/
-	float current_min_energy = CalEnergy();
-	float step_size = 1e-3;
-	int turns_of_criterion = 0;
-
 	ge.clear();
-
-	for (int i = 0; i < max_iterations; i++)
-	{
-		VectorXf g = CalGradient<Normal>();
-		float gm = Modify(g);
-
-		// gradient criterion
-		if (gm < 1e-1) {
-			break;
-		}
-		else {
-			if ((i + 1) % 10 == 0) {
-				float E = CalEnergy();
-				ge.push_back(E);
-				// energy criterion
-				if (E < 5e-5) {
-					break;
-				}
-				// step size (descent speed) criterion
-				else if (abs(1 - E / current_min_energy) < 1e-3) {
-					turns_of_criterion++;
-					if (turns_of_criterion >= 10)break;
-				}
-				else {
-					turns_of_criterion = 0;
-				}
-				// moving average
-				current_min_energy = (current_min_energy + E) / 2;
-			}
-			try {
-				step_size = BestStepSize(this, g, 0.1);
-			}
-			catch(int exception){  // exception == STEP_SIZE_TOO_SMALL
-				step_size = 1e-2;
-			}
-			descent(step_size, g);
-		}
-	}
-	return CalEnergy();
+	return this->template equilibrium<true, false>(max_iterations, 1e-3);
 }
 
 float State::eqLBFGS(int max_iterations)
 {
-	const int m = 4;					// determine the precision of the inverse Hessian
-	float step_size = 1e-3;
-	float current_min_energy = CalEnergy();
-	int turns_of_criterion = 0;
-	L_bfgs<m> lbfgs(this);
-	
 	ge.clear();
-
-	for (int i = 0; i < max_iterations; i++) {
-		VectorXf d = lbfgs.CalDirection(this, i);
-		try {
-			step_size = BestStepSize(this, d, 0.1);
-		}
-		catch (int exception) {  // exception == STEP_SIZE_TOO_SMALL
-			step_size = 1e-2;
-		}
-		descent(step_size, d);
-		lbfgs.update(this, i);
-		if ((i + 1) % 10 == 0) {
-			float E = CalEnergy();
-			ge.push_back(E);
-			// energy criterion
-			if (E < 5e-5) {
-				break;
-			}
-			// step size (descent speed) criterion
-			else if (abs(1 - E / current_min_energy) < 1e-2) {
-				turns_of_criterion++;
-				if (turns_of_criterion >= 10)break;
-			}
-			else {
-				turns_of_criterion = 0;
-			}
-			// moving average
-			current_min_energy = (current_min_energy + E) / 2;
-		}
-	}
-	return CalEnergy();
+	return this->template equilibrium<true, true>(max_iterations, 1e-2);
 }
 
 void _gridLocate(State* s, Grid* grid) {
@@ -337,8 +228,3 @@ VectorXf State::LbfgsDirection(int iterations)
 	d = lbfgs.CalDirection(sl.s_temp, iterations);
 	return d;
 }
-
-template<> VectorXf State::CalGradient<LBFGS>()
-{
-	return this->LbfgsDirection(20);
-};

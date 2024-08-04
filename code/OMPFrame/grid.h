@@ -2,7 +2,6 @@
 
 #include "defs.h"
 #include "vectorlist.h"
-#include "gradient.h"
 #include<vector>
 
 using namespace std;

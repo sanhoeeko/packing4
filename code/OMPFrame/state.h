@@ -1,9 +1,9 @@
 #pragma once
 
 #include"defs.h"
-#include"functional.h"
-#include"grid.h"
-#include"gradient.h"
+
+struct Grid; 
+struct PairInfo;
 
 struct EllipseBoundary {
     float a, b;
@@ -46,6 +46,7 @@ struct State{
     float equilibriumGD(int max_iterations);
     float eqLineGD(int max_iterations);
     float eqLBFGS(int max_iterations);
+    float eqMix(int max_iterations);
 
     Grid* GridLocate();
     PairInfo* CollisionDetect();
@@ -54,9 +55,11 @@ struct State{
     float meanContactZ();
 
     VectorXf LbfgsDirection(int iterations);
-    template<HowToCalGradient how> VectorXf CalGradient() 
-    {
-        return this->CollisionDetect()->CalGradient<how>()->join();
-    }
-    template<> VectorXf CalGradient<LBFGS>();
+    template<HowToCalGradient how> VectorXf CalGradient();
+    template<bool enable_line_search, bool enable_lbfgs> float equilibrium(int max_iterations, float min_energy_slope);
+};
+
+template<> inline VectorXf State::CalGradient<LBFGS>()
+{
+    return this->LbfgsDirection(20);
 };

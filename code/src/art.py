@@ -26,6 +26,20 @@ def plotListOfArray(lst: list[np.ndarray]):
     for i in range(len(lst)):
         plt.plot(lst[i], color=cmap(i), alpha=0.5)
     plt.show()
+    
+
+def plotListOfArray3d(lst: list[np.ndarray]):
+    n = max(map(len, lst))
+    m = len(lst)
+    mat = np.zeros((m, n))
+    for i in range(len(lst)):
+        mat[i, :len(lst[i])] = np.asarray(lst[i])
+    fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+    xs = np.arange(0, n)
+    ys = np.arange(0, m)
+    X, Y = np.meshgrid(xs, ys)
+    ax.plot_wireframe(X, Y, mat)
+    plt.show()
 
 
 class Capsule(patches.Patch):

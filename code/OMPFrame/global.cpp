@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "global.h"
+#include "gradient.h"
 #include "analysis.h"
 #include "optimizer.h"
 
@@ -199,6 +200,12 @@ float eqLBFGS(void* state_ptr, int max_iterations)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
     return s->eqLBFGS(max_iterations);
+}
+
+float eqMix(void* state_ptr, int max_iterations)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    return s->eqMix(max_iterations);
 }
 
 float fastPotential(float x, float y, float t)

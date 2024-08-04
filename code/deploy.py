@@ -21,8 +21,9 @@ class RandomStringGenerator:
         self.lock = threading.Lock()
 
     def generate(self):
+        pid_str = str(os.getpid())
         with self.lock:
-            return ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
+            return ''.join(random.choices(string.ascii_lowercase + string.digits, k=4)) + pid_str
 
 
 _random_string_generator = RandomStringGenerator()
@@ -89,7 +90,7 @@ class TaskHandle(simu.Simulator):
                 if self.density > 1.2:
                     break
                 self.compress()
-                dt = self.equilibriumGD(1e6)
+                dt = self.eqMix(4e5)
                 s = self.get()
                 density = self.density
                 its = self.iterationSteps()
@@ -113,7 +114,8 @@ class ExperimentsFixedParticleShape:
         self.initPotential()
 
     def initPotential(self):
-        self.tasks[0].initPotential(self.siblings * self.cores)
+        # do not save 4GB .dat file
+        self.tasks[0].initPotential(self.siblings * self.cores, save_data=False)
 
     def compress(self):
         return list(map(lambda x: x.compress(), self.tasks))

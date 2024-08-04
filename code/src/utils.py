@@ -109,6 +109,29 @@ def sortListByDataFrame(df, lst):
     return merged_df['object'].tolist()
 
 
+def indicesOfTheSame(df: pd.DataFrame, props: list[str]) -> list[tuple[int]]:
+    if not all(prop in df.columns for prop in props):
+        return None
+    return df.groupby(props).apply(lambda x: tuple(x.index)).tolist()
+
+
+def groupAndMergeRows(df: pd.DataFrame, keys: list[str]):
+    if not all(key in df.columns for key in keys):
+        return None
+
+    def merge_group(group):
+        merged_row = {}
+        for col in group.columns:
+            if group[col].nunique() == 1:
+                merged_row[col] = group[col].iloc[0]
+            else:
+                merged_row[col] = None
+        return merged_row
+
+    grouped = df.groupby(keys).apply(merge_group).reset_index(drop=True)
+    return grouped
+
+
 class CommandQueue:
     def __init__(self, current_obj):
         self.parameter_queue: list[str] = []

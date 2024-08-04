@@ -24,10 +24,10 @@ def simulationExample(method: str):
     state.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
     state.initPotential(4)
 
-    for i in range(1000):
+    for i in range(10000):
         if state.density > 0.8: break
         state.compress()
-        dt = getattr(state, method)(1e6)
+        dt = state.equilibriumTemplate(method, 1e6)
         s = state.get()
         density = state.density
         its = state.iterationSteps()
@@ -40,7 +40,7 @@ def rebootExample():
     q = 1 - 1e-2
     state.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
 
-    for i in range(1000):
+    for i in range(10000):
         if state.density > 0.8: break
         state.compress()
         dt = state.equilibriumGD(1e6)
@@ -52,4 +52,4 @@ def rebootExample():
 
 
 if __name__ == '__main__':
-    simulationExample('eqLineGD')
+    simulationExample('eqMix')

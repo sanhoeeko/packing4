@@ -7,10 +7,11 @@ import pandas as pd
 
 import src.art as art
 import src.utils as ut
-from analysis import InteractiveViewer, RenderPipe
+from analysis import InteractiveViewer, RenderPipe, CurveManager
 from src.myio import DataSet
 from src.render import StateRenderer
 from src.state import State
+
 
 # in PyCharm: File -> Settings -> Project -> Project Structure -> Add content root
 # delete the old root and add "/code" as a root
@@ -30,11 +31,11 @@ class DataViewer:
         df = pd.DataFrame()
         for d in self.datasets:
             df = pd.concat([df, d.toDataFrame()], ignore_index=True)
-        return df
+        return df.round(5)  # 5 digits, for comparison between floats
 
     @property
-    def abstract(self):
-        return self.sortedAbstract(('potential', 'n', 'Gamma0'))
+    def abstract(self) -> pd.DataFrame:
+        return self.sortedAbstract(('potential', 'gamma', 'n', 'Gamma0'))
 
     @lru_cache(maxsize=None)
     def sortedAbstract(self, props: tuple):
@@ -52,6 +53,10 @@ class DataViewer:
 
     def print(self):
         print(self.abstract)
+        return self
+
+    def printall(self):
+        print(self.abstract.to_string())
         return self
 
     def filter(self, key: str, value: str) -> 'DataViewer':
@@ -94,17 +99,15 @@ class DataViewer:
         return Y
 
     def initDensityCurveTemplates(self):
-        for prop in ['energy', 'logE', 'residualForce', 'globalS', 'globalSx']:
+        for prop in ['energy', 'logE', 'residualForce', 'globalS', 'globalSx',
+                     'meanDistance', 'meanZ', 'finalStepSize']:
             setattr(self, prop, self.curveVsDensityTemplate(prop))
 
     def all(self, prop):
+        curves = []
         for d in self.datasets:
-            y = d.curveTemplate(prop)
-            plt.plot(d.rhos, y)
-        plt.xlabel('number density')
-        plt.ylabel(prop)
-        plt.legend(list(map(lambda x: x.id, self.datasets)))
-        plt.show()
+            curves.append((d.rhos, d.curveTemplate(prop)))
+        return CurveManager(self.abstract, *list(zip(*curves)))
 
     def density(self, Id: str, density: float) -> State:
         density = float(density)
@@ -130,8 +133,8 @@ class DataViewer:
 
 def collectResultFiles(path: str):
     files = []
-    for pattern in [f'{path}/*.h5']:
-        files.extend(glob.glob(pattern))
+    for root, _, _ in os.walk(path):
+        files.extend(glob.glob(os.path.join(root, '*.h5')))
     return [os.path.abspath(file) for file in files]
 
 
