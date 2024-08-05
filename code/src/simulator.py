@@ -45,8 +45,8 @@ class BoundaryScheduler:
 
 class Simulator:
     def __init__(self, N, n, d, boundary_a, boundary_b, potential_name: str):
-        self.N = N
-        self.n, self.d = n, d
+        self.N = int(N)
+        self.n, self.d = int(n), d
         self.A, self.B = boundary_a, boundary_b
         self.potential_name = potential_name
         self.data_ptr = None

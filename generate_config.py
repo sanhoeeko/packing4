@@ -18,7 +18,7 @@ import json
 import re
 
 
-def sub_generate(gamma, n):
+def sub_generate_n(gamma, n):
     d = 2 * (gamma - 1) / (n - 1)
     return {
         "N": 1000,
@@ -30,14 +30,26 @@ def sub_generate(gamma, n):
         "SIBLINGS": 3
     }
 
+def sub_generate_d(gamma, d):
+    n = 1 + 2 * (gamma - 1) / d
+    return {
+        "N": 1000,
+        "n": n,
+        "d": d,
+        "phi0": 0.5,
+        "potential_name": "'ScreenedCoulomb'",
+        "Gammas": "[1.0, 1.0]",
+        "SIBLINGS": 2
+    }
+
 
 if __name__ == '__main__':
-    d_gamma = 0.125
+    d_gamma = 1.0 / 32
     dic = {}
     for gamma in np.arange(1 + d_gamma, 2 + d_gamma, d_gamma):
-        for n in [6, 11, 21, 41]:
-            folder = re.sub(r'\.', '_', f'g{gamma}n{n}')
-            dic[folder] = sub_generate(gamma, n)
+        d = 1.0 / 40
+        folder = re.sub(r'\.', '_', f'g{gamma}')
+        dic[folder] = sub_generate_d(gamma, d)
     with open('config.json', 'w') as w:
         json.dump(dic, w)
         
