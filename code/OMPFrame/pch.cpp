@@ -18,3 +18,18 @@ State* Global::newState(int N)
     global->states.push_back(state);
     return state;
 }
+
+void runTest()
+{
+    float q = 1 - 1e-3;
+    init();
+    setEnums(PotentialFunc::ScreenedCoulomb);
+    setRod(6, 0.05, 4);
+    State* state = (State*)createState(200, 20, 20);
+    initStateAsDisks(state);
+    for (int i = 0; i < 1000; i++) {
+        setBoundary(state, state->boundary->a, state->boundary->b * q);
+        float energy = eqMix(state, (int)4e5);
+        cout << "step: " << i << ", energy: " << energy << endl;
+    }
+}

@@ -65,4 +65,7 @@ DLLEXPORT float* getMirrorOf(float A, float B, float x, float y, float t);
 DLLEXPORT float testERoot(void* state_ptr, float max_stepsize);
 DLLEXPORT float testBestStepSize(void* state_ptr, float max_stepsize);
 
+// test in cpp
+void runTest();
+
 #endif //PCH_H

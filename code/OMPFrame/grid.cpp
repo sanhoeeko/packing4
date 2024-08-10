@@ -9,6 +9,7 @@ const int max_grid_size = 256 * 256;
 
 Grid::Grid() {
 	p = new VectorList<int, CORES, grid_single_capacity>[max_grid_size];
+	collision_detect_region = new int[4];
 	id = -1;
 }
 void Grid::init(float cell_size, float boundary_a, float boundary_b) {
@@ -26,7 +27,8 @@ void Grid::init(float cell_size, float boundary_a, float boundary_b) {
 	cols = 2 * xshift;
 	size = lines * cols;
 	assert(size < max_grid_size);
-	collision_detect_region = new int[4] {1 - cols, 1, 1 + cols, cols };
+	collision_detect_region[0] = 1 - cols; collision_detect_region[1] = 1;
+	collision_detect_region[2] = 1 + cols; collision_detect_region[3] = cols;
 	clear();
 }
 int Grid::xlocate(float x) {
