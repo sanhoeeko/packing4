@@ -37,6 +37,13 @@ class MergedGraph:
     def __init__(self, lst: list[set]):
         self.lst = lst
 
+    def free_memory(self):
+        del self.lst  # It's strange that this memory will not be free automatically.
+        del self
+
+    def neighborsOf(self, idx) -> set[int]:
+        return self.lst[idx]
+
     @lru_cache(maxsize=None)
     def neighborNums(self):
         # -1: itself is not a neighbor

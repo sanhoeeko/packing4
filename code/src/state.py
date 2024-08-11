@@ -3,7 +3,10 @@ from functools import lru_cache
 import numpy as np
 from scipy.spatial import Delaunay
 
-from src.graph import Graph
+import src.utils as ut
+from src.graph import Graph, MergedGraph
+
+bins_of_angle_dist = 90
 
 
 class RenderSetup:
@@ -47,6 +50,14 @@ class State:
         return self.N / (np.pi * self.A * self.B)
 
     @property
+    def phi(self):
+        return self.rho * (np.pi + 4 * (self.gamma - 1)) / self.gamma ** 2
+
+    @property
+    def gamma(self):
+        return 1 + (self.n - 1) * self.d / 2
+
+    @property
     def metadata(self):
         return {
             'id': self.id,
@@ -80,22 +91,24 @@ class State:
         obj.loadDataToKernel(self.xyt)
         return obj
 
-    @lru_cache(maxsize=None)
-    def toSites(self):
+    # @lru_cache(maxsize=None)  # DO NOT cache this! It will cause a memory leak.
+    def toSites(self, n=None):
         """
         convert each rod to disks
         """
+        n = self.n if n is None else n
         xy = np.array([self.x, self.y]).T
         uxy = np.array([np.cos(self.t), np.sin(self.t)]).T * self.d
         n_shift = -(self.n - 1) / 2.0
-        xys = [xy + (k + n_shift) * uxy for k in range(0, self.n)]
+        xys = [xy + (k + n_shift) * uxy for k in range(0, n)]
         return np.vstack(xys)
 
-    @lru_cache(maxsize=None)
-    def voronoiDiagram(self):
-        points = self.toSites()  # input of Delaunay is (n_point, n_dim)
+    # @lru_cache(maxsize=None)  # DO NOT cache this! It will cause a memory leak.
+    def voronoiDiagram(self, n=None) -> MergedGraph:
+        points = self.toSites(n)  # input of Delaunay is (n_point, n_dim)
         delaunay = Delaunay(points)
         voro_graph = Graph(len(points)).from_delaunay(delaunay.vertex_neighbor_vertices)
+        del points  # to cope with memory leak
         return voro_graph.merge(self.N)
 
     # analysis
@@ -155,8 +168,47 @@ class State:
         except:
             return np.nan
 
-
     @staticmethod
     def distance(s1: 'State', s2: 'State'):
         dq = s2.xyt - s1.xyt
         return np.sqrt(np.mean(dq ** 2))
+
+    # @lru_cache(maxsize=None)  # DO NOT cache this! It will cause a memory leak.
+    def S_field(self) -> np.ndarray:
+        def anglesOf(indices: set[int]):
+            return np.array([self.t[i] for i in indices])
+
+        def Q_ave(angles: np.ndarray):
+            c = np.cos(2 * angles)
+            s = np.sin(2 * angles)
+            n = len(angles)
+            Q = np.zeros((2, 2))
+            for i in range(n):
+                Q += np.array([[c[i], s[i]], [s[i], -c[i]]])
+            return Q / n
+
+        def eigenvalue(mat2):
+            return np.sqrt(-np.linalg.det(mat2))
+
+        v = self.voronoiDiagram(3)
+        s = np.zeros_like(self.x)
+        for i in range(self.N):
+            s[i] = eigenvalue(Q_ave(anglesOf(v.neighborsOf(i))))
+        v.free_memory()
+        return s
+
+    @property
+    def meanS(self):
+        s = self.S_field()
+        mean_s = np.mean(np.abs(s))
+        del s
+        return mean_s
+
+    @lru_cache(maxsize=None)
+    def angleDistribution(self):
+        return np.histogram(self.t, bins=bins_of_angle_dist, range=(0, np.pi))[0]
+
+    @property
+    def entropyOfAngle(self):
+        f = self.angleDistribution()
+        return ut.KDE_entropyOf(self.t)

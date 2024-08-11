@@ -7,7 +7,7 @@ import pandas as pd
 
 import src.art as art
 import src.utils as ut
-from analysis import InteractiveViewer, RenderPipe, CurveManager
+from analysis import InteractiveViewer, RenderPipe, CurveManager, AngleDist
 from src.myio import DataSet
 from src.render import StateRenderer
 from src.state import State
@@ -99,14 +99,14 @@ class DataViewer:
         return Y
 
     def initDensityCurveTemplates(self):
-        for prop in ['energy', 'logE', 'residualForce', 'globalS', 'globalSx',
-                     'meanDistance', 'meanZ', 'finalStepSize']:
+        for prop in ['energy', 'logE', 'residualForce', 'globalS', 'globalSx', 'meanS',
+                     'meanDistance', 'meanZ', 'finalStepSize', 'entropyOfAngle']:
             setattr(self, prop, self.curveVsDensityTemplate(prop))
 
     def all(self, prop):
         curves = []
         for d in self.datasets:
-            curves.append((d.rhos, d.curveTemplate(prop)))
+            curves.append((d.phis, d.curveTemplate(prop)))
         return CurveManager(self.abstract, *list(zip(*curves)))
 
     def density(self, Id: str, density: float) -> State:
@@ -116,6 +116,9 @@ class DataViewer:
     def critical(self, Id: str, energy_threshold: str) -> State:
         energy_threshold = float(energy_threshold)
         return self.name(Id).critical(energy_threshold)
+
+    def angleDist(self, Id: str) -> AngleDist:
+        return AngleDist(self.name(Id).angleDistribution())
 
     def desCurve(self, Id: str):
         curves = self.name(Id).descentCurves
@@ -141,4 +144,5 @@ def collectResultFiles(path: str):
 def loadAll(target_dir: str):
     data_files = collectResultFiles(target_dir)
     ds = ut.Map('Debug')(DataSet.loadFrom, data_files)
+    ds = list(filter(lambda x: x is not None, ds))
     return DataViewer(ds)

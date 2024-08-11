@@ -8,6 +8,7 @@ from functools import reduce
 
 import numpy as np
 import pandas as pd
+from scipy.stats import gaussian_kde
 
 
 def applyPipeline(obj, funcs):
@@ -68,7 +69,7 @@ def Map(mode):
             return [func(task) for task in tasks]
     elif mode == 'Release':
         def map_func(func, tasks):
-            with ThreadPoolExecutor(max_workers=len(tasks)) as executor:
+            with ThreadPoolExecutor(max_workers=min(4, len(tasks))) as executor:
                 return list(executor.map(func, tasks))
     else:
         raise ValueError("Invalid mode. Please set it to 'Debug' or 'Release'.")
@@ -129,7 +130,23 @@ def groupAndMergeRows(df: pd.DataFrame, keys: list[str]):
         return merged_row
 
     grouped = df.groupby(keys).apply(merge_group).reset_index(drop=True)
-    return grouped
+    return pd.DataFrame(list(grouped))
+
+
+def safe_log(x: np.ndarray) -> np.ndarray:
+    return np.nan_to_num(np.log(x))
+
+
+def entropyOf(dist: np.ndarray) -> float:
+    # This is a naive algorithm to estimate entropy
+    return -np.dot(dist, safe_log(dist))
+
+
+def KDE_entropyOf(data: np.ndarray) -> float:
+    kde = gaussian_kde(data)
+    x_grid = np.linspace(min(data), max(data), 1000)
+    p_x = kde.evaluate(x_grid)
+    return -np.sum(p_x * safe_log(p_x)) * (x_grid[1] - x_grid[0])
 
 
 class CommandQueue:

@@ -80,7 +80,7 @@ class StateRenderer(State):
 
         # Add a text [at the top left side] to show information of the state
         ax.text(-self.A, self.B * 1.1,
-                f"n={self.n}, d={self.d}, ρ={'{:.3f}'.format(self.rho)}, E={'{:.3f}'.format(self.energy)}")
+                f"n={self.n}, d={self.d}, ρ={'{:.3f}'.format(self.rho)}, a={'{:.2f}'.format(self.A)}, b={'{:.2f}'.format(self.B)}, E={'{:.3f}'.format(self.energy)}")
 
         # Create an axes for the color bar
         divider = make_axes_locatable(ax)

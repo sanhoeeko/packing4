@@ -87,7 +87,7 @@ class TaskHandle(simu.Simulator):
         try:
             self.initAsDisks()
             for i in range(10000):
-                if self.density > 1.2:
+                if self.density > 1.0:
                     break
                 self.compress()
                 dt = self.eqMix(4e5)

@@ -38,13 +38,13 @@ def sub_generate_d(gamma, d):
         "d": d,
         "phi0": 0.5,
         "potential_name": "'ScreenedCoulomb'",
-        "Gammas": "[1.0, 1.0]",
+        "Gammas": "[1.0, 1.0, 1.0, 1.0]",
         "SIBLINGS": 2
     }
 
 
 if __name__ == '__main__':
-    d_gamma = 1.0 / 32
+    d_gamma = 1.0 / 20
     dic = {}
     for gamma in np.arange(1 + d_gamma, 2 + d_gamma, d_gamma):
         d = 1.0 / 40

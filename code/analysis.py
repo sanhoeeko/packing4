@@ -1,13 +1,24 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.cm import ScalarMappable
+from matplotlib.colors import Normalize
 from matplotlib.widgets import Slider
 from scipy.interpolate import CubicSpline
 
-import src.art as art
 import src.utils as ut
 from src.myio import DataSet
 from src.render import StateRenderer
+
+
+class AngleDist:
+    def __init__(self, mat: np.ndarray):
+        self.data = mat
+
+    def __str__(self):
+        plt.imshow(self.data)
+        plt.show()
+        return '<AngleDist object>'
 
 
 class CurveManager:
@@ -17,6 +28,11 @@ class CurveManager:
         self.original_data = data
         self._xs = None
         self._curves = None
+        self.average_flags = None
+
+    def set_average_flags(self, flags: list[str]):
+        self.average_flags = flags
+        return self
 
     @classmethod
     def derived(cls, abstract: pd.DataFrame, xs: np.ndarray, curves: np.ndarray):
@@ -62,15 +78,32 @@ class CurveManager:
         # 'props' should be interpreted as a list[str]
         props = list(map(lambda x: x.strip(' '), props[1:-1].split(',')))
         return CurveManager.derived(
-            ut.groupAndMergeRows(self.abstract, props), self.xs,
+            ut.groupAndMergeRows(self.abstract, props),
+            self.xs,
             self._averageBy(ut.indicesOfTheSame(self.abstract, props))
-        )
+        ).set_average_flags(props)
 
     def __str__(self):
-        for curve in self.curves:
-            plt.plot(self.xs, curve)
+        cmap_s = 'cool'
+        cmap = plt.get_cmap(cmap_s)
+        colors = cmap(np.linspace(0, 1, len(self.curves)))
+        for curve, color in zip(self.curves, colors):
+            plt.plot(self.xs, curve, color=color)
+        if self.average_flags is not None and len(self.average_flags) == 1:
+            flag = self.average_flags[0]
+            lst = np.asarray(self.abstract[flag])
+            min_v, max_v = np.min(lst), np.max(lst)
+            norm = Normalize(vmin=min_v, vmax=max_v)
+            sm = ScalarMappable(cmap=cmap_s, norm=norm)
+            cbar = plt.colorbar(sm)
+            cbar.set_label(flag)
         plt.show()
         return f'<CurveManager of {len(self.curves)} curve(s).>'
+
+    def export(self):
+        # export curves to a csv file
+        pd.DataFrame(self.curves).to_csv('output.csv', header=None, index=None)
+        return self
 
 
 class RenderPipe:
@@ -129,5 +162,5 @@ class InteractiveViewer:
 
 if __name__ == '__main__':
     ds = DataSet.loadFrom('../data.h5')
-    # InteractiveViewer(ds, RenderPipe(StateRenderer.gradamp), True).show()
-    art.plotListOfArray(ds.descentCurves)
+    InteractiveViewer(ds, RenderPipe(StateRenderer.angle), True).show()
+    # art.plotListOfArray(ds.descentCurves)

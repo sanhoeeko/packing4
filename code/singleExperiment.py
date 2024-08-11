@@ -18,14 +18,14 @@ def simulationExample(method: str):
     q = 1 - 1e-3
     state = simu.Simulator._fromCircDensity(
         1000, 6, 0.05, 0.5, 1.0,
-        'ScreenedCoulomb', 'data'
+        'Hertzian', 'data'
     )
     state.initAsDisks()
     state.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
     state.initPotential(4)
 
     for i in range(10000):
-        if state.density > 0.8: break
+        if state.density > 1.0: break
         state.compress()
         dt = state.equilibriumTemplate(method, 1e6)
         s = state.get()
@@ -41,7 +41,7 @@ def rebootExample():
     state.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)
 
     for i in range(10000):
-        if state.density > 0.8: break
+        if state.density > 1.0: break
         state.compress()
         dt = state.equilibriumGD(1e6)
         s = state.get()

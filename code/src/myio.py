@@ -1,5 +1,6 @@
 import os.path
 from functools import lru_cache
+from typing import Union
 
 import h5py
 import numpy as np
@@ -60,17 +61,25 @@ class DataSet:
         return self.load_data_by_id(0)
 
     def load_data_by_id(self, Id) -> State:
-        with h5py.File(self.filename, 'r') as f:
-            for key in f.keys():
-                if f[key].attrs['id'] == Id:
-                    return self.load_key(f, key)
+        try:
+            with h5py.File(self.filename, 'r') as f:
+                for key in f.keys():
+                    if f[key].attrs['id'] == Id:
+                        return self.load_key(f, key)
+        except:
+            print('broken data file:', self.filename)
+            raise ValueError
 
     def load_key(self, h5_file_handle, key) -> State:
-        configuration = h5_file_handle[key]['data'][...]  # [...] converts a h5 object to a numpy array
-        dic = {}
-        for k in h5_file_handle[key].attrs.keys():
-            dic[k] = h5_file_handle[key].attrs[k]
-        return State.load(configuration, self.metadata, dic)
+        try:
+            configuration = h5_file_handle[key]['data'][...]  # [...] converts a h5 object to a numpy array
+            dic = {}
+            for k in h5_file_handle[key].attrs.keys():
+                dic[k] = h5_file_handle[key].attrs[k]
+            return State.load(configuration, self.metadata, dic)
+        except:
+            print('broken data file:', self.filename)
+            raise ValueError
 
     @property
     def data_length(self):
@@ -78,12 +87,19 @@ class DataSet:
             return len(f.keys())
 
     @classmethod
-    def loadFrom(cls, filename):  # this method loads ALL data!
+    def loadFrom(cls, filename) -> Union['DataSet', None]:
         obj = cls(filename, dict())
-        with h5py.File(filename, 'r') as f:
-            for key in f.attrs.keys():
-                obj.metadata[key] = f.attrs[key]
-        return obj
+        try:
+            with h5py.File(filename, 'r') as f:
+                for key in f.attrs.keys():
+                    obj.metadata[key] = f.attrs[key]
+            # check data integrity
+            _ = obj.data_head
+            return obj
+        except Exception as e:
+            print('An error occurred:', e)
+            print('while reading:', filename)
+            return None
 
     # Simulation Methods
 
@@ -128,12 +144,16 @@ class DataSet:
     @lru_cache(maxsize=None)
     def curveTemplate(self, prop: str):
         # parallel calculation will cause a crash??
-        parallel_mode = 'Debug' if prop in ['meanDistance', 'meanZ', 'finalStepSize'] else 'Release'
+        parallel_mode = 'Debug' if prop in ['meanDistance', 'meanZ', 'finalStepSize', 'meanS'] else 'Release'
         return np.array(ut.Map(parallel_mode)(lambda state: getattr(state, prop), self.data))
 
     @property
     def rhos(self):
         return self.curveTemplate('rho')
+
+    @property
+    def phis(self):
+        return self.curveTemplate('phi')
 
     @property
     def distanceCurve(self):
@@ -164,3 +184,6 @@ class DataSet:
         idx = ut.findFirstOfLastSubsequence(es, lambda x: x > energy_threshold)
         print('Find at density:', self.rhos[idx])
         return self.data[idx]
+
+    def angleDistribution(self):
+        return np.array(ut.Map('Release')(lambda x: x.angleDistribution(), self.data)).T
