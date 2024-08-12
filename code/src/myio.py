@@ -82,7 +82,7 @@ class DataSet:
             raise ValueError
 
     @property
-    def data_length(self):
+    def length(self):
         with h5py.File(self.filename, 'r') as f:
             return len(f.keys())
 
@@ -144,7 +144,7 @@ class DataSet:
     @lru_cache(maxsize=None)
     def curveTemplate(self, prop: str):
         # parallel calculation will cause a crash??
-        parallel_mode = 'Debug' if prop in ['meanDistance', 'meanZ', 'finalStepSize', 'meanS'] else 'Release'
+        parallel_mode = 'Debug' if prop in ['meanDistance', 'meanZ', 'finalStepSize'] else 'Release'
         return np.array(ut.Map(parallel_mode)(lambda state: getattr(state, prop), self.data))
 
     @property
@@ -165,7 +165,7 @@ class DataSet:
         """
         dic = {
             'id': self.id,
-            'length': self.data_length,
+            'length': self.length,
             'gamma': self.gamma,
             'rho0': self.rho0,
             'Gamma0': self.Gamma0,

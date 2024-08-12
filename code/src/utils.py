@@ -10,6 +10,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import gaussian_kde
 
+bins_of_distribution = 1000
+
 
 def applyPipeline(obj, funcs):
     return reduce(lambda x, f: f(x), funcs, obj)
@@ -142,11 +144,11 @@ def entropyOf(dist: np.ndarray) -> float:
     return -np.dot(dist, safe_log(dist))
 
 
-def KDE_entropyOf(data: np.ndarray) -> float:
+def KDE_distribution(data: np.ndarray) -> (np.ndarray, np.ndarray):
     kde = gaussian_kde(data)
-    x_grid = np.linspace(min(data), max(data), 1000)
+    x_grid = np.linspace(min(data), max(data), bins_of_distribution)
     p_x = kde.evaluate(x_grid)
-    return -np.sum(p_x * safe_log(p_x)) * (x_grid[1] - x_grid[0])
+    return x_grid, p_x
 
 
 class CommandQueue:

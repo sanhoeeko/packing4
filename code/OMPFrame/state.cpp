@@ -4,15 +4,11 @@
 #include "potential.h"
 #include "grid.h"
 #include "gradient.h"
+#include <random>
 
 float xyt::amp2(){
 	return x * x + y * y + t * t;
 }
-
-inline static float randf() {
-	return (float)rand() / RAND_MAX;
-}
-
 
 State::State(int N)
 {
@@ -50,16 +46,20 @@ void State::clearCache()
 
 void State::randomInitStateCC()
 {
-	srand(time(0));
+	// use dist(gen) to generate a random float in [0,1]
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_real_distribution<float> dist(0.0, 1.0);  
+
 	float a = boundary->a - 1;
 	float b = boundary->b - 1;
 	xyt* q = (xyt*)(void*)configuration.data();
 	for (int i = 0; i < N; i++) {
-		float r = sqrtf(randf());
-		float phi = randf() * (2 * pi);
+		float r = sqrtf(dist(gen));
+		float phi = dist(gen) * (2 * pi);
 		q[i].x = a * r * fcos(phi);
 		q[i].y = b * r * fsin(phi);
-		q[i].t = randf() * pi;
+		q[i].t = dist(gen) * pi;
 	}
 }
 

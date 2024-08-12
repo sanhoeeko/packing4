@@ -106,7 +106,7 @@ class DataViewer:
     def all(self, prop):
         curves = []
         for d in self.datasets:
-            curves.append((d.phis, d.curveTemplate(prop)))
+            curves.append((d.rhos, d.curveTemplate(prop)))
         return CurveManager(self.abstract, *list(zip(*curves)))
 
     def density(self, Id: str, density: float) -> State:

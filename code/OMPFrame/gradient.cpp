@@ -30,6 +30,7 @@ PairInfo::PairInfo(int N)
 
 void PairInfo::clear()
 {
+#pragma omp parallel for num_threads(CORES)
     for (int i = 0; i < CORES; i++) {
         info_pp[i].clear();
         info_pw[i].clear();
@@ -208,6 +209,7 @@ GradientBuffer::GradientBuffer(int N)
 
 void GradientBuffer::clear()
 {
+#pragma omp parallel for num_threads(CORES)
     for (int i = 0; i < CORES; i++) {
         buffers[i].setZero();
     }

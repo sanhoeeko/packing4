@@ -6,8 +6,6 @@ from scipy.spatial import Delaunay
 import src.utils as ut
 from src.graph import Graph, MergedGraph
 
-bins_of_angle_dist = 90
-
 
 class RenderSetup:
     def __init__(self, colors: np.ndarray, style: str, real_size=False):
@@ -206,9 +204,9 @@ class State:
 
     @lru_cache(maxsize=None)
     def angleDistribution(self):
-        return np.histogram(self.t, bins=bins_of_angle_dist, range=(0, np.pi))[0]
+        return ut.KDE_distribution(self.t)[1]
 
     @property
-    def entropyOfAngle(self):
-        f = self.angleDistribution()
-        return ut.KDE_entropyOf(self.t)
+    def entropyOfAngle(self) -> float:
+        x, p = ut.KDE_distribution(self.t)
+        return ut.entropyOf(p) * (x[1] - x[0])
