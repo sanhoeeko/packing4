@@ -25,7 +25,7 @@ def sub_generate_n(gamma, n):
         "n": n,
         "d": d,
         "phi0": 0.5,
-        "potential_name": "'ScreenedCoulomb'",
+        "potential_name": "'Hertzian'",
         "Gammas": "[0.5, 1.0, 2.0]",
         "SIBLINGS": 3
     }
@@ -34,12 +34,12 @@ def sub_generate_d(gamma, d):
     n = 1 + 2 * (gamma - 1) / d
     return {
         "N": 1000,
-        "n": n,
+        "n": round(n),
         "d": d,
         "phi0": 0.5,
-        "potential_name": "'ScreenedCoulomb'",
+        "potential_name": "'Hertzian'",
         "Gammas": "[1.0, 1.0, 1.0, 1.0]",
-        "SIBLINGS": 2
+        "SIBLINGS": 4
     }
 
 
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     dic = {}
     for gamma in np.arange(1 + d_gamma, 2 + d_gamma, d_gamma):
         d = 1.0 / 40
-        folder = re.sub(r'\.', '_', f'g{gamma}')
+        folder = re.sub(r'\.', '_', f'g{"{:.2f}".format(gamma)}')
         dic[folder] = sub_generate_d(gamma, d)
     with open('config.json', 'w') as w:
         json.dump(dic, w)

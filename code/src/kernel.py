@@ -70,10 +70,12 @@ class Kernel:
         self.dll.testERoot.restype = ct.c_float
         self.dll.testBestStepSize.argtypes = [ct.c_void_p, ct.c_float]
         self.dll.testBestStepSize.restype = ct.c_float
-        self.dll.meanDistance.argtypes = [ct.c_void_p]
-        self.dll.meanDistance.restype = ct.c_float
-        self.dll.meanContactZ.argtypes = [ct.c_void_p]
-        self.dll.meanContactZ.restype = ct.c_float
+        # self.dll.meanDistance.argtypes = [ct.c_void_p]
+        # self.dll.meanDistance.restype = ct.c_float
+        # self.dll.meanContactZ.argtypes = [ct.c_void_p]
+        # self.dll.meanContactZ.restype = ct.c_float
+        self.dll.meanS.argtypes = [ct.c_void_p, ct.c_float]
+        self.dll.meanS.restype = ct.c_float
 
     def returnFixedArray(self, dll_function, length):
         dll_function.restype = ct.POINTER(ct.c_float)
@@ -230,6 +232,9 @@ class Kernel:
 
     def meanContactZ(self, address):
         return self.dll.meanContactZ(address)
+
+    def meanS(self, address, gamma: float):
+        return self.dll.meanS(address, gamma)
 
 
 ker = Kernel()

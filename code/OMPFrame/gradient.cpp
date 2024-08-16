@@ -2,6 +2,7 @@
 #include"gradient.h"
 #include"potential.h"
 #include"functional.h"
+#include"graph.h"
 
 const float trivial_contact_energy = 1e-3;
 
@@ -26,6 +27,7 @@ PairInfo::PairInfo(int N)
     }
     g_buffer = Maybe<GradientBuffer*>(new GradientBuffer(N));
     e_buffer = Maybe<EnergyBuffer*>(new EnergyBuffer(N));
+    graph = Maybe<Graph<neighbors>*>(new Graph<neighbors>(N));
 }
 
 void PairInfo::clear()
@@ -37,6 +39,8 @@ void PairInfo::clear()
     }
     g_buffer.clear();
     e_buffer.clear();
+    graph.clear();
+    is_filtered = false;
 }
 
 
@@ -132,10 +136,34 @@ EnergyBuffer* PairInfo::CalEnergy()
     return e_buffer.obj;
 }
 
+struct RodContactCondition {
+    SegmentDist segment_dist;
+    float r;
+    RodContactCondition(float gamma) : r(1 / gamma), segment_dist(1 - 1 / gamma) {};
+    bool operator()(ParticlePair& p) {
+        return segment_dist(p) < r;
+    }
+};
+
+PairInfo* PairInfo::filterAsRods(float gamma)
+{
+    if (!is_filtered) {
+        is_filtered = true;
+        RodContactCondition condition(gamma);
+    #pragma omp parallel num_threads(CORES)
+        {
+            int idx = omp_get_thread_num();
+            filter(info_pp[idx], condition);
+        }
+    }
+    return this;
+}
+
 template<bool checkId2>
-int contactNumber(vector<ParticlePair>* vp) {
+int contactNumber(vector<ParticlePair>* vp, float gamma) {
     int z[CORES] = { 0 };
     int sum_z = 0;
+    RodContactCondition condition(gamma);
 #pragma omp parallel num_threads(CORES)
     {
         int idx = omp_get_thread_num();
@@ -144,13 +172,13 @@ int contactNumber(vector<ParticlePair>* vp) {
         if constexpr (checkId2) {
             for (int i = 0; i < n; i++) {
                 if (src[i].id2 != -114514) {
-                    z[idx] += (int)(singleEnergy(src[i]) > trivial_contact_energy);
+                    z[idx] += (int)condition(src[i]);
                 }
             }
         }
         else {
             for (int i = 0; i < n; i++) {
-                z[idx] += (int)(singleEnergy(src[i]) > trivial_contact_energy);
+                z[idx] += (int)condition(src[i]);
             }
         }
     }
@@ -160,28 +188,29 @@ int contactNumber(vector<ParticlePair>* vp) {
     return sum_z;
 }
 
-int PairInfo::contactNumberZ()
+int PairInfo::contactNumberZ(float gamma)
 {
-    return contactNumber<false>(info_pp) + contactNumber<true>(info_pw);
+    return contactNumber<false>(info_pp, gamma) + contactNumber<true>(info_pw, gamma);
 }
 
 inline static float dist(ParticlePair& ijxytt) {
     return sqrt(ijxytt.x * ijxytt.x + ijxytt.y * ijxytt.y);
 }
 
-float PairInfo::meanDistance()
+float PairInfo::meanDistance(float gamma)
 {
     int z[CORES] = { 0 };
     float d[CORES] = { 0.0f };
     int sum_z = 0;
     float sum_d = 0.0f;
+    RodContactCondition condition(gamma);
 #pragma omp parallel num_threads(CORES)
     {
         int idx = omp_get_thread_num();
         int n = info_pp[idx].size();
         ParticlePair* src = info_pp[idx].data();
         for (int i = 0; i < n; i++) {
-            if (singleEnergy(src[i]) > trivial_contact_energy) {
+            if (condition(src[i])) {
                 z[idx]++;
                 d[idx] += dist(src[i]);
             }
@@ -192,6 +221,24 @@ float PairInfo::meanDistance()
         sum_d += d[i];
     }
     return sum_d / sum_z;
+}
+
+void getGraph(PairInfo* pinfo, Graph<neighbors>* graph) {
+    // cannot use omp here, because `Graph<...>` is not a multithread container.
+    for (int idx = 0; idx < CORES; idx++) {
+        for (auto& pair : pinfo->info_pp[idx]) {
+            graph->add_pair(pair.id1, pair.id2);
+        }
+    }
+}
+
+Graph<8>* PairInfo::toGraph(float gamma)
+{
+    if (!graph.valid) {
+        graph.valid = true;
+        getGraph(filterAsRods(gamma), graph.obj);
+    }
+    return graph.obj;
 }
 
 GradientBuffer::GradientBuffer()

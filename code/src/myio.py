@@ -103,8 +103,11 @@ class DataSet:
 
     # Simulation Methods
 
-    def append(self, state: State):
-        self._data.append(state)
+    def append(self, state: State, need_data_in_python=False):
+        if need_data_in_python:
+            self._data.append(state)
+        else:
+            self._data.append(None)
         self.increase(state)
 
     def increase(self, state: State):

@@ -8,7 +8,7 @@ VectorXf randomUnitVector(int n) {
     */
     std::default_random_engine generator;
     std::normal_distribution<float> distribution(0.0, 1.0);
-    Eigen::VectorXf v(n);
+    VectorXf v(n);
     for (int i = 0; i < n; i++) {
         v[i] = distribution(generator);
     }

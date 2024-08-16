@@ -1,6 +1,7 @@
 #pragma once
 
 #include"defs.h"
+#include"graph.h"
 
 struct Grid; 
 struct PairInfo;
@@ -51,8 +52,12 @@ struct State{
     Grid* GridLocate();
     PairInfo* CollisionDetect();
     float CalEnergy();
-    float meanDistance();
-    float meanContactZ();
+    float meanDistance(float gamma);
+    float meanContactZ(float gamma);
+    Graph<neighbors>* contactGraph(float gamma);
+    std::pair<float, float> orderPhi(float gamma, int p);
+    VectorXf orderS(float gamma);
+    float orderS_ave(float gamma);
 
     VectorXf LbfgsDirection(int iterations);
     template<HowToCalGradient how> VectorXf CalGradient();

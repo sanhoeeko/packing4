@@ -75,16 +75,16 @@ float getStateMaxResidualForce(void* state_ptr)
     return sqrt(g.maxCoeff());
 }
 
-float meanDistance(void* state_ptr)
+float meanDistance(void* state_ptr, float gamma)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
-    return s->meanDistance();
+    return s->meanDistance(gamma);
 }
 
-float meanContactZ(void* state_ptr)
+float meanContactZ(void* state_ptr, float gamma)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
-    return s->meanContactZ();
+    return s->meanContactZ(gamma);
 }
 
 int getSiblingId(void* state_ptr)
@@ -152,6 +152,12 @@ float* landscapeOnGradientSections(void* state_ptr, float max_stepsize, int samp
         memcpy(res + i * samples, energies[i].data(), samples * sizeof(float));
     }
     return res;
+}
+
+float meanS(void* state_ptr, float gamma)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    return s->orderS_ave(gamma);
 }
 
 void* getStateMaxGradOrEnergy(void* state_ptr)

@@ -203,16 +203,6 @@ float State::CalEnergy()
 	return this->CollisionDetect()->CalEnergy()->sum();
 }
 
-float State::meanDistance()
-{
-	return this->CollisionDetect()->meanDistance();
-}
-
-float State::meanContactZ()
-{
-	return this->CollisionDetect()->contactNumberZ() / (float)N;
-}
-
 VectorXf State::LbfgsDirection(int iterations)
 {
 	const int m = 4;					// determine the precision of the inverse Hessian
