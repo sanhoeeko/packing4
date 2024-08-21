@@ -54,6 +54,7 @@ DLLEXPORT float* landscapeAlongGradient(void* state_ptr, float max_stepsize, int
 DLLEXPORT float* landscapeLBFGS(void* state_ptr, float max_stepsize, int samples);
 DLLEXPORT float* landscapeOnGradientSections(void* state_ptr, float max_stepsize, int samples);
 DLLEXPORT float meanS(void* state_ptr, float gamma);
+DLLEXPORT float absPhi(void* state_ptr, float gamma, int p);
 
 // test of algorithms
 DLLEXPORT float fastPotential(float x, float y, float t);

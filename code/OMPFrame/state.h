@@ -29,6 +29,7 @@ struct State{
 
     Maybe<Grid*> grid;
     Maybe<PairInfo*> pair_info;
+    Maybe<Graph<neighbors>*> voronoi;
 
     // methods
 
@@ -55,7 +56,9 @@ struct State{
     float meanDistance(float gamma);
     float meanContactZ(float gamma);
     Graph<neighbors>* contactGraph(float gamma);
-    std::pair<float, float> orderPhi(float gamma, int p);
+    Graph<neighbors>* voronoiGraph(float gamma);
+    VectorXcf orderPhi(float gamma, int p);
+    complex<float> orderPhi_ave(float gamma, int p);
     VectorXf orderS(float gamma);
     float orderS_ave(float gamma);
 

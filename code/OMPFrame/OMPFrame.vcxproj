@@ -146,6 +146,7 @@
     <ClInclude Include="analysis.h" />
     <ClInclude Include="array.h" />
     <ClInclude Include="defs.h" />
+    <ClInclude Include="delaunator.hpp" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="functional.h" />
     <ClInclude Include="global.h" />
@@ -158,6 +159,7 @@
     <ClInclude Include="potential.h" />
     <ClInclude Include="potential_impl.h" />
     <ClInclude Include="scalar.h" />
+    <ClInclude Include="graph.h" />
     <ClInclude Include="state.h" />
     <ClInclude Include="vectorlist.h" />
   </ItemGroup>
@@ -178,8 +180,10 @@
     <ClCompile Include="potential.cpp" />
     <ClCompile Include="potentialpp.cpp" />
     <ClCompile Include="scalar.cpp" />
+    <ClCompile Include="segdist.cpp" />
     <ClCompile Include="state.cpp" />
     <ClCompile Include="state_boundary.cpp" />
+    <ClCompile Include="state_info.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

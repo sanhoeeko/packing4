@@ -18,6 +18,7 @@ State::State(int N)
 	configuration = VectorXf::Zero(dof * N);
 	grid = Maybe<Grid*>(new Grid());
 	pair_info = Maybe<PairInfo*>(new PairInfo(N));
+	voronoi = Maybe<Graph<neighbors>*>(new Graph<neighbors>(N));
 }
 
 State::State(int N, int sibling) : State(N)
@@ -42,6 +43,7 @@ void State::clearCache()
 {
 	grid.clear();
 	pair_info.clear();
+	voronoi.clear();
 }
 
 void State::randomInitStateCC()

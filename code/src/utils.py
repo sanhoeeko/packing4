@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import gaussian_kde
 
-bins_of_distribution = 1000
+bins_of_distribution = 500
 
 
 def applyPipeline(obj, funcs):

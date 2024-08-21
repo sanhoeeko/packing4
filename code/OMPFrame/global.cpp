@@ -160,6 +160,12 @@ float meanS(void* state_ptr, float gamma)
     return s->orderS_ave(gamma);
 }
 
+float absPhi(void* state_ptr, float gamma, int p)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    return std::abs(s->orderPhi_ave(gamma, p));
+}
+
 void* getStateMaxGradOrEnergy(void* state_ptr)
 {
     State* s = reinterpret_cast<State*>(state_ptr);

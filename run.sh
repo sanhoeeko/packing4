@@ -13,7 +13,7 @@ for dir in EXEC*/; do
         (
             cd "$dir"
             python3 deploy.py > sub.out 
-        )
+        ) &
         echo "PID of deploy.py: $!"
     else
         echo "No deploy.py found in $dir"

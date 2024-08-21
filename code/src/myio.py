@@ -147,7 +147,9 @@ class DataSet:
     @lru_cache(maxsize=None)
     def curveTemplate(self, prop: str):
         # parallel calculation will cause a crash??
-        parallel_mode = 'Debug' if prop in ['meanDistance', 'meanZ', 'finalStepSize'] else 'Release'
+        parallel_mode = 'Debug' if prop in [
+            'meanDistance', 'meanZ', 'finalStepSize', 'meanS', 'Phi4', 'Phi6'
+        ] else 'Release'
         return np.array(ut.Map(parallel_mode)(lambda state: getattr(state, prop), self.data))
 
     @property

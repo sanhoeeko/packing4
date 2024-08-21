@@ -154,7 +154,7 @@ class State:
     @property
     def meanZ(self):
         from src.simulator import common_simulator as cs
-        cs.load(self)
+        cs.load(self, load_potential=False)
         return cs.simulator.meanContactZ()
 
     @property
@@ -171,36 +171,23 @@ class State:
         dq = s2.xyt - s1.xyt
         return np.sqrt(np.mean(dq ** 2))
 
-    # @lru_cache(maxsize=None)  # DO NOT cache this! It will cause a memory leak.
-    def S_field(self) -> np.ndarray:
-        def anglesOf(indices: set[int]):
-            return np.array([self.t[i] for i in indices])
-
-        def Q_ave(angles: np.ndarray):
-            c = np.cos(2 * angles)
-            s = np.sin(2 * angles)
-            n = len(angles)
-            Q = np.zeros((2, 2))
-            for i in range(n):
-                Q += np.array([[c[i], s[i]], [s[i], -c[i]]])
-            return Q / n
-
-        def eigenvalue(mat2):
-            return np.sqrt(-np.linalg.det(mat2))
-
-        v = self.voronoiDiagram(3)
-        s = np.zeros_like(self.x)
-        for i in range(self.N):
-            s[i] = eigenvalue(Q_ave(anglesOf(v.neighborsOf(i))))
-        v.free_memory()
-        return s
-
     @property
     def meanS(self):
-        s = self.S_field()
-        mean_s = np.mean(np.abs(s))
-        del s
-        return mean_s
+        from src.simulator import common_simulator as cs
+        cs.load(self, load_potential=False)
+        return cs.simulator.meanS()
+
+    @property
+    def Phi4(self):
+        from src.simulator import common_simulator as cs
+        cs.load(self, load_potential=False)
+        return cs.simulator.absPhi(4)
+
+    @property
+    def Phi6(self):
+        from src.simulator import common_simulator as cs
+        cs.load(self, load_potential=False)
+        return cs.simulator.absPhi(6)
 
     @lru_cache(maxsize=None)
     def angleDistribution(self):

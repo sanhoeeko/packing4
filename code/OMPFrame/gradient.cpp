@@ -139,7 +139,7 @@ EnergyBuffer* PairInfo::CalEnergy()
 struct RodContactCondition {
     SegmentDist segment_dist;
     float r;
-    RodContactCondition(float gamma) : r(1 / gamma), segment_dist(1 - 1 / gamma) {};
+    RodContactCondition(float gamma) : r(2 / gamma), segment_dist(1 - 1 / gamma) {};
     bool operator()(ParticlePair& p) {
         return segment_dist(p) < r;
     }
@@ -232,7 +232,7 @@ void getGraph(PairInfo* pinfo, Graph<neighbors>* graph) {
     }
 }
 
-Graph<8>* PairInfo::toGraph(float gamma)
+Graph<neighbors>* PairInfo::toGraph(float gamma)
 {
     if (!graph.valid) {
         graph.valid = true;

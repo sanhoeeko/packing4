@@ -103,11 +103,28 @@ class DataViewer:
                      'meanDistance', 'meanZ', 'finalStepSize', 'entropyOfAngle']:
             setattr(self, prop, self.curveVsDensityTemplate(prop))
 
-    def all(self, prop):
-        curves = []
-        for d in self.datasets:
-            curves.append((d.rhos, d.curveTemplate(prop)))
-        return CurveManager(self.abstract, *list(zip(*curves)))
+    def allTemplate(self, flag: str):
+        """
+        `flag` can be 'rhos' or 'phis'
+        """
+        flag_name = {
+            'rhos': 'number density',
+            'phis': 'area fraction',
+        }[flag]
+
+        def inner(prop: str):
+            curves = []
+            for d in self.datasets:
+                curves.append((getattr(d, flag), d.curveTemplate(prop)))
+            return CurveManager(self.abstract, *list(zip(*curves))).set_labels(flag_name, prop)
+
+        return inner
+
+    def all(self, prop: str):
+        return self.allTemplate('rhos')(prop)
+
+    def allphi(self, prop: str):
+        return self.allTemplate('phis')(prop)
 
     def density(self, Id: str, density: float) -> State:
         density = float(density)

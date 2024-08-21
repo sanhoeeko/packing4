@@ -140,12 +140,6 @@ class Simulator:
     def maxResidualForce(self):
         return ker.getStateMaxResidualForce(self.data_ptr)
 
-    def meanDistance(self):
-        return ker.meanDistance(self.data_ptr)
-
-    def meanContactZ(self):
-        return ker.meanContactZ(self.data_ptr)
-
     def setBoundary(self, boundary_a, boundary_b):
         self.A, self.B = boundary_a, boundary_b
         return ker.setBoundary(self.data_ptr, boundary_a, boundary_b)
@@ -191,6 +185,8 @@ class Simulator:
     def eqMix(self, max_iterations):
         return self.equilibriumTemplate('eqMix', max_iterations)
 
+    # landscape
+
     def energyLandscapeAlongGradient(self, max_stepsize: float, n: int):
         return ker.landscapeAlongGradient(self.data_ptr, max_stepsize, n)
 
@@ -206,15 +202,34 @@ class Simulator:
     def bestStepSize(self, max_stepsize: float):
         return ker.bestStepSize(self.data_ptr, max_stepsize)
 
+    # analysis
+
+    @property
+    def gamma(self):
+        return 1 + (self.n - 1) * self.d / 2
+
+    def meanDistance(self):
+        return ker.meanDistance(self.data_ptr)
+
+    def meanContactZ(self):
+        return ker.meanContactZ(self.data_ptr, self.gamma)
+
+    def meanS(self):
+        return ker.meanS(self.data_ptr, self.gamma)
+
+    def absPhi(self, p: int):
+        return ker.absPhi(self.data_ptr, self.gamma, p)
+
 
 class CommonSimulator:
     def __init__(self):
         self.simulator = None  # CommonSimulator does not inherit Simulator because self.simulator can be None
 
-    def load(self, s: State):
+    def load(self, s: State, load_potential=True):
         if self.simulator is None:
             self.simulator = s.makeSimulator(None, s.potential, 'data')
-            self.simulator.initPotential(4)
+            if load_potential:
+                self.simulator.initPotential(4)
         else:
             self.simulator = Simulator.fromDataPtr(
                 s.N, s.n, s.d, s.A, s.B, s.potential, self.simulator.data_ptr

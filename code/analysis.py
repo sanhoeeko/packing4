@@ -29,6 +29,8 @@ class CurveManager:
         self._xs = None
         self._curves = None
         self.average_flags = None
+        self.x_label = None
+        self.y_label = None
 
     def set_average_flags(self, flags: list[str]):
         self.average_flags = flags
@@ -40,6 +42,11 @@ class CurveManager:
         obj._xs = xs
         obj._curves = curves
         return obj
+
+    def set_labels(self, x_label: str, y_label: str):
+        self.x_label = x_label
+        self.y_label = y_label
+        return self
 
     @property
     def xs(self):
@@ -97,6 +104,10 @@ class CurveManager:
             sm = ScalarMappable(cmap=cmap_s, norm=norm)
             cbar = plt.colorbar(sm)
             cbar.set_label(flag)
+        if self.x_label is not None:
+            plt.xlabel(self.x_label)
+        if self.y_label is not None:
+            plt.ylabel(self.y_label)
         plt.show()
         return f'<CurveManager of {len(self.curves)} curve(s).>'
 

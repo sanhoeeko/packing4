@@ -4,7 +4,7 @@
 #include "potential.h"
 
 typedef unsigned short particleId_t;
-const int neighbors = 8;
+const int neighbors = 32;
 
 struct SegmentDist {
     Matrix4f mat;
@@ -46,5 +46,14 @@ struct Graph {
     }
     void add_pair(int i, int j) {
         add(i, j); add(j, i);
+    }
+    bool has(int i, int j) {
+        for (int k = 0; k < z[i]; k++) {
+            if (data[i][k] == j)return true;
+        }
+        return false;
+    }
+    void add_pair_if_hasnot(int i, int j) {
+        if (i != j && !has(i, j))add_pair(i, j);
     }
 };
