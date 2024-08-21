@@ -2,7 +2,8 @@
   This project is under development.
 
 ### Dependence
-  Require Eigen 3.3.9.
+  Require `Eigen 3.3.9`.
+  Thanks `delaunator-cpp`. (It has been integrated in this project)
 
 ## Build in Windows
   - Open the `.sln` file in Visual Studio.
