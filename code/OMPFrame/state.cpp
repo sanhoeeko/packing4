@@ -92,7 +92,12 @@ float State::initAsDisks(int max_iterations)
 
 void State::setBoundary(float a, float b)
 {
-	boundary->setBoundary(a, b);
+	if (boundary == NULL) {
+		boundary = new EllipseBoundary(a, b);
+	}
+	else {
+		boundary->setBoundary(a, b);
+	}
 	clearCache();
 }
 

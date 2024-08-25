@@ -43,6 +43,8 @@ DLLEXPORT int getSiblingId(void* state_ptr);
 
 // load data
 DLLEXPORT void setStateData(void* state_ptr, void* data_src);
+DLLEXPORT void* loadState(void* data_src, int N, float boundary_a, float boundary_b);
+DLLEXPORT void freeState(void* state_ptr);
 
 // built-in IO
 DLLEXPORT void readPotential(int n, float d);

@@ -34,7 +34,7 @@ void setRod(int n, float d, int threads)
 void* createState(int N, float boundary_a, float boundary_b)
 { 
     auto state = global->newState(N);
-    state->boundary = new EllipseBoundary(boundary_a, boundary_b);
+    state->setBoundary(boundary_a, boundary_b);
     state->randomInitStateCC();
     return state;
 }
@@ -97,6 +97,19 @@ void setStateData(void* state_ptr, void* data_src)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
     s->loadFromData((float*)data_src);
+}
+
+void* loadState(void* data_src, int N, float boundary_a, float boundary_b)
+{
+    State* s = global->newState(N);
+    s->setBoundary(boundary_a, boundary_b);
+    s->loadFromData((float*)data_src);
+    return s;
+}
+
+void freeState(void* state_ptr)
+{
+    global->states.free(reinterpret_cast<State*>(state_ptr));
 }
 
 void readPotential(int n, float d)

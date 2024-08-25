@@ -4,19 +4,29 @@
 
 // 当使用预编译的头时，需要使用此源文件，编译才能成功。
 
-#include"global.h"
+#include "global.h"
 
 void init() {
     omp_set_num_threads(CORES);
-    omp_set_nested(1);  // Enable nested parallelism
+    omp_set_nested(1);                          // Enable nested parallelism
     setGlobal();
 }
 
 State* Global::newState(int N)
 {
-    State* state = new State(N, global->states.size());
-    global->states.push_back(state);
-    return state;
+    int id = states.getAvailableId();
+    if (id == -1) {
+        cout << "New state allocation fails!" << endl;
+        throw -1;
+    }
+    if (states[id] == NULL) {
+        states[id] = new State(N);
+    }
+    else if (states[id]->N != N){
+        delete states[id];
+        states[id] = new State(N);
+    }
+    return states[id];
 }
 
 void runTest()

@@ -154,6 +154,7 @@
     <ClInclude Include="gradient_impl.h" />
     <ClInclude Include="grid.h" />
     <ClInclude Include="io.h" />
+    <ClInclude Include="objpool.h" />
     <ClInclude Include="optimizer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="potential.h" />
