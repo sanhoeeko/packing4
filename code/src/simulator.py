@@ -54,7 +54,7 @@ class Simulator:
     @classmethod
     def createState(cls, N, n, d, boundary_a, boundary_b, potential_name: str, data_name='data'):
         """
-        This method manages side effects
+        deprecated
         """
         self = cls(N, n, d, boundary_a, boundary_b, potential_name)
         self.data_ptr = ker.createState(N, boundary_a, boundary_b)
@@ -103,15 +103,12 @@ class Simulator:
             self.cnt += 1
         return s
 
-    def _loadDataToKernel(self, data: np.ndarray):
-        return ker.setStateData(self.data_ptr, data)
-
     def loadDataToKernel(self, data: np.ndarray):
         """
         Assume that data is of the shape (N, 3)
         """
         data_n4 = np.hstack([data, np.zeros((self.N, 1))]).reshape(-1)
-        return self._loadDataToKernel(data_n4)
+        return ker.setStateData(self.data_ptr, data_n4)
 
     @property
     def metadata(self):
@@ -201,24 +198,6 @@ class Simulator:
 
     def bestStepSize(self, max_stepsize: float):
         return ker.bestStepSize(self.data_ptr, max_stepsize)
-
-    # analysis
-
-    @property
-    def gamma(self):
-        return 1 + (self.n - 1) * self.d / 2
-
-    def meanDistance(self):
-        return ker.meanDistance(self.data_ptr)
-
-    def meanContactZ(self):
-        return ker.meanContactZ(self.data_ptr, self.gamma)
-
-    def meanS(self):
-        return ker.meanS(self.data_ptr, self.gamma)
-
-    def absPhi(self, p: int):
-        return ker.absPhi(self.data_ptr, self.gamma, p)
 
 
 class CommonSimulator:

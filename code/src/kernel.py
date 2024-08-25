@@ -1,6 +1,7 @@
 import ctypes as ct
 import os
 import sys
+import threading
 import time
 
 import numpy as np
@@ -25,6 +26,7 @@ def getLibraryPath():
 
 class Kernel:
     def __init__(self):
+        self.lock = threading.Lock()
         self.potential_path = 'potential.dat'
         self.potential_meta_path = 'potential.metadata.json'
         dll_path = getLibraryPath()
@@ -33,6 +35,9 @@ class Kernel:
         self.dll.setEnums.argtypes = [ct.c_int]
         self.dll.setRod.argtypes = [ct.c_int, ct.c_float, ct.c_int]
         self.dll.setBoundary.argtypes = [ct.c_void_p, ct.c_float, ct.c_float]
+        self.dll.loadState.argtypes = [ct.c_void_p, ct.c_int, ct.c_float, ct.c_float]
+        self.dll.loadState.restype = ct.c_void_p
+        self.dll.freeState.argtypes = [ct.c_void_p]
         self.dll.readPotential.argtypes = [ct.c_int, ct.c_float]
         self.dll.getPotentialId.restype = ct.c_int
         self.dll.createState.argtypes = [ct.c_int, ct.c_float, ct.c_float]
@@ -146,6 +151,20 @@ class Kernel:
             self.generatePotential(n, d, n_threads)
             self.writePotential(n, d)
 
+    def setStateData(self, address, configuration: np.ndarray):
+        return self.dll.setStateData(address, ut.ndarrayAddress(configuration.astype(np.float32)))
+
+    def loadState(self, configuration: np.ndarray, N: int, a: float, b: float):
+        """
+        this method is thread-safe, and returns a void pointer (State*)
+        """
+        with self.lock:
+            return self.dll.loadState(ut.ndarrayAddress(configuration.astype(np.float32)), N, a, b)
+
+    def freeState(self, address):
+        with self.lock:
+            self.dll.freeState(address)
+
     def generatePotential(self, n, d, n_threads):
         """
         generate potential look-up table for temporary usage
@@ -208,9 +227,6 @@ class Kernel:
 
     def eqMix(self, address, max_iterations: int):
         return self.dll.eqMix(address, max_iterations)
-
-    def setStateData(self, address, configuration: np.ndarray):
-        return self.dll.setStateData(address, ut.ndarrayAddress(configuration.astype(np.float32)))
 
     def landscapeAlongGradient(self, address, max_stepsize: float, n: int):
         return self.returnFixedArray(self.dll.landscapeAlongGradient, n)(address, max_stepsize, n)

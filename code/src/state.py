@@ -24,8 +24,9 @@ class State:
         self.A, self.B = boundary_a, boundary_b
         self.a, self.b = 1, 1 / (1 + (n - 1) * d / 2)
         self.xyt = configuration
-        for key, value in others.items():
-            setattr(self, key, value)
+        if others is not None:
+            for key, value in others.items():
+                setattr(self, key, value)
 
     @property
     def x(self):
@@ -82,12 +83,15 @@ class State:
         )
         return obj
 
-    def makeSimulator(self, dataset, potential_name, data_name: str):
+    def makeSimulator(self, dataset=None, potential_name=None, data_name: str = None):
+        """
+        for restarting a simulation
+        """
         from src.simulator import Simulator
-        obj = Simulator.createState(self.N, self.n, self.d, self.A, self.B, potential_name, data_name)
-        obj.dataset = dataset
-        obj.loadDataToKernel(self.xyt)
-        return obj
+        simu = Simulator.createState(self.N, self.n, self.d, self.A, self.B, potential_name, data_name)
+        simu.dataset = dataset
+        simu.loadDataToKernel(self.xyt)
+        return simu
 
     # @lru_cache(maxsize=None)  # DO NOT cache this! It will cause a memory leak.
     def toSites(self, n=None):
@@ -123,19 +127,23 @@ class State:
     def descent_curve(self):
         return self.energy_curve
 
+    @staticmethod
+    def distance(s1: 'State', s2: 'State'):
+        dq = s2.xyt - s1.xyt
+        return np.sqrt(np.mean(dq ** 2))
+
     @property
     def maxResidualForce(self):
         # bug?
         # from src.simulator import common_simulator as cs
         # cs.load(self)
-        # return cs.simulator.maxResidualForce()
+        # return cs.maxResidualForce()
         return np.sqrt(np.max(np.sum(self.gradient ** 2, axis=1)))
 
     @property
     def gradient(self):
-        from src.simulator import common_simulator as cs
-        cs.load(self)
-        return cs.simulator.residualForce()
+        with self.toCppWithPotential() as cs:
+            return cs.residualForce()
 
     @property
     def moment(self):
@@ -145,50 +153,6 @@ class State:
     def gradientAmp(self):
         return np.sqrt(np.sum(self.gradient ** 2, axis=1))
 
-    @property
-    def meanDistance(self):
-        from src.simulator import common_simulator as cs
-        cs.load(self)
-        return cs.simulator.meanDistance()
-
-    @property
-    def meanZ(self):
-        from src.simulator import common_simulator as cs
-        cs.load(self, load_potential=False)
-        return cs.simulator.meanContactZ()
-
-    @property
-    def finalStepSize(self):
-        from src.simulator import common_simulator as cs
-        cs.load(self)
-        try:
-            return cs.simulator.bestStepSize(10.0)
-        except:
-            return np.nan
-
-    @staticmethod
-    def distance(s1: 'State', s2: 'State'):
-        dq = s2.xyt - s1.xyt
-        return np.sqrt(np.mean(dq ** 2))
-
-    @property
-    def meanS(self):
-        from src.simulator import common_simulator as cs
-        cs.load(self, load_potential=False)
-        return cs.simulator.meanS()
-
-    @property
-    def Phi4(self):
-        from src.simulator import common_simulator as cs
-        cs.load(self, load_potential=False)
-        return cs.simulator.absPhi(4)
-
-    @property
-    def Phi6(self):
-        from src.simulator import common_simulator as cs
-        cs.load(self, load_potential=False)
-        return cs.simulator.absPhi(6)
-
     @lru_cache(maxsize=None)
     def angleDistribution(self):
         return ut.KDE_distribution(self.t)[1]
@@ -197,3 +161,39 @@ class State:
     def entropyOfAngle(self) -> float:
         x, p = ut.KDE_distribution(self.t)
         return ut.entropyOf(p) * (x[1] - x[0])
+
+    # analysis with cpp
+
+    def toCpp(self):
+        from src.loader import StateLoader
+        return StateLoader(self)
+
+    @property
+    def meanDistance(self):
+        return self.toCpp().meanDistance_()
+
+    @property
+    def meanZ(self):
+        return self.toCpp().meanContactZ_()
+
+    @property
+    def meanS(self):
+        return self.toCpp().meanS_()
+
+    @property
+    def Phi4(self):
+        return self.toCpp().absPhi_(4)
+
+    @property
+    def Phi6(self):
+        return self.toCpp().absPhi_(6)
+
+    @property
+    def finalStepSize(self):
+        """
+        with self.toCpp() as cs:
+            try:
+                return cs.bestStepSize(10.0)
+            except:
+                return np.nan
+        """
