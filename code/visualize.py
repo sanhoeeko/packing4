@@ -7,7 +7,7 @@ import pandas as pd
 
 import src.art as art
 import src.utils as ut
-from analysis import InteractiveViewer, RenderPipe, CurveManager, AngleDist
+from analysis import InteractiveViewer, RenderPipe, CurveManager, Distribution
 from src.myio import DataSet
 from src.render import StateRenderer
 from src.state import State
@@ -100,7 +100,8 @@ class DataViewer:
 
     def initDensityCurveTemplates(self):
         for prop in ['energy', 'logE', 'residualForce', 'globalS', 'globalSx', 'meanS',
-                     'meanDistance', 'meanZ', 'finalStepSize', 'entropyOfAngle']:
+                     'meanDistance', 'meanZ', 'finalStepSize', 'entropyOfAngle',
+                     'Phi4', 'Phi6']:
             setattr(self, prop, self.curveVsDensityTemplate(prop))
 
     def allTemplate(self, flag: str):
@@ -134,8 +135,11 @@ class DataViewer:
         energy_threshold = float(energy_threshold)
         return self.name(Id).critical(energy_threshold)
 
-    def angleDist(self, Id: str) -> AngleDist:
-        return AngleDist(self.name(Id).angleDistribution())
+    def angleDist(self, Id: str) -> Distribution:
+        return Distribution(self.name(Id).angleDistribution())
+
+    def SiDist(self, Id: str) -> Distribution:
+        return Distribution(self.name(Id).SiDistribution())
 
     def desCurve(self, Id: str):
         curves = self.name(Id).descentCurves

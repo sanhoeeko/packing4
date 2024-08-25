@@ -188,8 +188,13 @@ class State:
     def Phi6(self):
         return self.toCpp().absPhi_(6)
 
+    @lru_cache(maxsize=None)
+    def SiDistribution(self):
+        return ut.KDE_distribution(self.toCpp().Si_())[1]
+
     @property
     def finalStepSize(self):
+        pass
         """
         with self.toCpp() as cs:
             try:

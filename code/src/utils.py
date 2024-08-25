@@ -145,10 +145,29 @@ def entropyOf(dist: np.ndarray) -> float:
 
 
 def KDE_distribution(data: np.ndarray) -> (np.ndarray, np.ndarray):
+    """
+    return: (xs: np.ndarray, distribution: np.ndarray)
+    """
     kde = gaussian_kde(data)
     x_grid = np.linspace(min(data), max(data), bins_of_distribution)
     p_x = kde.evaluate(x_grid)
     return x_grid, p_x
+
+
+def standard_error(matrix: np.ndarray, axis=0) -> np.ndarray:
+    # Calculate the standard deviation along axis 1, ignoring NaN values
+    std_dev = np.nanstd(matrix, axis=axis)
+    # Calculate the number of non-NaN values along axis 1
+    n = np.sum(~np.isnan(matrix), axis=axis)
+    # Calculate the standard error
+    std_error = std_dev / np.sqrt(n)
+    return std_error
+
+
+def sample_equal_stride(lst: list, n_samples: int) -> list:
+    stride = len(lst) // n_samples
+    start = len(lst) - n_samples * stride
+    return lst[start:][::stride]
 
 
 class CommandQueue:

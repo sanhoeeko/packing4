@@ -3,7 +3,7 @@
 #include "defs.h"
 #include "potential.h"
 
-typedef unsigned short particleId_t;
+typedef int particleId_t;
 const int neighbors = 32;
 
 struct SegmentDist {

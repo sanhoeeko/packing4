@@ -190,3 +190,6 @@ class DataSet:
 
     def angleDistribution(self):
         return np.array(ut.Map('Release')(lambda x: x.angleDistribution(), self.data)).T
+
+    def SiDistribution(self):
+        return np.array(ut.Map('Release')(lambda x: x.SiDistribution(), self.data)).T

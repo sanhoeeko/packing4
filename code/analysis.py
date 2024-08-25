@@ -9,16 +9,37 @@ from scipy.interpolate import CubicSpline
 import src.utils as ut
 from src.myio import DataSet
 from src.render import StateRenderer
+import src.art as art
 
 
-class AngleDist:
+class DistSlice:
+    def __init__(self, dist_array: np.ndarray):
+        self.data = dist_array
+
+    def __str__(self):
+        plt.plot(self.data)
+        plt.show()
+        return '<DistSlice object>'
+
+
+class Distribution:
     def __init__(self, mat: np.ndarray):
         self.data = mat
 
     def __str__(self):
+        lst = self.data.T.tolist()
+        art.plotListOfArray(ut.sample_equal_stride(lst, 20))
+        return '<Distribution object>'
+
+    def showAsImage(self):
         plt.imshow(self.data)
         plt.show()
-        return '<AngleDist object>'
+
+    def slice(self, index: int):
+        return DistSlice(self.data[:, index])
+
+    def final(self):
+        return self.slice(self.data.shape[1] - 1)
 
 
 class CurveManager:
@@ -29,11 +50,16 @@ class CurveManager:
         self._xs = None
         self._curves = None
         self.average_flags = None
+        self.std_curves = None
         self.x_label = None
         self.y_label = None
 
     def set_average_flags(self, flags: list[str]):
         self.average_flags = flags
+        return self
+
+    def set_std_curve(self, curves: list[np.ndarray]):
+        self.std_curves = curves
         return self
 
     @classmethod
@@ -68,33 +94,39 @@ class CurveManager:
             interpolated_data.append(new_y)
         return np.array(interpolated_data)
 
-    def _averageBy(self, merge_list: list[tuple[int]]) -> np.ndarray:
+    def _averageBy(self, merge_list: list[tuple[int]]) -> (np.ndarray, np.ndarray):
+        """
+        return: (average, standard error)
+        Note: standard_error = standard_deviation_of_(n-1) / sqrt(n)
+        """
         new_curves = []
-        std_vars = []
+        std_errs = []
         for merge in merge_list:
             curve_slice = np.array([self.curves[i] for i in merge])
             ave_curve = np.nanmean(curve_slice, axis=0)
-            diff = curve_slice - ave_curve.reshape(1, -1)
-            std = np.linalg.norm(np.nan_to_num(diff)) / np.sqrt(np.sum(~np.isnan(diff)))
+            std_curve = ut.standard_error(curve_slice, axis=0)
             new_curves.append(ave_curve)
-            std_vars.append(std)
-        print(f'Estimated standard deviation: {np.mean(std_vars)}')
-        return np.array(new_curves)
+            std_errs.append(std_curve)
+        return np.array(new_curves), np.array(std_errs)
 
     def average(self, props: str) -> 'CurveManager':
         # 'props' should be interpreted as a list[str]
         props = list(map(lambda x: x.strip(' '), props[1:-1].split(',')))
+        ave, std = self._averageBy(ut.indicesOfTheSame(self.abstract, props))
         return CurveManager.derived(
-            ut.groupAndMergeRows(self.abstract, props),
-            self.xs,
-            self._averageBy(ut.indicesOfTheSame(self.abstract, props))
-        ).set_average_flags(props)
+            ut.groupAndMergeRows(self.abstract, props), self.xs, ave
+        ).set_average_flags(props).set_std_curve(std)
 
     def __str__(self):
         cmap_s = 'cool'
         cmap = plt.get_cmap(cmap_s)
         colors = cmap(np.linspace(0, 1, len(self.curves)))
-        for curve, color in zip(self.curves, colors):
+        for i in range(len(self.curves)):
+            curve = self.curves[i]
+            color = colors[i]
+            if self.std_curves is not None:
+                std = self.std_curves[i]
+                plt.fill_between(self.xs, curve - std, curve + std, color=color, alpha=0.2)
             plt.plot(self.xs, curve, color=color)
         if self.average_flags is not None and len(self.average_flags) == 1:
             flag = self.average_flags[0]

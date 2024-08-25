@@ -2,7 +2,7 @@ import numpy as np
 
 from src.kernel import ker
 from src.state import State
-
+import src.utils as ut
 
 class StateLoader(State):
     def __init__(self, state: State):
@@ -28,3 +28,6 @@ class StateLoader(State):
 
     def absPhi_(self, p: int):
         return ker.absPhi(self.data_ptr, self.gamma, p)
+
+    def Si_(self):
+        return ker.Si(self.data_ptr, self.N, self.gamma)

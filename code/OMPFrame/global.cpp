@@ -179,6 +179,19 @@ float absPhi(void* state_ptr, float gamma, int p)
     return std::abs(s->orderPhi_ave(gamma, p));
 }
 
+float* Si(void* state_ptr, float gamma)
+{
+    static float* res = NULL;
+    State* s = reinterpret_cast<State*>(state_ptr);
+    if (res) {
+        delete[] res; res = NULL;
+    }
+    res = new float[s->N];
+    VectorXf si = s->orderS(gamma);
+    memcpy(res, si.data(), s->N * sizeof(float));
+    return res;
+}
+
 void* getStateMaxGradOrEnergy(void* state_ptr)
 {
     State* s = reinterpret_cast<State*>(state_ptr);

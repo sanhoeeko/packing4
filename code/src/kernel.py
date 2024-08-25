@@ -83,6 +83,8 @@ class Kernel:
         self.dll.meanS.restype = ct.c_float
         self.dll.absPhi.argtypes = [ct.c_void_p, ct.c_float, ct.c_int]
         self.dll.absPhi.restype = ct.c_float
+        self.dll.Si.argtypes = [ct.c_void_p, ct.c_float]
+        self.dll.Si.restype = ct.c_void_p
 
     def returnFixedArray(self, dll_function, length):
         dll_function.restype = ct.POINTER(ct.c_float)
@@ -256,6 +258,9 @@ class Kernel:
 
     def absPhi(self, address, gamma: float, p: int):
         return self.dll.absPhi(address, gamma, p)
+
+    def Si(self, address, N: int, gamma: float):
+        return self.returnFixedArray(self.dll.Si, N)(address, gamma)
 
 
 ker = Kernel()
