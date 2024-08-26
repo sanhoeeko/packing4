@@ -51,9 +51,11 @@ def lineSearch1dTest(state, max_stepsize, n_samples):
     fitted_func = np.poly1d(np.polyfit(xs, ys, deg=3))
     y_pred = np.vectorize(fitted_func)(xs)
 
+    plt.rcParams.update({'font.size': '18'})
     plt.scatter(xs, ys, marker='.')
     plt.plot(xs, y_pred, c='orange')
     plt.axvline(x=best_ss, color='red')
+    plt.legend(['energy landscape', 'cubic fit', 'predictive minimum'])
     plt.show()
 
 
@@ -89,6 +91,7 @@ def lineSearch1dTestLbfgs(state, max_stepsize, n_samples):
 # Hertzian example: qxpp
 # Screened Coulomb example: 356v
 
-dataset = DataSet.loadFrom('data0/45cn.h5')
-state = dataset.critical(0.001)
-lineSearch1dTestLbfgs(state, 10, 400)
+# dataset = DataSet.loadFrom('unused/data_old/hertz.h5')
+dataset = DataSet.loadFrom('data_g2/EXECg1_2/8t0n54751.h5')
+state = dataset.critical(10000)
+lineSearch1dTest(state, 1, 400)

@@ -29,6 +29,13 @@ State* Global::newState(int N)
     return states[id];
 }
 
+void Global::checkPowerOfPotential()
+{
+    if (this->pf == GeneralizedHertzian && this->power_of_potential == 0) {
+        throw "Power of potential not set!";
+    }
+}
+
 void runTest()
 {
     float q = 1 - 1e-3;

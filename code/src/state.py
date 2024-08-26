@@ -155,11 +155,11 @@ class State:
 
     @lru_cache(maxsize=None)
     def angleDistribution(self):
-        return ut.KDE_distribution(self.t)[1]
+        return ut.KDE_distribution(self.t, (0, np.pi))[1]
 
     @property
     def entropyOfAngle(self) -> float:
-        x, p = ut.KDE_distribution(self.t)
+        x, p = ut.KDE_distribution(self.t, (0, np.pi))
         return ut.entropyOf(p) * (x[1] - x[0])
 
     # analysis with cpp
@@ -190,7 +190,7 @@ class State:
 
     @lru_cache(maxsize=None)
     def SiDistribution(self):
-        return ut.KDE_distribution(self.toCpp().Si_())[1]
+        return ut.KDE_distribution(self.toCpp().Si_(), (0, 1))[1]
 
     @property
     def finalStepSize(self):

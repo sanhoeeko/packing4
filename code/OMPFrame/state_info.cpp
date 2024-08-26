@@ -75,9 +75,6 @@ VectorXcf State::orderPhi(float gamma, int p)
 	xyt* q = (xyt*)configuration.data();
 	VectorXcf Phi = VectorXcf::Zero(N);
 	for (int i = 0; i < N; i++) {
-		if (graph->z[i] == 0) {
-			Phi[i] = 0; continue;
-		}
 		complex<float> phi = 0;
 		for (int k = 0; k < graph->z[i]; k++) {
 			int j = graph->data[i][k];
@@ -103,9 +100,6 @@ VectorXf State::orderS(float gamma)
 	xyt* q = (xyt*)configuration.data();
 	VectorXf S = VectorXf::Zero(N);
 	for (int i = 0; i < N; i++) {
-		if (graph->z[i] == 0) {
-			S[i] = 0; continue;
-		}
 		float s = sin(2 * q[i].t);
 		float c = cos(2 * q[i].t);
 		for (int k = 0; k < graph->z[i]; k++) {
@@ -113,7 +107,7 @@ VectorXf State::orderS(float gamma)
 			s += sin(2 * q[j].t);
 			c += cos(2 * q[j].t);
 		}
-		float Si = sqrt(s * s + c * c) / (2 * (1 + graph->z[i]));
+		float Si = sqrt(s * s + c * c) / (1 + graph->z[i]);
 		S[i] = Si;
 	}
 	return S;

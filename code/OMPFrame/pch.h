@@ -21,6 +21,8 @@
 // simulation
 DLLEXPORT void init();
 DLLEXPORT void setEnums(int potential_func);
+DLLEXPORT void setPotentialPower(float power);
+DLLEXPORT void declareRod(int n, float d);
 DLLEXPORT void setRod(int n, float d, int threads);
 DLLEXPORT void* createState(int N, float boundary_a, float boundary_b);
 DLLEXPORT void initStateAsDisks(void* state_ptr);

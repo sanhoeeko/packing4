@@ -144,14 +144,23 @@ def entropyOf(dist: np.ndarray) -> float:
     return -np.dot(dist, safe_log(dist))
 
 
-def KDE_distribution(data: np.ndarray) -> (np.ndarray, np.ndarray):
+def KDE_distribution(data: np.ndarray, interval: (float, float)) -> (np.ndarray, np.ndarray):
     """
     return: (xs: np.ndarray, distribution: np.ndarray)
     """
-    kde = gaussian_kde(data)
-    x_grid = np.linspace(min(data), max(data), bins_of_distribution)
+    length = interval[1] - interval[0]
+    kde = gaussian_kde(data, bw_method=length / bins_of_distribution * 4)
+    x_grid = np.linspace(*interval, bins_of_distribution)
     p_x = kde.evaluate(x_grid)
     return x_grid, p_x
+
+
+def BIN_distribution(data: np.ndarray) -> (np.ndarray, np.ndarray):
+    """
+    return: (xs: np.ndarray, distribution: np.ndarray)
+    """
+    p_x, x_grid = np.histogram(data, bins=bins_of_distribution)
+    return x_grid[:-1], p_x
 
 
 def standard_error(matrix: np.ndarray, axis=0) -> np.ndarray:

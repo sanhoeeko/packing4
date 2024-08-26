@@ -56,10 +56,22 @@ struct LookupFunc
 {
     b* data;
 
+    LookupFunc() { ; }
+    ~LookupFunc() {
+        // never deconstruct
+    }
     LookupFunc(b func(const a&), vector<a>& inputs) {
         data = (b*)malloc(capacity * sizeof(b));
         int n = inputs.size();
-
+    #pragma omp parallel for num_threads(CORES)
+        for (int i = 0; i < n; i++)
+        {
+            data[i] = func(inputs[i]);
+        }
+    }
+    LookupFunc(std::function<b(const a&)> func, vector<a>& inputs) {
+        data = (b*)malloc(capacity * sizeof(b));
+        int n = inputs.size();
     #pragma omp parallel for num_threads(CORES)
         for (int i = 0; i < n; i++)
         {

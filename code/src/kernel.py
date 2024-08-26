@@ -33,6 +33,8 @@ class Kernel:
         self.dll = ct.cdll.LoadLibrary(dll_path)
         self.dll.init()
         self.dll.setEnums.argtypes = [ct.c_int]
+        self.dll.setPotentialPower.argtypes = [ct.c_float]
+        self.dll.declareRod.argtypes = [ct.c_int, ct.c_float]
         self.dll.setRod.argtypes = [ct.c_int, ct.c_float, ct.c_int]
         self.dll.setBoundary.argtypes = [ct.c_void_p, ct.c_float, ct.c_float]
         self.dll.loadState.argtypes = [ct.c_void_p, ct.c_int, ct.c_float, ct.c_float]
@@ -135,12 +137,18 @@ class Kernel:
 
     def setEnums(self, potential_func):
         """
-        PotentialFunc: Hertzian=0, ScreenCoulomb=1
+        PotentialFunc: Hertzian=0, ScreenCoulomb=1, GeneralizedHertzian=2
         """
         return self.dll.setEnums(potential_func)
 
+    def setPotentialPower(self, power: float):
+        return self.dll.setPotentialPower(power)
+
     def setBoundary(self, address, a, b):
         return self.dll.setBoundary(address, a, b)
+
+    def declareRod(self, n, d):
+        self.dll.declareRod(n, d)
 
     def setRod(self, n, d, n_threads=4, save=True):
         if not save:

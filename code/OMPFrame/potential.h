@@ -4,8 +4,6 @@
 #include"functional.h"
 #include"scalar.h"
 
-const int sz1d = 1ll << 20;
-
 /*
     The range of (x,y,t): x = X/(2a) in [0,1), y = Y/(a+b) in [0,1), t = Theta/pi in [0,1)
     if szx == szy == szz, the maximal szx is 1024 for the sake of int.

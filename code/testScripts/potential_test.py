@@ -43,7 +43,7 @@ if __name__ == '__main__':
     d = 0.05
     a = 1
     b = 1 / (1 + (n - 1) * d / 2)
-    ker.setEnums(1)
+    ker.setEnums(0)
     ker.setRod(n, d)
     x = np.arange(-2 * a, 2 * a, 0.01)
     y = np.arange(-a - b, a + b, 0.01)

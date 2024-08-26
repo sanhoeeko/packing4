@@ -12,11 +12,26 @@ void setGlobal()
 {
     global = new Global();
     global->pf = PotentialFunc(-1);
+    global->power_of_potential = 0;
 }
 
 void setEnums(int potential_func)
 {
     global->pf = (PotentialFunc)potential_func;
+}
+
+void setPotentialPower(float power)
+{
+    if (power != global->power_of_potential) {
+        // generate scalar function look-up table
+        ghz = Fg_HertzianSq(power);
+        ghz_dr = Fg_HertzianSqDR(power);
+    }
+    global->power_of_potential = power;
+}
+
+void declareRod(int n, float d) {
+    global->rod = new Rod(n, d);
 }
 
 void setRod(int n, float d, int threads)
@@ -27,8 +42,9 @@ void setRod(int n, float d, int threads)
         &Rod::initPotential<ScreenedCoulomb>,
     };
 
-    global->rod = new Rod(n, d);
-    (global->rod->*funcs[global->pf])(threads);
+    declareRod(n, d);
+    global->checkPowerOfPotential();             // crash if the power of potential is undefined
+    (global->rod->*funcs[global->pf])(threads);  // initPotential: calculate the potential table
 }
 
 void* createState(int N, float boundary_a, float boundary_b)
@@ -264,9 +280,10 @@ float interpolatePotential(float x, float y, float t)
 float precisePotential(float x, float y, float t)
 {
     typedef float (Rod::* Func)(const xyt&);
-    static Func funcs[2] = {
+    static Func funcs[PotentialFunc_Count] = {
         &Rod::StandardPotential<Hertzian>,
-        &Rod::StandardPotential<ScreenedCoulomb>
+        &Rod::StandardPotential<ScreenedCoulomb>,
+        &Rod::StandardPotential<GeneralizedHertzian>
     };
 
     return (global->rod->*funcs[global->pf])({
@@ -294,9 +311,10 @@ float* gradientReference(float x, float y, float t1, float t2)
 {
     // note: this function is single threaded
     typedef XytPair(Rod::* Func)(float, float, float, float);
-    static Func funcs[2] = {
+    static Func funcs[PotentialFunc_Count] = {
         &Rod::StandardGradient<Hertzian>,
         &Rod::StandardGradient<ScreenedCoulomb>,
+        &Rod::StandardGradient<GeneralizedHertzian>
     };
     static float arr[2 * dof];
     XytPair g = (global->rod->*funcs[global->pf])(x, y, t1, t2);
