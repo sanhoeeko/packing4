@@ -31,3 +31,6 @@ class StateLoader(State):
 
     def Si_(self):
         return ker.Si(self.data_ptr, self.N, self.gamma)
+
+    def neighborAngleDist_(self, bins: int):
+        return ker.neighborAngleDist(self.data_ptr, self.gamma, bins)

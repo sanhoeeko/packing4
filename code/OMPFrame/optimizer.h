@@ -110,7 +110,7 @@ inline float State::equilibrium(int max_iterations, float min_energy_slope)
         }
         float gm = Modify(g);
         // gradient criterion
-        if (gm < 1e-1) break;
+        if (gm < 1e-2) break;
 
         // calculate the step size
         if constexpr (enable_line_search) {

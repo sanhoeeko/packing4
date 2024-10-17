@@ -34,6 +34,9 @@ class DataSet:
                 for key, value in self.metadata.items():
                     f.attrs[key] = value
 
+    def __len__(self):
+        return self.length
+
     def __getattr__(self, name):
         """
         If getattr requires a non-exist attribute of this, try to find it in the metadata
@@ -41,7 +44,7 @@ class DataSet:
         if name in self.metadata:
             return self.metadata[name]
         else:
-            raise AttributeError
+            return None
 
     @property
     def id(self):
@@ -193,3 +196,6 @@ class DataSet:
 
     def SiDistribution(self):
         return np.array(ut.Map('Release')(lambda x: x.SiDistribution(), self.data)).T
+
+    def neighborAngleDist(self):
+        return np.array(ut.Map('Debug')(lambda x: x.neighborAngleDist, self.data)).T

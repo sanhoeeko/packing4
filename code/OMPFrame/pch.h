@@ -39,14 +39,13 @@ DLLEXPORT int getStateIterations(void* state_ptr);
 DLLEXPORT void* getStateMaxGradOrEnergy(void* state_ptr);
 DLLEXPORT void* getStateResidualForce(void* state_ptr);
 DLLEXPORT float getStateMaxResidualForce(void* state_ptr);
-DLLEXPORT float meanDistance(void* state_ptr, float gamma);
-DLLEXPORT float meanContactZ(void* state_ptr, float gamma);
 DLLEXPORT int getSiblingId(void* state_ptr);
 
 // load data
 DLLEXPORT void setStateData(void* state_ptr, void* data_src);
 DLLEXPORT void* loadState(void* data_src, int N, float boundary_a, float boundary_b);
 DLLEXPORT void freeState(void* state_ptr);
+DLLEXPORT void renewState(void* state_ptr);
 
 // built-in IO
 DLLEXPORT void readPotential(int n, float d);
@@ -57,9 +56,12 @@ DLLEXPORT int getPotentialId();
 DLLEXPORT float* landscapeAlongGradient(void* state_ptr, float max_stepsize, int samples);
 DLLEXPORT float* landscapeLBFGS(void* state_ptr, float max_stepsize, int samples);
 DLLEXPORT float* landscapeOnGradientSections(void* state_ptr, float max_stepsize, int samples);
+DLLEXPORT float meanDistance(void* state_ptr, float gamma);
+DLLEXPORT float meanContactZ(void* state_ptr, float gamma);
 DLLEXPORT float meanS(void* state_ptr, float gamma);
 DLLEXPORT float absPhi(void* state_ptr, float gamma, int p);
 DLLEXPORT float* Si(void* state_ptr, float gamma);
+DLLEXPORT float* neighborAngleDist(void* state_ptr, float gamma, int bins);
 
 // test of algorithms
 DLLEXPORT float fastPotential(float x, float y, float t);

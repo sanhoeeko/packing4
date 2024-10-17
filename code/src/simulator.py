@@ -81,11 +81,15 @@ class Simulator:
         return self.N / (np.pi * self.A * self.B)
 
     def initPotential(self, workers: int, save_data=True):
+        potential_str = self.potential_name.split(':')[0]
         potential_id = {
             "Hertzian": 0,
             "ScreenedCoulomb": 1,
-        }[self.potential_name]
+            "Power": 2,
+        }[potential_str]
         ker.setEnums(potential_id)
+        if potential_str == "Power":
+            ker.setPotentialPower(float(self.potential_name.split(':')[1]))
         return ker.setRod(self.n, self.d, workers, save_data)
 
     def get(self, record=True):

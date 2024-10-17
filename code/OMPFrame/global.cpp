@@ -37,9 +37,10 @@ void declareRod(int n, float d) {
 void setRod(int n, float d, int threads)
 {
     typedef void (Rod::*Func)(int);
-    static Func funcs[2] = {
+    static Func funcs[PotentialFunc::PotentialFunc_Count] = {
         &Rod::initPotential<Hertzian>,
         &Rod::initPotential<ScreenedCoulomb>,
+        &Rod::initPotential<Power>
     };
 
     declareRod(n, d);
@@ -128,6 +129,12 @@ void freeState(void* state_ptr)
     global->states.free(reinterpret_cast<State*>(state_ptr));
 }
 
+void renewState(void* state_ptr)
+{
+    State* s = reinterpret_cast<State*>(state_ptr);
+    s->randomInitStateCC();
+}
+
 void readPotential(int n, float d)
 {
     global->rod = new Rod(n, d);
@@ -208,6 +215,19 @@ float* Si(void* state_ptr, float gamma)
     return res;
 }
 
+float* neighborAngleDist(void* state_ptr, float gamma, int bins)
+{
+    static float* res = NULL;
+    State* s = reinterpret_cast<State*>(state_ptr);
+    if (res) {
+        delete[] res; res = NULL;
+    }
+    res = new float[bins];
+    VectorXf hist = s->neighborAngleDist(gamma, bins);  // can return but cause segment fault?
+    memcpy(res, hist.data(), bins * sizeof(float));
+    return res;
+}
+
 void* getStateMaxGradOrEnergy(void* state_ptr)
 {
     State* s = reinterpret_cast<State*>(state_ptr);
@@ -283,7 +303,7 @@ float precisePotential(float x, float y, float t)
     static Func funcs[PotentialFunc_Count] = {
         &Rod::StandardPotential<Hertzian>,
         &Rod::StandardPotential<ScreenedCoulomb>,
-        &Rod::StandardPotential<GeneralizedHertzian>
+        &Rod::StandardPotential<Power>
     };
 
     return (global->rod->*funcs[global->pf])({
@@ -314,7 +334,7 @@ float* gradientReference(float x, float y, float t1, float t2)
     static Func funcs[PotentialFunc_Count] = {
         &Rod::StandardGradient<Hertzian>,
         &Rod::StandardGradient<ScreenedCoulomb>,
-        &Rod::StandardGradient<GeneralizedHertzian>
+        &Rod::StandardGradient<Power>
     };
     static float arr[2 * dof];
     XytPair g = (global->rod->*funcs[global->pf])(x, y, t1, t2);

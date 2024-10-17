@@ -19,7 +19,7 @@ from src.state import State
 
 class DataViewer:
     def __init__(self, datasets: list[DataSet]):
-        self.datasets = datasets
+        self.datasets = list(filter(lambda x: len(x) > 0, datasets))
         self.initDensityCurveTemplates()
         self.sort()
 
@@ -140,6 +140,9 @@ class DataViewer:
 
     def SiDist(self, Id: str) -> Distribution:
         return Distribution(self.name(Id).SiDistribution())
+
+    def neighborAngleDist(self, Id: str) -> Distribution:
+        return Distribution(self.name(Id).neighborAngleDist())
 
     def desCurve(self, Id: str):
         curves = self.name(Id).descentCurves

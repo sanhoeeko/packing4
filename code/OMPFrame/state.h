@@ -61,6 +61,7 @@ struct State{
     complex<float> orderPhi_ave(float gamma, int p);
     VectorXf orderS(float gamma);
     float orderS_ave(float gamma);
+    VectorXf neighborAngleDist(float gamma, int bins);
 
     VectorXf LbfgsDirection(int iterations);
     template<HowToCalGradient how> VectorXf CalGradient();

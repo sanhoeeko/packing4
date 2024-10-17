@@ -52,6 +52,7 @@ void State::randomInitStateCC()
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_real_distribution<float> dist(0.0, 1.0);  
+	clearCache();
 
 	float a = boundary->a - 1;
 	float b = boundary->b - 1;

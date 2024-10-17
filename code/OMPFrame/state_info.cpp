@@ -117,3 +117,24 @@ float State::orderS_ave(float gamma)
 {
 	return orderS(gamma).mean();
 }
+
+VectorXf State::neighborAngleDist(float gamma, int bins)
+{
+	cout << "ckpt 1" << endl;
+	Graph<neighbors>* graph = voronoiGraph(gamma);
+	cout << "ckpt 2" << endl;
+	VectorXi res = VectorXi::Zero(bins);
+	xyt* q = (xyt*)configuration.data();
+	float eps_inv = 1.0 / (pi / 2 / bins);
+
+	for (int i = 0; i < N; i++) {
+		for (int k = 0; k < graph->z[i]; k++) {
+			int j = graph->data[i][k];
+			float d_angle = q[i].t - q[j].t;
+			int idx = (int)floor(d_angle * eps_inv) % bins;
+			res[idx]++;
+		}
+	}
+	cout << "ckpt 3" << endl;
+	return res.cast<float>() / N;
+}

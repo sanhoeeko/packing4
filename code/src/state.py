@@ -188,6 +188,18 @@ class State:
     def Phi6(self):
         return self.toCpp().absPhi_(6)
 
+    @property
+    def neighborAngleDist(self):
+        # return self.toCpp().neighborAngleDist_(180)
+        graph = self.voronoiDiagram(3)
+        lst = []
+        for i in range(self.N):
+            for j in graph.lst[i]:
+                if i < j:
+                    lst.append((self.t[i] - self.t[j]) % (np.pi / 2))
+        graph.free_memory()
+        return np.histogram(lst, bins=180)[0]
+
     @lru_cache(maxsize=None)
     def SiDistribution(self):
         return ut.KDE_distribution(self.toCpp().Si_(), (0, 1))[1]

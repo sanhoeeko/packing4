@@ -16,7 +16,7 @@ float modpi(float x)
 template<int capacity>
 static inline int hashFloat2Pi(const float& x) {
     /*
-        using bitwise and for fast modulo. 
+        using "bitwise and" for fast modulo. 
         require: `capacity` is a power of 2.
     */
     const float a = capacity / (2 * pi);

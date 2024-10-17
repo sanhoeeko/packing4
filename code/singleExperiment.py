@@ -57,7 +57,7 @@ def detectMemoryLeak():
     q = 1 - 1e-3
     state = simu.Simulator._fromCircDensity(
         1000, 6, 0.05, 0.5, 1.0,
-        'Hertzian', 'data'
+        'Power:3.5', 'data'
     )
     state.initAsDisks()
     state.setBoundaryScheduler(simu.BoundaryScheduler.constant, lambda n, x: x * q ** n)

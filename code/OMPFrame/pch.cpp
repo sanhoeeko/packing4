@@ -31,7 +31,7 @@ State* Global::newState(int N)
 
 void Global::checkPowerOfPotential()
 {
-    if (this->pf == GeneralizedHertzian && this->power_of_potential == 0) {
+    if (this->pf == PotentialFunc::Power && this->power_of_potential == 0) {
         throw "Power of potential not set!";
     }
 }
@@ -40,7 +40,8 @@ void runTest()
 {
     float q = 1 - 1e-3;
     init();
-    setEnums(PotentialFunc::ScreenedCoulomb);
+    setEnums(PotentialFunc::Power);
+    setPotentialPower(3.5);
     setRod(6, 0.05, 4);
     State* state = (State*)createState(200, 20, 20);
     initStateAsDisks(state);

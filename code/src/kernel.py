@@ -87,6 +87,8 @@ class Kernel:
         self.dll.absPhi.restype = ct.c_float
         self.dll.Si.argtypes = [ct.c_void_p, ct.c_float]
         self.dll.Si.restype = ct.c_void_p
+        self.dll.neighborAngleDist.argtypes = [ct.c_void_p, ct.c_float, ct.c_int]
+        self.dll.neighborAngleDist.restype = ct.c_void_p
 
     def returnFixedArray(self, dll_function, length):
         dll_function.restype = ct.POINTER(ct.c_float)
@@ -269,6 +271,9 @@ class Kernel:
 
     def Si(self, address, N: int, gamma: float):
         return self.returnFixedArray(self.dll.Si, N)(address, gamma)
+
+    def neighborAngleDist(self, address, gamma: float, bins: int):
+        return self.returnFixedArray(self.dll.neighborAngleDist, bins)(address, gamma, bins)
 
 
 ker = Kernel()

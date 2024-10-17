@@ -38,8 +38,8 @@ def sub_generate_d(gamma, d):
         "d": d,
         "phi0": 0.5,
         "potential_name": "'Hertzian'",
-        "Gammas": "[1.0, 1.0, 1.0, 1.0]",
-        "SIBLINGS": 4
+        "Gammas": "[1.0]*5",
+        "SIBLINGS": 5
     }
 
 

@@ -7,7 +7,7 @@
 
 typedef float (State::* EquilibriumMethod)(int);
 
-const int simulators = 2 * CORES;
+const int simulators = 200;
 
 struct Global {
     ObjectPool<State, simulators> states;

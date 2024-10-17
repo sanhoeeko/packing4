@@ -21,9 +21,8 @@ class RandomStringGenerator:
         self.lock = threading.Lock()
 
     def generate(self):
-        pid_str = str(os.getpid())
         with self.lock:
-            return ''.join(random.choices(string.ascii_lowercase + string.digits, k=4)) + pid_str
+            return ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
 
 
 _random_string_generator = RandomStringGenerator()

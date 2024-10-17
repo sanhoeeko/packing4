@@ -116,13 +116,13 @@ float potentialDR<ScreenedCoulomb>(float x2) {
 }
 
 template<>
-float scalarPotential<GeneralizedHertzian>(float x2) {
+float scalarPotential<Power>(float x2) {
     if (x2 >= 4)return 0;
     return ghz(x2);
 }
 
 template<>
-float potentialDR<GeneralizedHertzian>(float x2) {
+float potentialDR<Power>(float x2) {
     static auto f = Fg_HertzianSqDR(global->power_of_potential);
     if (x2 >= 4)return 0;
     return ghz_dr(x2);
